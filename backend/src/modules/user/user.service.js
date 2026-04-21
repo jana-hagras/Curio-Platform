@@ -3,9 +3,9 @@ import bcrypt from "bcrypt";
 
 const SALT_ROUNDS = 10;
 
-// ───────────────────────────────
+
 // VALIDATION HELPERS
-// ───────────────────────────────
+
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[\d\s\-()]{11}$/;

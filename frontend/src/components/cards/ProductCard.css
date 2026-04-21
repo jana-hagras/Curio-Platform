@@ -1,0 +1,132 @@
+.product-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  border: 1px solid transparent;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold-lighter);
+}
+
+.product-card-image-link {
+  display: block;
+  text-decoration: none;
+}
+
+.product-card-image {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: var(--sand-light);
+}
+
+.product-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.product-card:hover .product-card-image img {
+  transform: scale(1.05);
+}
+
+.product-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: var(--sand-dark);
+}
+
+.product-card-category {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--navy-deep);
+  color: var(--gold-light);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.product-card-body {
+  padding: 16px;
+}
+
+.product-card-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  display: block;
+  margin-bottom: 6px;
+  transition: color var(--transition-fast);
+}
+
+.product-card-title:hover {
+  color: var(--gold-primary);
+}
+
+.product-card-artisan {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.product-card-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.product-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.product-card-price {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold-dark);
+}
+
+.product-card-cart-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  background: var(--gold-gradient);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-gold);
+}
+
+.product-card-cart-btn:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-gold-lg);
+}
+
+.product-card-sold {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--error);
+}

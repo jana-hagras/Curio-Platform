@@ -1,0 +1,79 @@
+.artisan-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px 24px;
+  text-align: center;
+  text-decoration: none;
+  transition: all var(--transition-base);
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.artisan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--gold-lighter);
+}
+
+.artisan-card-avatar {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: var(--gold-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.artisan-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artisan-card-avatar span {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 2px;
+}
+
+.artisan-card-verified {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: var(--white);
+  border-radius: 50%;
+  color: var(--success);
+  font-size: 22px;
+}
+
+.artisan-card-name {
+  font-size: 18px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.artisan-card-bio {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.artisan-card-view {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold-primary);
+  transition: color var(--transition-fast);
+}
+
+.artisan-card:hover .artisan-card-view {
+  color: var(--gold-dark);
+}

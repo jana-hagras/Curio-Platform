@@ -1,0 +1,99 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: 2px solid transparent;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Sizes */
+.btn-sm { padding: 8px 16px; font-size: 13px; border-radius: var(--radius-sm); }
+.btn-md { padding: 12px 24px; font-size: 15px; }
+.btn-lg { padding: 16px 32px; font-size: 17px; border-radius: var(--radius-lg); }
+
+/* Primary - Gold Gradient */
+.btn-primary {
+  background: var(--gold-gradient);
+  color: var(--white);
+  box-shadow: var(--shadow-gold);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--gold-gradient-hover);
+  box-shadow: var(--shadow-gold-lg);
+  transform: translateY(-2px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Secondary - Navy Outline */
+.btn-secondary {
+  background: transparent;
+  color: var(--navy-deep);
+  border-color: var(--navy-deep);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--navy-deep);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+/* Outline Gold */
+.btn-outline {
+  background: transparent;
+  color: var(--gold-primary);
+  border-color: var(--gold-primary);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--gold-primary);
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+
+/* Danger */
+.btn-danger {
+  background: var(--error);
+  color: var(--white);
+}
+.btn-danger:hover:not(:disabled) {
+  background: #DC2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+}
+
+/* Ghost */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--sand-warm);
+  color: var(--text-primary);
+}
+
+/* Full width */
+.btn-full { width: 100%; }
+
+/* Spinner */
+.btn-spinner {
+  animation: spin 1s linear infinite;
+}
+
+.btn-icon {
+  font-size: 1.1em;
+}

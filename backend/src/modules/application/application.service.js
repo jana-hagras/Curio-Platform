@@ -20,9 +20,9 @@ const APP_QUERY = `
   LEFT JOIN user u ON a.Artisan_id = u.User_id
 `;
 
-// =============================
-// 🔍 SEARCH APPLICATIONS (NEW)
-// =============================
+
+// SEARCH APPLICATIONS 
+
 export const searchApplications = async (req, res, next) => {
   try {
     const value = req.query.value;

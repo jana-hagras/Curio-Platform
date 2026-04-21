@@ -1,0 +1,121 @@
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { FiMenu, FiX, FiShoppingCart, FiUser, FiLogOut, FiGrid, FiChevronDown } from 'react-icons/fi';
+import { useAuth } from '../../hooks/useAuth';
+import { useCart } from '../../hooks/useCart';
+import './Navbar.css';
+
+export default function Navbar() {
+  const { user, isAuthenticated, logout, isBuyer, isArtisan } = useAuth();
+  const { totalItems } = useCart();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const navLinks = [
+    { path: '/', label: 'Home' },
+    { path: '/marketplace', label: 'Marketplace' },
+    { path: '/artisans', label: 'Artisans' },
+    { path: '/requests', label: 'Requests' },
+  ];
+
+  const handleLogout = () => {
+    logout();
+    setDropdownOpen(false);
+    navigate('/');
+  };
+
+  return (
+    <nav className="navbar" id="main-navbar">
+      <div className="navbar-container container">
+        <Link to="/" className="navbar-logo" id="navbar-logo">
+          <img src="/public/assets/logo.png" alt="CURIO" className="navbar-logo-img" />
+          <span className="navbar-logo-text">CURIO</span>
+        </Link>
+
+        <div className={`navbar-links ${mobileOpen ? 'navbar-links-open' : ''}`}>
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`navbar-link ${location.pathname === link.path ? 'navbar-link-active' : ''}`}
+              onClick={() => setMobileOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="navbar-actions">
+          {isBuyer && (
+            <Link to="/cart" className="navbar-cart" id="navbar-cart">
+              <FiShoppingCart />
+              {totalItems > 0 && <span className="navbar-cart-badge">{totalItems}</span>}
+            </Link>
+          )}
+
+          {isAuthenticated ? (
+            <div className="navbar-user-menu">
+              <button
+                className="navbar-user-btn"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                id="navbar-user-btn"
+              >
+                <div className="navbar-avatar">
+                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                </div>
+                <span className="navbar-username">{user?.firstName}</span>
+                <FiChevronDown className={`navbar-chevron ${dropdownOpen ? 'navbar-chevron-open' : ''}`} />
+              </button>
+
+              {dropdownOpen && (
+                <>
+                  <div className="navbar-dropdown-overlay" onClick={() => setDropdownOpen(false)} />
+                  <div className="navbar-dropdown" id="navbar-dropdown">
+                    <div className="navbar-dropdown-header">
+                      <p className="navbar-dropdown-name">{user?.firstName} {user?.lastName}</p>
+                      <p className="navbar-dropdown-type">{user?.type}</p>
+                    </div>
+                    <div className="navbar-dropdown-divider" />
+                    <Link
+                      to="/dashboard"
+                      className="navbar-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <FiGrid /> Dashboard
+                    </Link>
+                    <Link
+                      to="/dashboard/profile"
+                      className="navbar-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <FiUser /> Profile
+                    </Link>
+                    <div className="navbar-dropdown-divider" />
+                    <button className="navbar-dropdown-item navbar-dropdown-logout" onClick={handleLogout}>
+                      <FiLogOut /> Logout
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="navbar-auth-btns">
+              <Link to="/login" className="navbar-login-btn" id="navbar-login">Sign In</Link>
+              <Link to="/register" className="navbar-register-btn" id="navbar-register">Sign Up</Link>
+            </div>
+          )}
+
+          <button
+            className="navbar-mobile-toggle"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <FiX /> : <FiMenu />}
+          </button>
+        </div>
+      </div>
+    </nav>
+  );
+}

@@ -167,7 +167,7 @@ if (paymentMethod && !allowedMethods.includes(paymentMethod)) {
 }
 
     // ✅ only allow Completed
-    if (status && status !== "Completed".toLowerCase()) {
+    if (status && status.toLowerCase() != "completed") {
       return res.status(400).json({
         ok: false,
         message: "Wrong status. Only 'Completed' is allowed."
