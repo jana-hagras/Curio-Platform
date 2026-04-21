@@ -147,6 +147,7 @@ const createAllTables = async (conn) => {
     console.log("All tables created/verified successfully ✅");
 };
 
+
 // Initialize database at startup
 export const initDatabase = async () => {
     // 1. Create DB with a temp connection (pool can't connect to a DB that doesn't exist yet)
@@ -166,9 +167,6 @@ export const initDatabase = async () => {
     try {
         await createAllTables(conn);
 
-        //await conn.query(`
-        //  ALTER TABLE user 
-        //ADD COLUMN IF NOT EXISTS Age INT
 
     } finally {
         conn.release();

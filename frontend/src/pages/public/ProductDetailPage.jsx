@@ -66,7 +66,7 @@ export default function ProductDetailPage() {
       <div className="container">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, marginBottom: 48 }}>
           <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--sand-warm)' }}>
-            {product.image ? <img src={product.image} alt={product.item} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FiPackage style={{ fontSize: 80, color: 'var(--sand-dark)' }} />}
+            {product.image ? <img src={product.image} alt={product.item} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80'; }} /> : <FiPackage style={{ fontSize: 80, color: 'var(--sand-dark)' }} />}
           </div>
           <div>
             {product.category && <Badge status="Active">{product.category}</Badge>}

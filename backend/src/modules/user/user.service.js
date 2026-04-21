@@ -121,8 +121,12 @@ const validateUpdate = ({ fName, mName, lName, phone, address, profileImage, cou
     if (address.trim().length > 255) errors.push("Address must not exceed 255 characters.");
   }
 
-  if (profileImage !== undefined && profileImage !== null && profileImage.trim() !== "" && !URL_RE.test(profileImage.trim()))
-    errors.push("Profile image must be a valid URL (http:// or https://).");
+  if (profileImage !== undefined && profileImage !== null && profileImage.trim() !== "") {
+    const trimmed = profileImage.trim();
+    if (!URL_RE.test(trimmed) && !trimmed.startsWith('/')) {
+      errors.push("Profile image must be a valid URL (http:// or https://) or an absolute local path (/).");
+    }
+  }
 
   if (country !== undefined && country !== null && country.trim() !== "" && country.trim().length > 100)
     errors.push("Country must not exceed 100 characters.");

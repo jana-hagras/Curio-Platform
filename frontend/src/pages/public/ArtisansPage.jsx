@@ -25,7 +25,7 @@ export default function ArtisansPage() {
   return (
     <div>
       <div style={{ background: 'var(--navy-deep)', color: '#fff', padding: '48px 0', textAlign: 'center' }}>
-        <div className="container"><h1 style={{ fontSize: 40, marginBottom: 8 }}>Our Artisans</h1><p style={{ color: 'rgba(255,255,255,.6)', fontSize: 18 }}>Meet the talented craftspeople behind every creation</p></div>
+        <div className="container"><h1 style={{ fontSize: 40, marginBottom: 8, color: '#fff' }}>Our Artisans</h1><p style={{ color: 'rgba(255,255,255,.6)', fontSize: 18 }}>Meet the talented craftspeople behind every creation</p></div>
       </div>
       <div className="container" style={{ padding: '32px 24px' }}>
         <div style={{ marginBottom: 24 }}><SearchBar value={search} onChange={setSearch} placeholder="Search artisans..." /></div>

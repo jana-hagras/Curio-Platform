@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { marketItemService } from '../../services/marketItemService';
+import { uploadService } from '../../services/uploadService';
 import Input from '../../components/ui/Input';
 import TextArea from '../../components/ui/TextArea';
 import Select from '../../components/ui/Select';
@@ -14,13 +15,31 @@ export default function CreateProductPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ item: '', description: '', price: '', availQuantity: '', category: CATEGORIES[0], image: '' });
+  const [imageFile, setImageFile] = useState(null);
+
+  const handleImageFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.item || !form.price || !form.availQuantity) return toast.error('Fill required fields');
     setLoading(true);
     try {
-      await marketItemService.create({ ...form, artisan_id: user.id });
+      let finalImageUrl = form.image;
+      
+      if (imageFile) {
+        const uploadRes = await uploadService.uploadImage(imageFile);
+        if (uploadRes.ok && uploadRes.imageUrl) {
+          finalImageUrl = uploadRes.imageUrl;
+        } else {
+          throw new Error("Upload failed");
+        }
+      }
+
+      await marketItemService.create({ ...form, image: finalImageUrl, artisan_id: user.id });
       toast.success('Product listed!');
       navigate('/dashboard/products');
     } catch (err) { toast.error('Failed to create product'); }
@@ -38,7 +57,19 @@ export default function CreateProductPage() {
           <Input type="number" label="Price (USD) *" value={form.price} onChange={e => setForm({...form, price: e.target.value})} required />
           <Input type="number" label="Quantity *" value={form.availQuantity} onChange={e => setForm({...form, availQuantity: e.target.value})} required />
         </div>
-        <Input label="Image URL" value={form.image} onChange={e => setForm({...form, image: e.target.value})} />
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <label style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--gray-700)' }}>Product Image</label>
+          <input type="file" accept="image/*" onChange={handleImageFileChange} />
+          <p style={{ fontSize: '0.75rem', color: 'var(--gray-500)' }}>Or provide an image URL below (e.g. Unsplash URL)</p>
+          <Input placeholder="https://images.unsplash.com/photo-..." value={form.image} onChange={e => setForm({...form, image: e.target.value})} />
+          {(imageFile || form.image) && (
+             <div style={{ marginTop: 8 }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--green-600)', fontWeight: 600 }}>Image selected!</p>
+             </div>
+          )}
+        </div>
+
         <Button type="submit" loading={loading} size="lg">List Product</Button>
       </form>
     </div>

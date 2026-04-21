@@ -24,8 +24,8 @@
 }
 
 .navbar-logo-img {
-  width: 40px;
-  height: 40px;
+  width: 90px;
+  height: 90px;
   object-fit: contain;
 }
 
@@ -112,7 +112,8 @@
   gap: 10px;
 }
 
-.navbar-login-btn {
+.navbar-login-btn,
+.navbar-login-btn:visited {
   color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
   font-weight: 500;
@@ -122,12 +123,16 @@
   text-decoration: none;
 }
 
-.navbar-login-btn:hover {
+.navbar-login-btn:hover,
+.navbar-login-btn:focus,
+.navbar-login-btn:active {
   color: var(--white);
   background: rgba(255, 255, 255, 0.08);
+  outline: none;
 }
 
-.navbar-register-btn {
+.navbar-register-btn,
+.navbar-register-btn:visited {
   background: var(--gold-gradient);
   color: var(--white);
   font-size: 14px;
@@ -138,10 +143,13 @@
   text-decoration: none;
 }
 
-.navbar-register-btn:hover {
+.navbar-register-btn:hover,
+.navbar-register-btn:focus,
+.navbar-register-btn:active {
   box-shadow: var(--shadow-gold);
   transform: translateY(-1px);
   color: var(--white);
+  outline: none;
 }
 
 /* User menu */
@@ -268,10 +276,18 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .navbar-container { height: 64px; }
-  .navbar-mobile-toggle { display: flex; }
-  .navbar-username { display: none; }
-  .navbar-auth-btns .navbar-login-btn { display: none; }
+  .navbar-container {
+    height: 64px;
+  }
+  .navbar-mobile-toggle {
+    display: flex;
+  }
+  .navbar-username {
+    display: none;
+  }
+  .navbar-auth-btns .navbar-login-btn {
+    display: none;
+  }
 
   .navbar-links {
     position: fixed;

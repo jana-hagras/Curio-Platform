@@ -1,9 +1,21 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
-import { FiMenu, FiX, FiShoppingCart, FiUser, FiLogOut, FiGrid, FiChevronDown } from 'react-icons/fi';
-import { useAuth } from '../../hooks/useAuth';
-import { useCart } from '../../hooks/useCart';
-import './Navbar.css';
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState, useContext } from "react";
+import {
+  FiMenu,
+  FiX,
+  FiShoppingCart,
+  FiUser,
+  FiLogOut,
+  FiGrid,
+  FiChevronDown,
+  FiSun,
+  FiMoon,
+} from "react-icons/fi";
+import { ThemeContext } from "../../context/ThemeContext";
+import { useAuth } from "../../hooks/useAuth";
+import { useCart } from "../../hooks/useCart";
+import "./Navbar.css";
+import logo from "../../assets/logo.png";
 
 export default function Navbar() {
   const { user, isAuthenticated, logout, isBuyer, isArtisan } = useAuth();
@@ -12,34 +24,37 @@ export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { theme, toggleTheme } = useContext(ThemeContext);
 
   const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/marketplace', label: 'Marketplace' },
-    { path: '/artisans', label: 'Artisans' },
-    { path: '/requests', label: 'Requests' },
+    { path: "/", label: "Home" },
+    { path: "/marketplace", label: "Marketplace" },
+    { path: "/artisans", label: "Artisans" },
+    { path: "/requests", label: "Requests" },
   ];
 
   const handleLogout = () => {
     logout();
     setDropdownOpen(false);
-    navigate('/');
+    navigate("/");
   };
 
   return (
     <nav className="navbar" id="main-navbar">
       <div className="navbar-container container">
         <Link to="/" className="navbar-logo" id="navbar-logo">
-          <img src="/public/assets/logo.png" alt="CURIO" className="navbar-logo-img" />
+          <img src={logo} alt="CURIO" className="navbar-logo-img" />
           <span className="navbar-logo-text">CURIO</span>
         </Link>
 
-        <div className={`navbar-links ${mobileOpen ? 'navbar-links-open' : ''}`}>
+        <div
+          className={`navbar-links ${mobileOpen ? "navbar-links-open" : ""}`}
+        >
           {navLinks.map((link) => (
             <Link
               key={link.path}
               to={link.path}
-              className={`navbar-link ${location.pathname === link.path ? 'navbar-link-active' : ''}`}
+              className={`navbar-link ${location.pathname === link.path ? "navbar-link-active" : ""}`}
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
@@ -48,10 +63,20 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-actions">
+          <button 
+            onClick={toggleTheme} 
+            className="navbar-cart" 
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 20 }}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? <FiMoon /> : <FiSun />}
+          </button>
           {isBuyer && (
             <Link to="/cart" className="navbar-cart" id="navbar-cart">
               <FiShoppingCart />
-              {totalItems > 0 && <span className="navbar-cart-badge">{totalItems}</span>}
+              {totalItems > 0 && (
+                <span className="navbar-cart-badge">{totalItems}</span>
+              )}
             </Link>
           )}
 
@@ -63,18 +88,26 @@ export default function Navbar() {
                 id="navbar-user-btn"
               >
                 <div className="navbar-avatar">
-                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                  {user?.firstName?.charAt(0)}
+                  {user?.lastName?.charAt(0)}
                 </div>
                 <span className="navbar-username">{user?.firstName}</span>
-                <FiChevronDown className={`navbar-chevron ${dropdownOpen ? 'navbar-chevron-open' : ''}`} />
+                <FiChevronDown
+                  className={`navbar-chevron ${dropdownOpen ? "navbar-chevron-open" : ""}`}
+                />
               </button>
 
               {dropdownOpen && (
                 <>
-                  <div className="navbar-dropdown-overlay" onClick={() => setDropdownOpen(false)} />
+                  <div
+                    className="navbar-dropdown-overlay"
+                    onClick={() => setDropdownOpen(false)}
+                  />
                   <div className="navbar-dropdown" id="navbar-dropdown">
                     <div className="navbar-dropdown-header">
-                      <p className="navbar-dropdown-name">{user?.firstName} {user?.lastName}</p>
+                      <p className="navbar-dropdown-name">
+                        {user?.firstName} {user?.lastName}
+                      </p>
                       <p className="navbar-dropdown-type">{user?.type}</p>
                     </div>
                     <div className="navbar-dropdown-divider" />
@@ -93,7 +126,10 @@ export default function Navbar() {
                       <FiUser /> Profile
                     </Link>
                     <div className="navbar-dropdown-divider" />
-                    <button className="navbar-dropdown-item navbar-dropdown-logout" onClick={handleLogout}>
+                    <button
+                      className="navbar-dropdown-item navbar-dropdown-logout"
+                      onClick={handleLogout}
+                    >
                       <FiLogOut /> Logout
                     </button>
                   </div>
@@ -102,8 +138,16 @@ export default function Navbar() {
             </div>
           ) : (
             <div className="navbar-auth-btns">
-              <Link to="/login" className="navbar-login-btn" id="navbar-login">Sign In</Link>
-              <Link to="/register" className="navbar-register-btn" id="navbar-register">Sign Up</Link>
+              <Link to="/login" className="navbar-login-btn" id="navbar-login">
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                className="navbar-register-btn"
+                id="navbar-register"
+              >
+                Sign Up
+              </Link>
             </div>
           )}
 

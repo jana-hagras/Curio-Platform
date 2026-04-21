@@ -33,6 +33,9 @@
   --text-light: #FFFFFF;
   --text-gold: #C8972E;
 
+  /* ── Default Fallback Placeholder ── */
+  --fallback-img: url('https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80');
+
   /* ── Status Colors ── */
   --success: #10B981;
   --success-light: #D1FAE5;
@@ -88,6 +91,19 @@
   /* ── Container ── */
   --container-max: 1280px;
   --container-narrow: 960px;
+}
+
+[data-theme="dark"] {
+  --navy-deep: #0a0a14;
+  --navy-mid: #101524;
+  --sand-light: #121212;
+  --sand-warm: #1E1E1E;
+  --sand-dark: #2C2C2C;
+  --cream: #181818;
+  --white: #1E1E1E;
+  
+  --text-primary: #E0E0E0;
+  --text-secondary: #A0A0A0;
 }
 
 /* ═══════════════════════════════════════════

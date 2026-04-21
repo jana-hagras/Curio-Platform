@@ -1,4 +1,3 @@
-
 # <img src="assets/logo.png" alt="CURIO Logo" width="120" /> CURIO
 
 ### 🔧 Tech Versions
@@ -22,7 +21,7 @@ The platform supports multiple clients, including a **React-based Web App** and 
 
 1. [Tech Stack](#-tech-stack)  
 2. [Project Structure](#-project-structure)  
-3. [Quick Setup](#-quick-setup)  
+3. [Quick Setup (1-Click)](#-quick-setup)  
 4. [Backend Setup](#-backend-setup)  
 5. [Frontend (React) Setup](#-frontend-react-setup)  
 6. [Mobile (Flutter) Setup](#-mobile-flutter-setup)  
@@ -41,7 +40,7 @@ The platform supports multiple clients, including a **React-based Web App** and 
 * Node.js, Express.js, MySQL
 
 ### Frontend & Mobile
-* **Web:** React.js
+* **Web:** React.js (Vite)
 * **Mobile:** Flutter
 
 ---
@@ -52,87 +51,79 @@ The platform supports multiple clients, including a **React-based Web App** and 
 CURIO/
 │
 ├── backend/               # Node.js API
-│   ├── db/                # Database connection & init
-│   ├── modules/           # Auth, User, Portfolio, Marketplace
-│   └── server.js
+│   ├── src/db/            # Database connection, init, and image seeding
+│   ├── src/modules/       # Auth, User, Portfolio, Marketplace
+│   └── src/index.js
 │
-├── frontend-react/        # React Web Application
-│   ├── src/
+├── frontend/              # React Web Application (Vite)
+│   ├── src/               # React components, contexts, and hooks
 │   └── public/
 │
-├── mobile-flutter/        # Flutter Mobile Application
+├── mobile_flutter/        # Flutter Mobile Application
 │   ├── lib/
 │   └── assets/
 │
 ├── assets/                # README static files
+├── package.json           # Root workspace script
+├── start.bat              # Windows 1-Click Startup Script
 └── .gitignore
 
 ```
 
 ---
 
-## ⚡ Quick Setup
+## ⚡ Quick Setup (1-Click Startup)
 
+If you're on Windows, starting the entire web platform is simple! You do not need to boot the frontend and backend manually.
+
+1. Clone the repository:
 ```bash
-git clone [https://github.com/jana-hagras/curio-fullstack.git](https://github.com/hagras/curio-fullstack.git)
+git clone https://github.com/hagras/curio-fullstack.git
 cd curio-fullstack
+```
 
+2. **1-Click Execution**: Just double-click the `start.bat` file located at the root of the project! It will start both the backend and frontend simultaneously, and automatically open your browser.
+
+*Alternatively, via terminal:*
+```bash
+npm install
+npm run dev
 ```
 
 ---
 
-## 🖥 Backend Setup
+## 🖥 Backend Setup (Manual)
 
 ```bash
 cd backend
 npm install
-npm start
-
+npm run start
 ```
 
-*The database and tables are automatically created on the first run if your MySQL credentials are set.*
-
-
----
-
-# node_modules Folder
-
-The `node_modules` folder contains all project dependencies.  
-
-This folder is **not included in the repository** because it can be very large.  
-
-Instead, it is automatically created by running:
-
-```bash
-npm install
-````
-
-This command reads the dependencies from `package.json` and downloads them.
-
-
+*The database and tables are automatically created on the first run if your MySQL credentials are set in your `.env`. You can force seed dynamic images by running `node src/db/setupdb.js`!*
 
 ---
 
-## 🌐 Frontend (React) Setup
+## 🌐 Frontend (React) Setup (Manual)
+
+Our frontend is powered by Vite and comes with built-in Light/Dark Mode theming!
 
 ```bash
-Npx create-react-app frontend
 cd frontend
-npm start
-
+npm install
+npm run dev
 ```
 
-Visit the web app at: [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000)
+Visit the web app at: [http://localhost:5173](http://localhost:5173)
 
 ---
 
 ## 📱 Mobile (Flutter) Setup
 
 ```bash
-cd mobile-flutter
+cd mobile_flutter
 flutter pub get
 flutter run
-
 ```
 
 ---
@@ -150,6 +141,15 @@ The system auto-creates the following architecture:
 ---
 
 ## ✨ Features
+
+<details>
+<summary>Global Features</summary>
+
+* **Light & Dark Mode**: Persistent and responsive themes across the web app.
+* **Smart UI Fallbacks**: Auto-filling dummy database images and fail-safes for broken media links.
+* **Concurrent Execution**: Run the whole platform effortlessly with `npm run dev`.
+
+</details>
 
 <details>
 <summary>Buyer Features</summary>
@@ -185,6 +185,3 @@ The system auto-creates the following architecture:
 ## 👥 Authors
 
 **Jana Hagras | Youssef Ahmed | Adham Baher | Anas Mohammed | Ahmed Abdelrehim**
-
----
-

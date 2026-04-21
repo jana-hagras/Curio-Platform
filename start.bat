@@ -1,0 +1,3 @@
+@echo off
+echo Starting Curio Platform (Frontend + Backend)...
+npm run dev

@@ -1,0 +1,109 @@
+# =========================
+# GLOBAL / OS / IDE
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+.vscode/
+.idea/
+*.iml
+
+*.log
+*.tmp
+
+# =========================
+# ENV FILES (VERY IMPORTANT)
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# NODE.JS (Backend + Frontend)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+dist/
+build/
+
+coverage/
+
+# Backend specific
+backend/node_modules/
+backend/dist/
+backend/build/
+
+# Frontend (Vite / React / etc.)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# =========================
+# FLUTTER
+# =========================
+mobile_flutter/.dart_tool/
+mobile_flutter/.idea/
+mobile_flutter/build/
+mobile_flutter/.flutter-plugins
+mobile_flutter/.flutter-plugins-dependencies
+mobile_flutter/.packages
+
+# Android
+mobile_flutter/android/.gradle/
+mobile_flutter/android/app/build/
+mobile_flutter/android/local.properties
+
+# iOS
+mobile_flutter/ios/Pods/
+mobile_flutter/ios/.symlinks/
+mobile_flutter/ios/Flutter/Flutter.framework
+mobile_flutter/ios/Flutter/Flutter.podspec
+mobile_flutter/ios/Runner.xcworkspace/
+mobile_flutter/ios/DerivedData/
+
+# macOS
+mobile_flutter/macos/Pods/
+mobile_flutter/macos/Flutter/ephemeral/
+mobile_flutter/macos/Flutter/Flutter-Debug.xcconfig
+mobile_flutter/macos/Flutter/Flutter-Release.xcconfig
+mobile_flutter/macos/Flutter/Flutter-Profile.xcconfig
+
+# Windows
+mobile_flutter/windows/flutter/ephemeral/
+mobile_flutter/windows/CMakeFiles/
+mobile_flutter/windows/Generated/
+
+# Linux
+mobile_flutter/linux/flutter/ephemeral/
+
+# Web (Flutter)
+mobile_flutter/web/build/
+
+# =========================
+# FIREBASE / BACKEND (if used later)
+# =========================
+firebase-debug.log
+
+# =========================
+# PACKAGE LOCKS (optional rules)
+# =========================
+# Keep them usually, but ignore if you prefer:
+# package-lock.json
+# yarn.lock
+
+# =========================
+# TEST / COVERAGE
+# =========================
+coverage/
+*.lcov
+
+# =========================
+# OTHER
+# =========================
+*.sqlite
+*.db

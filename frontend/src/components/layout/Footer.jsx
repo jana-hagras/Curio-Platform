@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
-import { FiMail, FiMapPin, FiPhone } from 'react-icons/fi';
-import './Footer.css';
+import { Link } from "react-router-dom";
+import { FiMail, FiMapPin, FiPhone } from "react-icons/fi";
+import "./Footer.css";
+import logo from "../../assets/logo.png";
 
 export default function Footer() {
   return (
@@ -9,26 +10,39 @@ export default function Footer() {
         <div className="footer-grid">
           <div className="footer-brand">
             <Link to="/" className="footer-logo">
-              <img src="/logo.png" alt="CURIO" className="footer-logo-img" />
+              <img src={logo} alt="CURIO" className="navbar-logo-img" />
               <span className="footer-logo-text">CURIO</span>
             </Link>
             <p className="footer-tagline">
-              Connecting the world with Egypt's finest artisan craftsmanship. Discover unique, handmade treasures.
+              Connecting the world with Egypt's finest artisan craftsmanship.
+              Discover unique, handmade treasures.
             </p>
           </div>
 
           <div className="footer-col">
             <h4 className="footer-col-title">Explore</h4>
-            <Link to="/marketplace" className="footer-link">Marketplace</Link>
-            <Link to="/artisans" className="footer-link">Artisans</Link>
-            <Link to="/requests" className="footer-link">Custom Requests</Link>
+            <Link to="/marketplace" className="footer-link">
+              Marketplace
+            </Link>
+            <Link to="/artisans" className="footer-link">
+              Artisans
+            </Link>
+            <Link to="/requests" className="footer-link">
+              Custom Requests
+            </Link>
           </div>
 
           <div className="footer-col">
             <h4 className="footer-col-title">Account</h4>
-            <Link to="/login" className="footer-link">Sign In</Link>
-            <Link to="/register" className="footer-link">Sign Up</Link>
-            <Link to="/dashboard" className="footer-link">Dashboard</Link>
+            <Link to="/login" className="footer-link">
+              Sign In
+            </Link>
+            <Link to="/register" className="footer-link">
+              Sign Up
+            </Link>
+            <Link to="/dashboard" className="footer-link">
+              Dashboard
+            </Link>
           </div>
 
           <div className="footer-col">

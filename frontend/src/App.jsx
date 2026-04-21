@@ -71,11 +71,14 @@ function DashboardRouter() {
   return <Navigate to="/login" replace />;
 }
 
+import { ThemeProvider } from './context/ThemeContext';
+
 export default function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Router>
           <Toaster position="top-right" toastOptions={{ style: { fontFamily: 'var(--font-body)' } }} />
           <Routes>
             <Route element={<Layout />}>
@@ -98,6 +101,7 @@ export default function App() {
           </Routes>
         </Router>
       </CartProvider>
-    </AuthProvider>
+     </AuthProvider>
+    </ThemeProvider>
   );
 }
