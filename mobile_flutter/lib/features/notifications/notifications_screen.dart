@@ -53,7 +53,7 @@ class NotificationsScreen extends StatelessWidget {
                 background: Container(
                   alignment: Alignment.centerRight,
                   padding: const EdgeInsets.only(right: 20),
-                  decoration: BoxDecoration(color: AppColors.error.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                   child: const Icon(Icons.delete_outline, color: AppColors.error),
                 ),
                 child: GestureDetector(
@@ -62,16 +62,16 @@ class NotificationsScreen extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: !n.isRead ? Colors.white : Colors.white.withOpacity(0.6),
+                      color: !n.isRead ? Colors.white : Colors.white.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(12),
-                      border: !n.isRead ? Border.all(color: AppColors.primary.withOpacity(0.2)) : null,
+                      border: !n.isRead ? Border.all(color: AppColors.primary.withValues(alpha: 0.2)) : null,
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                           child: Icon(icon, color: color, size: 20),
                         ),
                         const SizedBox(width: 14),

@@ -1,35 +1,39 @@
 .dashboard-layout {
   display: flex;
   flex: 1;
-  min-height: calc(100vh - 72px);
+  min-height: calc(100vh - 68px);
 }
 
 .sidebar {
   width: 260px;
-  background: var(--white);
-  border-right: 1px solid var(--sand-warm);
+  background: var(--black-deep);
+  border-right: 1px solid rgba(212, 168, 67, 0.1);
   flex-shrink: 0;
   position: sticky;
-  top: 72px;
-  height: calc(100vh - 72px);
+  top: 68px;
+  height: calc(100vh - 68px);
   overflow-y: auto;
 }
 
 .sidebar-header {
   padding: var(--space-lg);
-  border-bottom: 1px solid var(--sand-warm);
+  border-bottom: 1px solid rgba(212, 168, 67, 0.1);
 }
 
 .sidebar-header h3 {
-  font-size: 18px;
-  color: var(--navy-deep);
+  font-size: 16px;
+  color: var(--gold-primary);
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .sidebar-nav {
   padding: var(--space-sm);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .sidebar-link {
@@ -38,33 +42,33 @@
   gap: 12px;
   padding: 12px 16px;
   border-radius: var(--radius-md);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.55);
   text-decoration: none;
   transition: all var(--transition-fast);
 }
 
 .sidebar-link:hover {
-  background: var(--sand-light);
-  color: var(--text-primary);
+  background: rgba(212, 168, 67, 0.06);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .sidebar-link-active {
-  background: rgba(200, 151, 46, 0.1) !important;
-  color: var(--gold-dark) !important;
+  background: rgba(212, 168, 67, 0.12) !important;
+  color: var(--gold-primary) !important;
   font-weight: 600;
 }
 
 .sidebar-link-icon {
-  font-size: 20px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
 .dashboard-content {
   flex: 1;
   padding: var(--space-xl);
-  background: var(--sand-light);
+  background: var(--surface-secondary);
   min-width: 0;
 }
 
@@ -72,9 +76,9 @@
   .sidebar {
     position: fixed;
     left: -260px;
-    top: 64px;
+    top: 60px;
     z-index: var(--z-sticky);
-    height: calc(100vh - 64px);
+    height: calc(100vh - 60px);
     transition: left var(--transition-base);
     box-shadow: var(--shadow-xl);
   }

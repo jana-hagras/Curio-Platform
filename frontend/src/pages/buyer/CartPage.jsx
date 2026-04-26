@@ -29,7 +29,7 @@ export default function CartPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {items.map(item => (
-            <div key={item.id} style={{ display: 'flex', gap: 16, background: 'var(--white)', padding: 16, borderRadius: 'var(--radius-lg)', border: '1px solid var(--sand-warm)' }}>
+            <div key={item.id} style={{ display: 'flex', gap: 16, background: 'var(--surface-primary)', padding: 16, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)' }}>
               <img src={item.image || 'https://via.placeholder.com/100'} alt={item.item} style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -40,7 +40,7 @@ export default function CartPage() {
                   <button onClick={() => removeItem(item.id)} style={{ color: 'var(--error)', padding: 8 }}><FiTrash2 size={18} /></button>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--sand-warm)', borderRadius: 'var(--radius-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--surface-border)', borderRadius: 'var(--radius-md)' }}>
                     <button onClick={() => updateQuantity(item.id, item.quantity - 1)} style={{ padding: '6px 10px' }}><FiMinus size={14} /></button>
                     <span style={{ fontSize: 14, fontWeight: 600, width: 30, textAlign: 'center' }}>{item.quantity}</span>
                     <button onClick={() => updateQuantity(item.id, item.quantity + 1)} style={{ padding: '6px 10px' }}><FiPlus size={14} /></button>
@@ -53,7 +53,7 @@ export default function CartPage() {
           <Button variant="ghost" onClick={clearCart} style={{ alignSelf: 'flex-start', color: 'var(--error)' }}>Clear Cart</Button>
         </div>
         
-        <div style={{ background: 'var(--white)', padding: 24, borderRadius: 'var(--radius-lg)', border: '1px solid var(--sand-warm)', position: 'sticky', top: 100 }}>
+        <div style={{ background: 'var(--surface-primary)', padding: 24, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', position: 'sticky', top: 100 }}>
           <h3 style={{ fontSize: 18, marginBottom: 16 }}>Order Summary</h3>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12, fontSize: 15, color: 'var(--text-secondary)' }}>
             <span>Subtotal ({items.length} items)</span>
@@ -63,7 +63,7 @@ export default function CartPage() {
             <span>Shipping</span>
             <span>Calculated at checkout</span>
           </div>
-          <div style={{ borderTop: '1px solid var(--sand-warm)', margin: '16px 0' }} />
+          <div style={{ borderTop: '1px solid var(--surface-border)', margin: '16px 0' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, fontSize: 18, fontWeight: 700 }}>
             <span>Total</span>
             <span>{formatCurrency(totalPrice)}</span>

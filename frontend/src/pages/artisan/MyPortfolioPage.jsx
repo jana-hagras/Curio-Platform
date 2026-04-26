@@ -53,7 +53,7 @@ export default function MyPortfolioPage() {
     <div>
       <h1 style={{ marginBottom: 24 }}>My Portfolio</h1>
       
-      <div style={{ background: 'var(--white)', padding: 32, borderRadius: 'var(--radius-lg)', marginBottom: 32 }}>
+      <div style={{ background: 'var(--surface-primary)', padding: 32, borderRadius: 'var(--radius-lg)', marginBottom: 32 }}>
         <h3 style={{ marginBottom: 16 }}>Add New Project</h3>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Input label="Project Name" value={form.projectName} onChange={e => setForm({...form, projectName: e.target.value})} required />
@@ -64,7 +64,7 @@ export default function MyPortfolioPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
         {projects.map(p => (
-          <div key={p.id} style={{ background: 'var(--white)', padding: 24, borderRadius: 'var(--radius-lg)', border: '1px solid var(--sand-warm)' }}>
+          <div key={p.id} style={{ background: 'var(--surface-primary)', padding: 24, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <h3 style={{ fontSize: 18, marginBottom: 8 }}>{p.projectName}</h3>
               <button onClick={() => handleDelete(p.id)} style={{ color: 'var(--error)' }}><FiTrash2 /></button>

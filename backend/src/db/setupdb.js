@@ -16,7 +16,7 @@ const createAllTables = async (conn) => {
             Phone VARCHAR(20),
             JoinDate DATE,
             ProfileImage VARCHAR(255),
-            Type ENUM('Buyer','Artisan') NOT NULL
+            Type ENUM('Buyer', 'Artisan') NOT NULL
         )`,
         // BUYER
         `CREATE TABLE IF NOT EXISTS Buyer (
@@ -60,6 +60,16 @@ const createAllTables = async (conn) => {
             Category VARCHAR(50),
             DateAdded DATE,
             FOREIGN KEY (Artisan_id) REFERENCES Artisan(Artisan_id) ON DELETE CASCADE
+        )`,
+        // FAVORITE
+        `CREATE TABLE IF NOT EXISTS Favorite (
+            Favorite_id INT AUTO_INCREMENT PRIMARY KEY,
+            Buyer_id INT,
+            Item_id INT,
+            DateAdded DATE DEFAULT (CURRENT_DATE),
+            UNIQUE KEY unique_favorite (Buyer_id, Item_id),
+            FOREIGN KEY (Buyer_id) REFERENCES Buyer(Buyer_id) ON DELETE CASCADE,
+            FOREIGN KEY (Item_id) REFERENCES MarketItem(Item_id) ON DELETE CASCADE
         )`,
         // REQUEST
         `CREATE TABLE IF NOT EXISTS Request (

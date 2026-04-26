@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import '../core/constants.dart';
 import 'onboarding_screen.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen2 extends StatefulWidget {
+  const SplashScreen2({super.key});
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen2> createState() => _SplashScreen2State();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreen2State extends State<SplashScreen2> {
   @override
   void initState() {
     super.initState();

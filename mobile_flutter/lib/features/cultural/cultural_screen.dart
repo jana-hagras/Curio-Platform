@@ -30,7 +30,7 @@ class CulturalScreen extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
             child: Icon(icon, color: AppColors.primary),
           ),
           const SizedBox(width: 14),

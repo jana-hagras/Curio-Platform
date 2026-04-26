@@ -65,7 +65,7 @@ export default function ProductDetailPage() {
     <div style={{ padding: '40px 0' }}>
       <div className="container">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, marginBottom: 48 }}>
-          <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--sand-warm)' }}>
+          <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--surface-border)' }}>
             {product.image ? <img src={product.image} alt={product.item} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80'; }} /> : <FiPackage style={{ fontSize: 80, color: 'var(--sand-dark)' }} />}
           </div>
           <div>
@@ -83,7 +83,7 @@ export default function ProductDetailPage() {
             </p>
             {isBuyer && product.availQuantity > 0 && (
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', border: '2px solid var(--sand-warm)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', border: '2px solid var(--surface-border)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
                   <button onClick={() => setQty(Math.max(1, qty - 1))} style={{ padding: '10px 14px', fontSize: 18 }}><FiMinus /></button>
                   <span style={{ padding: '10px 20px', fontWeight: 600, minWidth: 50, textAlign: 'center' }}>{qty}</span>
                   <button onClick={() => setQty(Math.min(product.availQuantity, qty + 1))} style={{ padding: '10px 14px', fontSize: 18 }}><FiPlus /></button>
@@ -95,7 +95,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Reviews */}
-        <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--sand-warm)' }}>
+        <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--surface-border)' }}>
           <h2 style={{ marginBottom: 24 }}>Reviews ({reviews.length})</h2>
           {isBuyer && (
             <form onSubmit={handleReviewSubmit} style={{ marginBottom: 32, padding: 24, background: 'var(--sand-light)', borderRadius: 'var(--radius-md)' }}>
@@ -108,7 +108,7 @@ export default function ProductDetailPage() {
           {reviews.length === 0 ? <p style={{ color: 'var(--text-secondary)' }}>No reviews yet.</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {reviews.map(r => (
-                <div key={r.id} style={{ paddingBottom: 20, borderBottom: '1px solid var(--sand-warm)' }}>
+                <div key={r.id} style={{ paddingBottom: 20, borderBottom: '1px solid var(--surface-border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                     <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--gold-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>{r.buyerName?.charAt(0) || 'U'}</div>
                     <div><p style={{ fontWeight: 600, fontSize: 15 }}>{r.buyerName || 'Anonymous'}</p><p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{formatDate(r.reviewDate)}</p></div>

@@ -79,7 +79,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                 center: const Alignment(0, -0.2),
                 radius: _bgController.value * 0.4 + 0.8,
                 colors: [
-                  AppColors.primary.withOpacity(0.15),
+                  AppColors.primary.withValues(alpha: 0.15),
                   AppColors.dark,
                 ],
               ),
@@ -103,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.3 * _logoFadeAnimation.value),
+                              color: AppColors.primary.withValues(alpha: 0.3 * _logoFadeAnimation.value),
                               blurRadius: _glowAnimation.value * 2,
                               spreadRadius: _glowAnimation.value,
                             )
@@ -131,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                             letterSpacing: 10,
                             fontFamily: 'Playfair',
                             shadows: [
-                              Shadow(color: AppColors.primary.withOpacity(0.5), blurRadius: _glowAnimation.value)
+                              Shadow(color: AppColors.primary.withValues(alpha: 0.5), blurRadius: _glowAnimation.value)
                             ]
                           ),
                         ),
@@ -139,7 +139,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         Text(
                           "Handmade with Heritage",
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+                            color: Colors.white.withValues(alpha: 0.6),
                             fontSize: 14,
                             letterSpacing: 3,
                             fontFamily: 'Montserrat',

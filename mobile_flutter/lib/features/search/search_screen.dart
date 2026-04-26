@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/market_provider.dart';
@@ -108,7 +109,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+                  border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +194,7 @@ class _SearchScreenState extends State<SearchScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 24),

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
@@ -32,13 +33,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final updatedUser = user.copyWith(profileImage: image.path);
       auth.updateUser(updatedUser);
 
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile picture updated!'), backgroundColor: AppColors.success),
         );
       }
     } catch (e) {
-      if (mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update image: $e'), backgroundColor: AppColors.error),
         );
@@ -85,7 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         CircleAvatar(
                           radius: 48,
-                          backgroundColor: AppColors.primary.withOpacity(0.15),
+                          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                           backgroundImage: hasImage ? FileImage(File(profileImage)) : null,
                           child: _isUploading
                             ? const CircularProgressIndicator()
@@ -179,7 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Text(value, style: const TextStyle(color: AppColors.primary, fontSize: 22, fontWeight: FontWeight.w800)),
         const SizedBox(height: 4),
-        Text(label, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+        Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
       ],
     );
   }
@@ -190,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: AppColors.primary, size: 20),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
@@ -205,7 +206,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: (isRed ? AppColors.error : AppColors.primary).withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(color: (isRed ? AppColors.error : AppColors.primary).withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: isRed ? AppColors.error : AppColors.primary, size: 20),
       ),
       title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: isRed ? AppColors.error : null)),

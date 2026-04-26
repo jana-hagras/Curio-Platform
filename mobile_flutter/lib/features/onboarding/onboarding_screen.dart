@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/theme/app_colors.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -15,17 +17,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<_OnboardingItem> _items = [
     _OnboardingItem(
       title: "Discover Unique\nEgyptian Crafts",
-      description: "Explore handmade products from talented Egyptian artisans, each piece carrying centuries of heritage.",
+      description:
+          "Explore handmade products from talented Egyptian artisans, each piece carrying centuries of heritage.",
       icon: Icons.auto_awesome_outlined,
     ),
     _OnboardingItem(
       title: "Custom Made\nJust for You",
-      description: "Every creation can be tailored to your taste. Collaborate directly with the artisan to bring your vision to life.",
+      description:
+          "Every creation can be tailored to your taste. Collaborate directly with the artisan to bring your vision to life.",
       icon: Icons.brush_outlined,
     ),
     _OnboardingItem(
       title: "Delivered\nWorldwide",
-      description: "Authentic craftsmanship shipped to your doorstep, anywhere in the world, with care and tracking.",
+      description:
+          "Authentic craftsmanship shipped to your doorstep, anywhere in the world, with care and tracking.",
       icon: Icons.public_outlined,
     ),
   ];
@@ -43,8 +48,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextButton(
-                  onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                  child: const Text("Skip", style: TextStyle(color: AppColors.textSecondary)),
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('hasSeenOnboarding', true);
+                    if (!context.mounted) return;
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                  child: const Text("Skip",
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ),
               ),
             ),
@@ -73,7 +84,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         height: 6,
                         width: _currentPage == i ? 28 : 6,
                         decoration: BoxDecoration(
-                          color: _currentPage == i ? AppColors.primary : AppColors.divider,
+                          color: _currentPage == i
+                              ? AppColors.primary
+                              : AppColors.divider,
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
@@ -81,8 +94,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(height: 40),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_currentPage == _items.length - 1) {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool('hasSeenOnboarding', true);
+                        if (!context.mounted) return;
                         Navigator.pushReplacementNamed(context, '/login');
                       } else {
                         _pageController.nextPage(
@@ -91,7 +107,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         );
                       }
                     },
-                    child: Text(_currentPage == _items.length - 1 ? "Get Started" : "Continue"),
+                    child: Text(_currentPage == _items.length - 1
+                        ? "Get Started"
+                        : "Continue"),
                   ),
                 ],
               ),
@@ -111,7 +129,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Container(
             padding: const EdgeInsets.all(36),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
+              color: AppColors.primary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: Icon(item.icon, size: 80, color: AppColors.primary),
@@ -124,7 +142,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               fontSize: 28,
               fontWeight: FontWeight.w800,
               fontFamily: 'Playfair',
-              color: Theme.of(context).textTheme.displayLarge?.color ?? AppColors.textPrimary,
+              color: Theme.of(context).textTheme.displayLarge?.color ??
+                  AppColors.textPrimary,
               height: 1.3,
             ),
           ),
@@ -147,5 +166,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 class _OnboardingItem {
   final String title, description;
   final IconData icon;
-  _OnboardingItem({required this.title, required this.description, required this.icon});
+  _OnboardingItem(
+      {required this.title, required this.description, required this.icon});
 }

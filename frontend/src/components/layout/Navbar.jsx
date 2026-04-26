@@ -10,6 +10,13 @@ import {
   FiChevronDown,
   FiSun,
   FiMoon,
+  FiHeart,
+  FiMessageCircle,
+  FiFileText,
+  FiHome,
+  FiList,
+  FiBriefcase,
+  FiInbox,
 } from "react-icons/fi";
 import { ThemeContext } from "../../context/ThemeContext";
 import { useAuth } from "../../hooks/useAuth";
@@ -26,18 +33,46 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { theme, toggleTheme } = useContext(ThemeContext);
 
-  const navLinks = [
-    { path: "/", label: "Home" },
-    { path: "/marketplace", label: "Marketplace" },
-    { path: "/artisans", label: "Artisans" },
-    { path: "/requests", label: "Requests" },
-  ];
+  // Role-based navigation links
+  const getNavLinks = () => {
+    if (!isAuthenticated) {
+      return [
+        { path: "/", label: "Home", icon: FiHome },
+        { path: "/marketplace", label: "Marketplace", icon: FiList },
+        { path: "/artisans", label: "Artisans", icon: FiUser },
+        { path: "/requests", label: "Requests", icon: FiFileText },
+      ];
+    }
+
+    if (isBuyer) {
+      return [
+        { path: "/", label: "Home", icon: FiHome },
+        { path: "/dashboard/requests", label: "Requests", icon: FiFileText },
+        { path: "/dashboard/proposals", label: "Proposals", icon: FiInbox },
+        { path: "/dashboard/favorites", label: "Favorites", icon: FiHeart },
+      ];
+    }
+
+    if (isArtisan) {
+      return [
+        { path: "/dashboard", label: "Dashboard", icon: FiGrid },
+        { path: "/dashboard/applications", label: "Orders", icon: FiBriefcase },
+        { path: "/requests", label: "Requests", icon: FiFileText },
+      ];
+    }
+
+    return [];
+  };
+
+  const navLinks = getNavLinks();
 
   const handleLogout = () => {
     logout();
     setDropdownOpen(false);
     navigate("/");
   };
+
+  const profileImage = user?.profileImage;
 
   return (
     <nav className="navbar" id="main-navbar">
@@ -54,7 +89,7 @@ export default function Navbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`navbar-link ${location.pathname === link.path ? "navbar-link-active" : ""}`}
+              className={`navbar-link ${location.pathname === link.path || location.pathname.startsWith(link.path + '/') ? "navbar-link-active" : ""}`}
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
@@ -63,10 +98,10 @@ export default function Navbar() {
         </div>
 
         <div className="navbar-actions">
-          <button 
-            onClick={toggleTheme} 
-            className="navbar-cart" 
-            style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 20 }}
+          <button
+            onClick={toggleTheme}
+            className="navbar-cart"
+            style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
             title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
           >
             {theme === 'light' ? <FiMoon /> : <FiSun />}
@@ -88,8 +123,14 @@ export default function Navbar() {
                 id="navbar-user-btn"
               >
                 <div className="navbar-avatar">
-                  {user?.firstName?.charAt(0)}
-                  {user?.lastName?.charAt(0)}
+                  {profileImage ? (
+                    <img src={profileImage.startsWith('/') ? `http://localhost:3000${profileImage}` : profileImage} alt="" />
+                  ) : (
+                    <>
+                      {user?.firstName?.charAt(0)}
+                      {user?.lastName?.charAt(0)}
+                    </>
+                  )}
                 </div>
                 <span className="navbar-username">{user?.firstName}</span>
                 <FiChevronDown

@@ -47,7 +47,7 @@ export default function CreateProductPage() {
   };
 
   return (
-    <div style={{ maxWidth: 600, background: 'var(--white)', padding: 32, borderRadius: 'var(--radius-lg)' }}>
+    <div style={{ maxWidth: 600, background: 'var(--surface-primary)', padding: 32, borderRadius: 'var(--radius-lg)' }}>
       <h1 style={{ marginBottom: 24 }}>Add New Product</h1>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <Input label="Item Name *" value={form.item} onChange={e => setForm({...form, item: e.target.value})} required />

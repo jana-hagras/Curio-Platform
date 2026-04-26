@@ -35,6 +35,8 @@ import 'features/artisan/artisan_screen.dart';
 import 'features/chat/chat_screen.dart';
 import 'features/notifications/notifications_screen.dart';
 
+import 'screens/splash_screen.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -71,7 +73,8 @@ class CurioApp extends StatelessWidget {
       initialRoute: '/',
       navigatorKey: _navigatorKey,
       routes: {
-        '/': (ctx) => const SplashScreen(),
+        '/': (ctx) => const SplashScreen2(),
+        // '/': (ctx) => const SplashScreen(),
         '/onboarding': (ctx) => const OnboardingScreen(),
         '/login': (ctx) => const LoginScreen(),
         '/register': (ctx) => const RegisterScreen(),

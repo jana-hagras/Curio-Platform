@@ -27,7 +27,7 @@ class WorkshopsScreen extends StatelessWidget {
               children: [
                 Container(
                   width: 52, height: 52,
-                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                   child: Icon(w.$5, color: AppColors.primary),
                 ),
                 const SizedBox(width: 14),

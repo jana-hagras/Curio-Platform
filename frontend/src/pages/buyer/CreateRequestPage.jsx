@@ -28,7 +28,7 @@ export default function CreateRequestPage() {
   };
 
   return (
-    <div style={{ maxWidth: 600, background: 'var(--white)', padding: 32, borderRadius: 'var(--radius-lg)' }}>
+    <div style={{ maxWidth: 600, background: 'var(--surface-primary)', padding: 32, borderRadius: 'var(--radius-lg)' }}>
       <h1 style={{ marginBottom: 24 }}>Create Custom Request</h1>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <Input label="Title *" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />

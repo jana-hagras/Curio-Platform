@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/market_provider.dart';
@@ -18,7 +19,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _navIndex = 0;
 
-  final List<String> _categories = ["All", "Pottery", "Textiles", "Jewelry", "Decor", "Vases"];
+  final List<String> _categories = [
+    "All",
+    "Pottery",
+    "Textiles",
+    "Jewelry",
+    "Decor",
+    "Vases"
+  ];
   int _selectedCat = 0;
 
   @override
@@ -37,7 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(12),
           child: Image.asset('assets/icons/logo.png'),
         ),
-        title: const Text("CURIO", style: TextStyle(fontFamily: 'Playfair', letterSpacing: 3)),
+        title: const Text("CURIO",
+            style: TextStyle(fontFamily: 'Playfair', letterSpacing: 3)),
         actions: [
           IconButton(
             onPressed: () => Navigator.pushNamed(context, '/search'),
@@ -57,10 +66,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     top: 6,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
+                      decoration: const BoxDecoration(
+                          color: AppColors.error, shape: BoxShape.circle),
                       child: Text(
                         '${notifProvider.unreadCount}',
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   );
@@ -82,10 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     top: 6,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                      decoration: const BoxDecoration(
+                          color: AppColors.primary, shape: BoxShape.circle),
                       child: Text(
                         '${cartProvider.itemCount}',
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   );
@@ -96,7 +113,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: Consumer<MarketProvider>(
-        builder: (ctx, market, _) => market.isLoading ? _buildShimmer() : _buildBody(market),
+        builder: (ctx, market, _) =>
+            market.isLoading ? _buildShimmer() : _buildBody(market),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _navIndex,
@@ -107,10 +125,22 @@ class _HomeScreenState extends State<HomeScreen> {
           if (i == 3) Navigator.pushNamed(context, '/profile');
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), activeIcon: Icon(Icons.explore), label: "Explore"),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_outline), activeIcon: Icon(Icons.favorite), label: "Saved"),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: "Home"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.explore_outlined),
+              activeIcon: Icon(Icons.explore),
+              label: "Explore"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.favorite_outline),
+              activeIcon: Icon(Icons.favorite),
+              label: "Saved"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: "Profile"),
         ],
       ),
     );
@@ -121,7 +151,10 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.all(16),
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, childAspectRatio: 0.72, crossAxisSpacing: 14, mainAxisSpacing: 14,
+          crossAxisCount: 2,
+          childAspectRatio: 0.72,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
         ),
         itemCount: 6,
         itemBuilder: (_, __) => const CardShimmer(borderRadius: 12),
@@ -161,7 +194,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 4),
                       Text(
                         "Handmade with love",
-                        style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 13),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
@@ -169,14 +204,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 120,
                         child: ElevatedButton(
                           onPressed: () {},
-                          style: ElevatedButton.styleFrom(minimumSize: Size.zero),
-                          child: const Text("Shop Now", style: TextStyle(fontSize: 13)),
+                          style:
+                              ElevatedButton.styleFrom(minimumSize: Size.zero),
+                          child: const Text("Shop Now",
+                              style: TextStyle(fontSize: 13)),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Image.asset('assets/icons/logo.png', width: 80, height: 80, color: AppColors.primary),
+                Image.asset('assets/icons/logo.png',
+                    width: 80, height: 80, color: AppColors.primary),
               ],
             ),
           ),
@@ -204,15 +242,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
-                        color: selected ? AppColors.primary : Colors.transparent,
+                        color:
+                            selected ? AppColors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: selected ? AppColors.primary : AppColors.divider),
+                        border: Border.all(
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.divider),
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         _categories[i],
                         style: TextStyle(
-                          color: selected ? Colors.white : AppColors.textSecondary,
+                          color:
+                              selected ? Colors.white : AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -232,7 +275,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Featured Items", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                const Text("Featured Items",
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/search'),
                   child: const Text("See All", style: TextStyle(fontSize: 13)),
@@ -248,7 +293,9 @@ class _HomeScreenState extends State<HomeScreen> {
               if (displayItems.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.all(40),
-                  child: Center(child: Text("No items found", style: TextStyle(color: AppColors.textSecondary))),
+                  child: Center(
+                      child: Text("No items found",
+                          style: TextStyle(color: AppColors.textSecondary))),
                 );
               }
               return GridView.builder(
@@ -265,7 +312,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 itemBuilder: (_, i) {
                   final item = displayItems[i];
                   return GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/product-details', arguments: item),
+                    onTap: () => Navigator.pushNamed(
+                        context, '/product-details',
+                        arguments: item),
                     child: _ProductCard(
                       id: item.id.toString(),
                       title: item.item,
@@ -288,7 +337,12 @@ class _ProductCard extends StatelessWidget {
   final String id, title, price;
   final String? image;
   final dynamic item;
-  const _ProductCard({required this.id, required this.title, required this.price, this.image, this.item});
+  const _ProductCard(
+      {required this.id,
+      required this.title,
+      required this.price,
+      this.image,
+      this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -298,7 +352,7 @@ class _ProductCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,9 +373,12 @@ class _ProductCard extends StatelessWidget {
                       onTap: () => favProvider.toggleFavorite(id),
                       child: Container(
                         padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                        child: Icon(isFav ? Icons.favorite : Icons.favorite_border,
-                            color: isFav ? Colors.red : AppColors.textSecondary, size: 18),
+                        decoration: const BoxDecoration(
+                            color: Colors.white, shape: BoxShape.circle),
+                        child: Icon(
+                            isFav ? Icons.favorite : Icons.favorite_border,
+                            color: isFav ? Colors.red : AppColors.textSecondary,
+                            size: 18),
                       ),
                     ),
                   ),
@@ -334,9 +391,17 @@ class _ProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text(price, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 14)),
+                Text(price,
+                    style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14)),
               ],
             ),
           ),

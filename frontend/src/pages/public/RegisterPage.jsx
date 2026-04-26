@@ -4,8 +4,9 @@ import { useAuth } from "../../hooks/useAuth";
 import Input from "../../components/ui/Input";
 import TextArea from "../../components/ui/TextArea";
 import Button from "../../components/ui/Button";
-import { FiMail, FiLock, FiUser } from "react-icons/fi";
+import { FiMail, FiLock, FiUser, FiCamera } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { uploadService } from "../../services/uploadService";
 import "./AuthPages.css";
 import logo from "../../assets/logo.png";
 
@@ -16,19 +17,31 @@ export default function RegisterPage() {
     lName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     phone: "",
     address: "",
     country: "",
     bio: "",
+    bio: "",
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -49,6 +62,9 @@ export default function RegisterPage() {
         errs.password = "Password needs: " + pwIssues.join(", ") + ".";
       }
     }
+    if (form.password !== form.confirmPassword) {
+      errs.confirmPassword = "Passwords do not match.";
+    }
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -56,7 +72,17 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register({ ...form, type: userType });
+      let finalImageUrl = "";
+      if (imageFile) {
+        try {
+          const uploadRes = await uploadService.uploadImage(imageFile);
+          finalImageUrl = uploadRes?.imageUrl || uploadRes?.data?.imageUrl || "";
+        } catch (uploadErr) {
+          toast.error("Image upload failed, proceeding without image.");
+        }
+      }
+
+      await register({ ...form, type: userType, profileImage: finalImageUrl });
       toast.success("Account created! Please sign in.");
       navigate("/login");
     } catch (err) {
@@ -107,6 +133,18 @@ export default function RegisterPage() {
             className="auth-form"
             id="register-form"
           >
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+              <div style={{ position: 'relative' }}>
+                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--surface-border)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, overflow: 'hidden' }}>
+                  {previewUrl ? <img src={previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FiUser />}
+                </div>
+                <label style={{ position: 'absolute', bottom: -4, right: -4, width: 28, height: 28, borderRadius: '50%', background: 'var(--black-deep)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer', border: '2px solid var(--surface-primary)' }}>
+                  <FiCamera />
+                  <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                </label>
+              </div>
+            </div>
+
             <div className="auth-form-row">
               <Input
                 label="First Name"
@@ -146,6 +184,16 @@ export default function RegisterPage() {
               value={form.password}
               onChange={handleChange}
               error={errors.password}
+            />
+            <Input
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              icon={FiLock}
+              placeholder="Confirm your password"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              error={errors.confirmPassword}
             />
             <Input
               label="Phone (optional)"

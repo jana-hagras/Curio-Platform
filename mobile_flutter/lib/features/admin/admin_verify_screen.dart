@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AdminVerifyScreen extends StatelessWidget {
-  const AdminVerifyScreen({Key? key}) : super(key: key);
+  const AdminVerifyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

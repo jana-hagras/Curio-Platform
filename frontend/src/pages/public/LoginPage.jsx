@@ -32,8 +32,9 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      const userData = await login(form.email, form.password);
       toast.success("Welcome back!");
+      // Role-based redirect
       navigate("/dashboard");
     } catch (err) {
       toast.error(err.message || "Login failed");

@@ -13,7 +13,7 @@ export default function EmptyState({ icon: Icon, title, message, action }) {
           width: 80,
           height: 80,
           borderRadius: '50%',
-          background: 'var(--sand-warm)',
+          background: 'var(--surface-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

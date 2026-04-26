@@ -25,7 +25,7 @@ class FavoritesScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text("No saved items yet", style: TextStyle(fontSize: 18, color: AppColors.textPrimary)),
                   const SizedBox(height: 8),
-                  Text("Start exploring and save what you love", style: TextStyle(fontSize: 14, color: AppColors.textSecondary.withOpacity(0.7))),
+                  Text("Start exploring and save what you love", style: TextStyle(fontSize: 14, color: AppColors.textSecondary.withValues(alpha: 0.7))),
                 ],
               ),
             );
@@ -62,7 +62,7 @@ class _ProductCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider.withOpacity(0.5)),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -57,7 +57,7 @@ export default function RequestDetailPage() {
   return (
     <div style={{ padding: '40px 0' }}>
       <div className="container">
-        <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--sand-warm)', marginBottom: 24 }}>
+        <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
             <h1 style={{ fontSize: 28 }}>{request.title}</h1>
             {request.category && <Badge status="Active">{request.category}</Badge>}
@@ -72,10 +72,10 @@ export default function RequestDetailPage() {
 
         {/* Milestones */}
         {milestones.length > 0 && (
-          <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--sand-warm)', marginBottom: 24 }}>
+          <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
             <h2 style={{ fontSize: 22, marginBottom: 16 }}>Milestones</h2>
             {milestones.map(m => (
-              <div key={m.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--sand-warm)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={m.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div><h4 style={{ fontSize: 16 }}>{m.title}</h4><p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{m.description}</p></div>
                 <div style={{ textAlign: 'right' }}><Badge status={m.status} /><p style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 4 }}>Due: {formatDate(m.dueDate)}</p></div>
               </div>
@@ -84,7 +84,7 @@ export default function RequestDetailPage() {
         )}
 
         {/* Applications */}
-        <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--sand-warm)' }}>
+        <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--surface-border)' }}>
           <h2 style={{ fontSize: 22, marginBottom: 16 }}>Applications ({apps.length})</h2>
           {isArtisan && !alreadyApplied && (
             <form onSubmit={handleApply} style={{ marginBottom: 24, padding: 20, background: 'var(--sand-light)', borderRadius: 'var(--radius-md)' }}>
@@ -95,7 +95,7 @@ export default function RequestDetailPage() {
           )}
           {alreadyApplied && <p style={{ color: 'var(--success)', fontWeight: 600, marginBottom: 16 }}>✓ You have already applied</p>}
           {apps.length === 0 ? <p style={{ color: 'var(--text-secondary)' }}>No applications yet.</p> : apps.map(a => (
-            <div key={a.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--sand-warm)' }}>
+            <div key={a.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--surface-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                 <strong>{a.artisanName}</strong><Badge status={a.status} />
               </div>

@@ -24,7 +24,7 @@ class ReviewsScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 18,
-                      backgroundColor: AppColors.primary.withOpacity(0.12),
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                       child: const Icon(Icons.person, size: 18, color: AppColors.primary),
                     ),
                     const SizedBox(width: 10),

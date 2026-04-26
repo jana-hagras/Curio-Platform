@@ -60,7 +60,7 @@ export const searchPayments = async (req, res, next) => {
 // CREATE
 export const createPayment = async (req, res, next) => {
   try {
-    const { order_id, request_id, totalAmount, paymentMethod } = req.body;
+    const { order_id, request_id, totalAmount, paymentMethod, status } = req.body;
 
     if (!totalAmount || !paymentMethod) {
       return res.status(400).json({
@@ -86,9 +86,11 @@ export const createPayment = async (req, res, next) => {
       });
     }
 
+    const finalStatus = status && ['Pending', 'Completed', 'Failed'].includes(status) ? status : 'Pending';
+
     const [result] = await pool.query(
-      "INSERT INTO Payment (Order_id, Request_id, TotalAmount, PaymentMethod, TransactionDate, Status) VALUES (?, ?, ?, ?, CURRENT_DATE, 'Pending')",
-      [order_id || null, request_id || null, totalAmount, paymentMethod]
+      "INSERT INTO Payment (Order_id, Request_id, TotalAmount, PaymentMethod, TransactionDate, Status) VALUES (?, ?, ?, ?, CURRENT_DATE, ?)",
+      [order_id || null, request_id || null, totalAmount, paymentMethod, finalStatus]
     );
 
     const [rows] = await pool.query(
@@ -166,11 +168,11 @@ if (paymentMethod && !allowedMethods.includes(paymentMethod)) {
   });
 }
 
-    // ✅ only allow Completed
-    if (status && status.toLowerCase() != "completed") {
+    // ✅ only allow Completed or Failed
+    if (status && !['completed', 'failed'].includes(status.toLowerCase())) {
       return res.status(400).json({
         ok: false,
-        message: "Wrong status. Only 'Completed' is allowed."
+        message: "Wrong status. Only 'Completed' or 'Failed' is allowed."
       });
     }
 

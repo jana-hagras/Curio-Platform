@@ -11,6 +11,7 @@
   white-space: nowrap;
   position: relative;
   overflow: hidden;
+  letter-spacing: 0.2px;
 }
 
 .btn:disabled {
@@ -29,24 +30,24 @@
 
 .btn-md {
   padding: 12px 24px;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .btn-lg {
-  padding: 16px 32px;
-  font-size: 17px;
+  padding: 14px 32px;
+  font-size: 16px;
   border-radius: var(--radius-lg);
 }
 
-/* Primary - Gold Gradient */
+/* Primary - Gold */
 .btn-primary {
-  background: var(--gold-gradient);
-  color: var(--white);
+  background: var(--gold-primary);
+  color: var(--black-deep);
   box-shadow: var(--shadow-gold);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--gold-gradient-hover);
+  background: var(--gold-light);
   box-shadow: var(--shadow-gold-lg);
   transform: translateY(-2px);
 }
@@ -55,17 +56,17 @@
   transform: translateY(0);
 }
 
-/* Secondary - Navy Outline */
+/* Secondary - Black */
 .btn-secondary {
-  background: transparent;
-  color: var(--navy-deep);
-  border-color: var(--navy-deep);
+  background: var(--black-deep);
+  color: var(--text-light);
+  border-color: var(--black-deep);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--navy-deep);
-  color: var(--white);
+  background: var(--black-soft);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Outline Gold */
@@ -77,7 +78,7 @@
 
 .btn-outline:hover:not(:disabled) {
   background: var(--gold-primary);
-  color: var(--white);
+  color: var(--black-deep);
   transform: translateY(-2px);
   box-shadow: var(--shadow-gold);
 }
@@ -85,7 +86,7 @@
 /* Danger */
 .btn-danger {
   background: var(--error);
-  color: var(--white);
+  color: #FFFFFF;
 }
 
 .btn-danger:hover:not(:disabled) {
@@ -101,7 +102,7 @@
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: var(--sand-warm);
+  background: var(--surface-tertiary);
   color: var(--text-primary);
 }
 

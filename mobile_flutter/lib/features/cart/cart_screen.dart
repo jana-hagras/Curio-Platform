@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/custom_image.dart';
@@ -26,7 +27,7 @@ class CartScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   const Text("Your cart is empty", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
-                  Text("Start exploring and add items!", style: TextStyle(fontSize: 14, color: AppColors.textSecondary.withOpacity(0.7))),
+                  Text("Start exploring and add items!", style: TextStyle(fontSize: 14, color: AppColors.textSecondary.withValues(alpha: 0.7))),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: 200,
@@ -111,7 +112,7 @@ class CartScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 16, offset: const Offset(0, -4))],
       ),
       child: Column(
         children: [

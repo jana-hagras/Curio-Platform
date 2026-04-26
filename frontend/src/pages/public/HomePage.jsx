@@ -6,6 +6,7 @@ import ProductCard from '../../components/cards/ProductCard';
 import ArtisanCard from '../../components/cards/ArtisanCard';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
+import Button from '../../components/ui/Button';
 import { FiArrowRight, FiShield, FiGlobe, FiHeart, FiStar } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import './HomePage.css';
@@ -26,56 +27,50 @@ export default function HomePage() {
 
   const handleAddToCart = (product) => {
     addItem(product);
-    toast.success(`${product.item} added to cart!`);
+    toast.success(`Added to cart!`);
   };
 
   return (
-    <div className="home-page">
-      {/* Hero Section */}
+    <div>
+      {/* Hero */}
       <section className="hero" id="hero-section">
-        <div className="hero-overlay" />
-        <div className="hero-pattern" />
-        <div className="container hero-content">
-          <div className="hero-text animate-fadeInUp">
-            <span className="hero-badge">✦ Authentic Egyptian Craftsmanship</span>
-            <h1 className="hero-title">
-              Discover the Art of<br />
-              <span className="gold-gradient-text">Ancient Egypt</span>
-            </h1>
-            <p className="hero-subtitle">
-              Connect with master artisans and bring home unique, handcrafted treasures 
-              that carry centuries of tradition and cultural heritage.
-            </p>
-            <div className="hero-btns">
-              <Link to="/marketplace" className="hero-btn-primary">
-                Explore Marketplace <FiArrowRight />
-              </Link>
-              <Link to="/artisans" className="hero-btn-secondary">
-                Meet Artisans
-              </Link>
+        <div className="container hero-content" style={{ animation: 'fadeInUp 0.6s ease forwards' }}>
+          <span className="hero-badge">✦ Authentic Egyptian Craftsmanship</span>
+          <h1>
+            Discover the Art of<br />
+            <span>Ancient Egypt</span>
+          </h1>
+          <p className="hero-desc">
+            Connect with master artisans and bring home unique, handcrafted treasures
+            that carry centuries of tradition and cultural heritage.
+          </p>
+          <div className="hero-actions">
+            <Link to="/marketplace">
+              <Button size="lg">Explore Marketplace <FiArrowRight /></Button>
+            </Link>
+            <Link to="/artisans">
+              <Button variant="outline" size="lg" style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}>Meet Artisans</Button>
+            </Link>
+          </div>
+          <div className="hero-stats">
+            <div className="hero-stat">
+              <div className="hero-stat-value">500+</div>
+              <div className="hero-stat-label">Artisans</div>
             </div>
-            <div className="hero-stats">
-              <div className="hero-stat">
-                <span className="hero-stat-number">500+</span>
-                <span className="hero-stat-label">Artisans</span>
-              </div>
-              <div className="hero-stat-divider" />
-              <div className="hero-stat">
-                <span className="hero-stat-number">2K+</span>
-                <span className="hero-stat-label">Products</span>
-              </div>
-              <div className="hero-stat-divider" />
-              <div className="hero-stat">
-                <span className="hero-stat-number">10K+</span>
-                <span className="hero-stat-label">Happy Buyers</span>
-              </div>
+            <div className="hero-stat">
+              <div className="hero-stat-value">2K+</div>
+              <div className="hero-stat-label">Products</div>
+            </div>
+            <div className="hero-stat">
+              <div className="hero-stat-value">10K+</div>
+              <div className="hero-stat-label">Happy Buyers</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="section features-section">
+      <section className="section">
         <div className="container">
           <h2 className="section-title">Why Choose <span className="gold-text">CURIO</span></h2>
           <p className="section-subtitle">We bridge the gap between Egypt's finest artisans and global buyers</p>
@@ -86,7 +81,7 @@ export default function HomePage() {
               { icon: FiHeart, title: 'Custom Orders', desc: 'Request bespoke pieces tailored exactly to your vision and needs.' },
               { icon: FiStar, title: 'Secure Payments', desc: 'Protected transactions with escrow milestones for custom projects.' },
             ].map((f, i) => (
-              <div key={i} className="feature-card" style={{ animationDelay: `${i * 100}ms` }}>
+              <div key={i} className="feature-card">
                 <div className="feature-icon"><f.icon /></div>
                 <h3 className="feature-title">{f.title}</h3>
                 <p className="feature-desc">{f.desc}</p>
@@ -98,16 +93,18 @@ export default function HomePage() {
 
       {/* Featured Products */}
       {products.length > 0 && (
-        <section className="section" style={{ background: 'var(--cream)' }}>
+        <section className="section" style={{ background: 'var(--surface-secondary)' }}>
           <div className="container">
-            <div className="section-header-row">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
               <div>
-                <h2 className="section-title text-left">Featured Products</h2>
-                <p className="section-subtitle text-left" style={{ marginLeft: 0 }}>Handpicked artisan creations</p>
+                <h2 className="section-title" style={{ textAlign: 'left' }}>Featured Products</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginTop: 8 }}>Handpicked artisan creations</p>
               </div>
-              <Link to="/marketplace" className="section-view-all">View All <FiArrowRight /></Link>
+              <Link to="/marketplace" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 15 }}>
+                View All <FiArrowRight />
+              </Link>
             </div>
-            <div className="products-grid">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
               {products.map(p => (
                 <ProductCard key={p.id} product={p} onAddToCart={isBuyer ? handleAddToCart : null} />
               ))}
@@ -120,14 +117,16 @@ export default function HomePage() {
       {artisans.length > 0 && (
         <section className="section">
           <div className="container">
-            <div className="section-header-row">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
               <div>
-                <h2 className="section-title text-left">Meet Our Artisans</h2>
-                <p className="section-subtitle text-left" style={{ marginLeft: 0 }}>Talented craftspeople keeping traditions alive</p>
+                <h2 className="section-title" style={{ textAlign: 'left' }}>Meet Our Artisans</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginTop: 8 }}>Talented craftspeople keeping traditions alive</p>
               </div>
-              <Link to="/artisans" className="section-view-all">View All <FiArrowRight /></Link>
+              <Link to="/artisans" style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600, fontSize: 15 }}>
+                View All <FiArrowRight />
+              </Link>
             </div>
-            <div className="artisans-grid">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
               {artisans.map(a => <ArtisanCard key={a.id} artisan={a} />)}
             </div>
           </div>
@@ -136,14 +135,12 @@ export default function HomePage() {
 
       {/* CTA */}
       <section className="cta-section">
-        <div className="container">
-          <div className="cta-card">
-            <h2 className="cta-title">Ready to Discover Authentic Egyptian Art?</h2>
-            <p className="cta-desc">Join thousands of buyers and artisans on CURIO</p>
-            <div className="hero-btns" style={{ justifyContent: 'center' }}>
-              <Link to="/register" className="hero-btn-primary">Get Started <FiArrowRight /></Link>
-              <Link to="/marketplace" className="hero-btn-secondary">Browse Products</Link>
-            </div>
+        <div className="container cta-content">
+          <h2>Ready to Discover Authentic Egyptian Art?</h2>
+          <p>Join thousands of buyers and artisans on CURIO</p>
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+            <Link to="/register"><Button size="lg">Get Started <FiArrowRight /></Button></Link>
+            <Link to="/marketplace"><Button variant="outline" size="lg" style={{ borderColor: 'rgba(255,255,255,0.3)', color: '#fff' }}>Browse Products</Button></Link>
           </div>
         </div>
       </section>

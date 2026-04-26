@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -43,7 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
                   child: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
                 ),
                 title: const Text("Take Photo", style: TextStyle(fontWeight: FontWeight.w600)),
@@ -52,7 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ListTile(
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
                   child: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
                 ),
                 title: const Text("Choose from Gallery", style: TextStyle(fontWeight: FontWeight.w600)),
@@ -62,7 +63,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: AppColors.error.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
                     child: const Icon(Icons.delete_outline, color: AppColors.error),
                   ),
                   title: const Text("Remove Photo", style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.error)),
@@ -97,7 +98,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       children: [
                         CircleAvatar(
                           radius: 52,
-                          backgroundColor: AppColors.primary.withOpacity(0.12),
+                          backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                           backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
                           child: _profileImage == null
                               ? const Icon(Icons.person, size: 52, color: AppColors.primary)

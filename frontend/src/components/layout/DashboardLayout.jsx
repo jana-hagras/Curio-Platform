@@ -2,9 +2,10 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
   FiGrid, FiShoppingBag, FiFileText, FiDollarSign, FiUser,
-  FiPackage, FiBriefcase, FiImage, FiSend
+  FiPackage, FiImage, FiSend, FiHeart, FiMessageCircle, FiInbox
 } from 'react-icons/fi';
 import Navbar from './Navbar';
+import BackButton from '../ui/BackButton';
 import './Sidebar.css';
 
 export default function DashboardLayout() {
@@ -14,6 +15,8 @@ export default function DashboardLayout() {
     { path: '/dashboard', label: 'Overview', icon: FiGrid, end: true },
     { path: '/dashboard/orders', label: 'My Orders', icon: FiShoppingBag },
     { path: '/dashboard/requests', label: 'My Requests', icon: FiFileText },
+    { path: '/dashboard/favorites', label: 'Favorites', icon: FiHeart },
+    { path: '/dashboard/chat', label: 'Chat', icon: FiMessageCircle },
     { path: '/dashboard/payments', label: 'Payments', icon: FiDollarSign },
     { path: '/dashboard/profile', label: 'Profile', icon: FiUser },
   ];
@@ -22,7 +25,7 @@ export default function DashboardLayout() {
     { path: '/dashboard', label: 'Overview', icon: FiGrid, end: true },
     { path: '/dashboard/products', label: 'My Products', icon: FiPackage },
     { path: '/dashboard/portfolio', label: 'Portfolio', icon: FiImage },
-    { path: '/dashboard/applications', label: 'Applications', icon: FiSend },
+    { path: '/dashboard/chat', label: 'Chat', icon: FiMessageCircle },
     { path: '/dashboard/profile', label: 'Profile', icon: FiUser },
   ];
 
@@ -51,6 +54,7 @@ export default function DashboardLayout() {
           </nav>
         </aside>
         <div className="dashboard-content">
+          <BackButton />
           <Outlet />
         </div>
       </div>

@@ -9,11 +9,12 @@ const sanitizeOrder = (row) => {
     deliveryAddress: row.DeliveryAddress,
     status: row.Status,
     buyerName: row.FName ? `${row.FName} ${row.LName}` : null,
+    totalAmount: row.TotalAmount || 0,
   };
 };
 
 const ORDER_QUERY = `
-  SELECT o.*, u.FName, u.LName
+  SELECT o.*, u.FName, u.LName, (SELECT TotalAmount FROM Payment WHERE Order_id = o.Order_id LIMIT 1) AS TotalAmount
   FROM \`Order\` o
   LEFT JOIN Buyer b ON o.Buyer_id = b.Buyer_id
   LEFT JOIN user u ON b.Buyer_id = u.User_id

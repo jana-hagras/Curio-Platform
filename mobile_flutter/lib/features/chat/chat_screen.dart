@@ -21,7 +21,7 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         title: Row(
           children: [
-            CircleAvatar(radius: 16, backgroundColor: AppColors.primary.withOpacity(0.15), child: const Icon(Icons.person, size: 16, color: AppColors.primary)),
+            CircleAvatar(radius: 16, backgroundColor: AppColors.primary.withValues(alpha: 0.15), child: const Icon(Icons.person, size: 16, color: AppColors.primary)),
             const SizedBox(width: 10),
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,7 +54,7 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.fromLTRB(16, 10, 8, 24),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, -2))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, -2))],
             ),
             child: Row(
               children: [

@@ -19,6 +19,7 @@ import orderItemRouter from "./modules/orderItem/orderItem.controller.js";
 import paymentRouter from "./modules/payment/payment.controller.js";
 import reviewRouter from "./modules/review/review.controller.js";
 import uploadRouter from "./modules/upload/upload.controller.js";
+import favoriteRouter from "./modules/favorite/favorite.controller.js";
 
 export const bootstrap = () => {
   const app = express();
@@ -41,6 +42,7 @@ export const bootstrap = () => {
   app.use("/order-items", orderItemRouter);
   app.use("/payments", paymentRouter);
   app.use("/reviews", reviewRouter);
+  app.use("/favorites", favoriteRouter);
 
   app.use((req, res) => {
     res.status(404).json({ ok: false, message: "Route not found" });

@@ -82,7 +82,7 @@ class ProductDetailsScreen extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 22,
-                          backgroundColor: AppColors.primary.withOpacity(0.15),
+                          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                           child: const Icon(Icons.person, color: AppColors.primary, size: 22),
                         ),
                         const SizedBox(width: 12),
@@ -144,7 +144,7 @@ class ProductDetailsScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12, offset: const Offset(0, -4))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, -4))],
         ),
         child: Row(
           children: [

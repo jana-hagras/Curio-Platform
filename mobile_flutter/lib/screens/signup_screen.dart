@@ -4,6 +4,8 @@ import '../core/constants.dart';
 class SignupScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
 
+  SignupScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
