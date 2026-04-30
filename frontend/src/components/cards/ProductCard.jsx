@@ -10,12 +10,12 @@ export default function ProductCard({ product, onAddToCart }) {
   const { isAuthenticated } = useAuth();
   let favorites = {
     isFavorite: () => false,
-    addFavorite: () => {},
-    removeFavorite: () => {},
+    addFavorite: () => { },
+    removeFavorite: () => { },
   };
   try {
     favorites = useFavorites();
-  } catch {}
+  } catch { }
   const { isFavorite, addFavorite, removeFavorite } = favorites;
   const fav = isFavorite(product.id);
 
@@ -32,49 +32,37 @@ export default function ProductCard({ product, onAddToCart }) {
   };
 
   return (
-    <Link to={`/marketplace/${product.id}`} className="product-card">
-      <div className="product-card" id={`product-card-${product.id}`}>
-        <Link
-          to={`/marketplace/${product.id}`}
-          className="product-card-image-link"
-        >
-          <div className="product-card-image">
-            {product.image ? (
-              <img
-                src={product.image}
-                alt={product.item || product.itemName}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src =
-                    "https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80";
-                }}
-              />
-            ) : (
-              <div className="product-card-placeholder">
-                <FiShoppingCart />
-              </div>
-            )}
-            {product.category && (
-              <span className="product-card-category">{product.category}</span>
-            )}
-            {isAuthenticated && (
-              <button
-                className={`product-card-fav-btn ${fav ? "product-card-fav-active" : ""}`}
-                onClick={toggleFav}
-                title={fav ? "Remove from favorites" : "Add to favorites"}
-              >
-                <FiHeart />
-              </button>
-            )}
-          </div>
-        </Link>
+    <Link to={`/marketplace/${product.id}`} className="product-card" id={`product-card-${product.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+        <div className="product-card-image">
+          {product.image ? (
+            <img
+              src={product.image}
+              alt={product.item || product.itemName}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80";
+              }}
+            />
+          ) : (
+            <div className="product-card-placeholder">
+              <FiShoppingCart />
+            </div>
+          )}
+          {product.category && (
+            <span className="product-card-category">{product.category}</span>
+          )}
+          {isAuthenticated && (
+            <button
+              className={`product-card-fav-btn ${fav ? "product-card-fav-active" : ""}`}
+              onClick={toggleFav}
+              title={fav ? "Remove from favorites" : "Add to favorites"}
+            >
+              <FiHeart />
+            </button>
+          )}
+        </div>
         <div className="product-card-body">
-          <Link
-            to={`/marketplace/${product.id}`}
-            className="product-card-title"
-          >
-            {product.item || product.itemName}
-          </Link>
+          {product.item || product.itemName}
           {product.artisanName && (
             <div className="product-card-artisan">
               <FiUser size={14} />
@@ -104,7 +92,6 @@ export default function ProductCard({ product, onAddToCart }) {
             </div>
           </div>
         </div>
-      </div>
     </Link>
   );
 }

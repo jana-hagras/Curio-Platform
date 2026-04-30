@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { marketItemService } from '../../services/marketItemService';
 import { reviewService } from '../../services/reviewService';
 import { useAuth } from '../../hooks/useAuth';
@@ -11,7 +11,7 @@ import Spinner from '../../components/ui/Spinner';
 import TextArea from '../../components/ui/TextArea';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { FiShoppingCart, FiUser, FiMinus, FiPlus, FiPackage } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiMinus, FiPlus, FiPackage, FiArrowLeft } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function ProductDetailPage() {
@@ -24,6 +24,7 @@ export default function ProductDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const { user, isBuyer } = useAuth();
   const { addItem } = useCart();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
@@ -64,9 +65,19 @@ export default function ProductDetailPage() {
   return (
     <div style={{ padding: '40px 0' }}>
       <div className="container">
+        <button 
+          onClick={() => navigate(-1)} 
+          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 16, fontWeight: 600, marginBottom: 24, padding: 0 }}
+        >
+          <FiArrowLeft size={20} /> 
+        </button>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, marginBottom: 48 }}>
           <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--surface-border)' }}>
-            {product.image ? <img src={product.image} alt={product.item} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80'; }} /> : <FiPackage style={{ fontSize: 80, color: 'var(--sand-dark)' }} />}
+            {product.image ? (
+              <img src={product.image} alt={product.item} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80'; }} /> 
+            ) : (
+              <FiPackage style={{ fontSize: 80, color: 'var(--sand-dark)' }} />
+            )}
           </div>
           <div>
             {product.category && <Badge status="Active">{product.category}</Badge>}
