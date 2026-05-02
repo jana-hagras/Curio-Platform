@@ -5,10 +5,11 @@ import { applicationService } from '../../services/applicationService';
 import { marketItemService } from '../../services/marketItemService';
 import { orderService } from '../../services/orderService';
 import { reviewService } from '../../services/reviewService';
+import { milestoneService } from '../../services/milestoneService';
 import {
   FiPackage, FiSend, FiDollarSign, FiCheckCircle,
   FiTrendingUp, FiStar, FiArrowRight, FiPlus, FiBarChart2, FiClock,
-  FiMessageCircle
+  FiMessageCircle, FiInfo
 } from 'react-icons/fi';
 import DashboardSkeleton from '../../components/ui/DashboardSkeleton';
 import Badge from '../../components/ui/Badge';
@@ -18,7 +19,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 export default function ArtisanDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ products: 0, applications: 0, accepted: 0, inProgress: 0, revenue: 0, reviews: 0 });
+  const [stats, setStats] = useState({ products: 0, applications: 0, accepted: 0, inProgress: 0, earnings: 0, reviews: 0 });
   const [products, setProducts] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,15 +29,29 @@ export default function ArtisanDashboard() {
       marketItemService.getByArtisan(user.id).catch(() => ({ data: { items: [] } })),
       applicationService.getByArtisan(user.id).catch(() => ({ data: { applications: [] } })),
       orderService.getByArtisan(user.id).catch(() => ({ data: { orders: [] } })),
-    ]).then(([pRes, aRes, oRes]) => {
+    ]).then(async ([pRes, aRes, oRes]) => {
       const prods = pRes.data?.items || [];
       const apps = aRes.data?.applications || [];
       const artisanOrders = oRes.data?.orders || [];
       
-      // Aggregate revenue only from completed orders
-      const revenue = artisanOrders
+      // Aggregate earnings from completed orders
+      let earnings = artisanOrders
         .filter(o => o.status === 'Completed')
         .reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+
+      const approvedApps = apps.filter(a => a.status === 'Approved');
+      
+      for (const app of approvedApps) {
+        try {
+          const mRes = await milestoneService.getByRequest(app.request_id);
+          const milestones = mRes.data?.milestones || [];
+          milestones.forEach(m => {
+            if (m.status === 'Released' || m.status === 'Completed') {
+              earnings += Number(m.escrowAmount || 0);
+            }
+          });
+        } catch (err) {}
+      }
 
       const accepted = apps.filter(a => a.status === 'Approved').length;
       const inProgress = apps.filter(a => a.status === 'Approved' || a.status === 'Pending').length;
@@ -48,7 +63,7 @@ export default function ArtisanDashboard() {
         applications: apps.length,
         accepted,
         inProgress,
-        revenue,
+        earnings,
         reviews: 0,
       });
       setLoading(false);
@@ -62,7 +77,7 @@ export default function ArtisanDashboard() {
     { label: 'Sent Proposals', value: stats.applications, icon: FiSend, color: '#3B82F6' },
     { label: 'Accepted', value: stats.accepted, icon: FiCheckCircle, color: '#10B981' },
     { label: 'In Progress', value: stats.inProgress, icon: FiClock, color: '#F59E0B' },
-    { label: 'Total Revenue', value: formatCurrency(stats.revenue), icon: FiDollarSign, color: '#8B5CF6' },
+    { label: 'Total Profit', value: formatCurrency(stats.earnings - (stats.earnings * 0.20)), icon: FiDollarSign, color: '#8B5CF6', hasTooltip: true },
   ];
 
   return (
@@ -107,16 +122,24 @@ export default function ArtisanDashboard() {
               <card.icon />
             </div>
             <div>
-              <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 2 }}>{card.label}</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                {card.label}
+                {card.hasTooltip && (
+                  <span style={{ position: 'relative', display: 'inline-flex', cursor: 'help' }} className="earnings-tooltip-wrapper">
+                    <FiInfo size={14} style={{ color: 'var(--text-tertiary)' }} />
+                    <span className="earnings-tooltip">profit after the cut</span>
+                  </span>
+                )}
+              </p>
               <h3 style={{ fontSize: 24, fontFamily: 'var(--font-body)', fontWeight: 700 }}>{card.value}</h3>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Content Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-        {/* Recent Products */}
+      {/* Content — Full Width */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}>
+        {/* My Products */}
         <div style={{
           background: 'var(--surface-primary)',
           borderRadius: 'var(--radius-lg)',

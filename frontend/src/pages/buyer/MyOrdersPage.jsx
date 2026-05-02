@@ -5,11 +5,14 @@ import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
+import { FiFileText } from 'react-icons/fi';
+import InvoiceModal from '../../components/ui/InvoiceModal';
 
 export default function MyOrdersPage() {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const [filter, setFilter] = useState('All');
 
@@ -33,6 +36,14 @@ export default function MyOrdersPage() {
     { header: 'Date', accessor: 'orderDate', render: r => formatDate(r.orderDate) },
     { header: 'Total', accessor: 'totalAmount', render: r => formatCurrency(r.totalAmount) },
     { header: 'Status', accessor: 'status', render: r => <Badge status={r.status} /> },
+    { header: 'Actions', accessor: 'actions', render: r => (
+      <button 
+        onClick={() => setSelectedOrder({ ...r, buyerName: user.firstName + (user.lastName ? ' ' + user.lastName : '') })}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'var(--surface-secondary)', border: '1px solid var(--surface-border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+      >
+        <FiFileText /> Invoice
+      </button>
+    )}
   ];
 
   return (
@@ -51,6 +62,13 @@ export default function MyOrdersPage() {
         </select>
       </div>
       <DataTable columns={columns} data={filteredAndSortedOrders} loading={loading} emptyMessage="You haven't placed any orders yet." />
+      
+      {selectedOrder && (
+        <InvoiceModal 
+          order={selectedOrder} 
+          onClose={() => setSelectedOrder(null)} 
+        />
+      )}
     </div>
   );
 }

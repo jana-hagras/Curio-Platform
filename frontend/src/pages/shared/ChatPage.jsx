@@ -64,10 +64,10 @@ export default function ChatPage() {
     setTimeout(() => {
       setMessages(prevMessages => {
         const currentMsgs = prevMessages[contactId] || [];
-        const isFirstReply = currentMsgs.length <= 1;
-        const replyText = isFirstReply 
-          ? "Hello, thank you for your interest. I will review your request and get back to you shortly."
-          : "Thanks for the message! Working on it now.";
+        // Only reply if this is the very first message sent by the user in this conversation
+        if (currentMsgs.length > 1) return prevMessages;
+        
+        const replyText = "thanks for reaching out I will respond as soon as possible";
         
         const reply = {
           id: Date.now() + 1,

@@ -9,6 +9,7 @@ import { useCart } from '../../hooks/useCart';
 import Button from '../../components/ui/Button';
 import { FiArrowRight, FiShield, FiGlobe, FiHeart, FiStar } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import curioVideo from '../../assets/curio.mp4';
 import './HomePage.css';
 
 export default function HomePage() {
@@ -34,6 +35,10 @@ export default function HomePage() {
     <div>
       {/* Hero */}
       <section className="hero" id="hero-section">
+        <video autoPlay loop muted playsInline className="hero-video-bg">
+          <source src={curioVideo} type="video/mp4" />
+        </video>
+        <div className="hero-overlay"></div>
         <div className="container hero-content" style={{ animation: 'fadeInUp 0.6s ease forwards' }}>
           <span className="hero-badge">✦ Authentic Egyptian Craftsmanship</span>
           <h1>

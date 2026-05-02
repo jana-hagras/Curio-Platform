@@ -10,8 +10,9 @@ import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
 import Button from '../../components/ui/Button';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { FiShield, FiCheck } from 'react-icons/fi';
+import { FiShield, FiCheck, FiFileText } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import InvoiceModal from '../../components/ui/InvoiceModal';
 
 export default function CheckoutPage() {
   const { user } = useAuth();
@@ -19,6 +20,8 @@ export default function CheckoutPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState('form'); // form | success
+  const [placedOrder, setPlacedOrder] = useState(null);
+  const [showInvoice, setShowInvoice] = useState(false);
   const [form, setForm] = useState({
     shippingAddress: user?.address || '',
     paymentMethod: 'Cash',
@@ -70,6 +73,17 @@ export default function CheckoutPage() {
       // 4. Update order status
       await orderService.update(orderId, { status: 'Completed' }).catch(() => {});
 
+      // Save order details for the invoice
+      setPlacedOrder({
+        id: orderId,
+        orderDate: now,
+        totalAmount: totalPrice,
+        status: 'Completed',
+        shippingAddress: form.shippingAddress,
+        buyerName: user.firstName + (user.lastName ? ' ' + user.lastName : ''),
+        items: [...items]
+      });
+
       clearCart();
       setStep('success');
       toast.success('Order placed successfully!');
@@ -91,10 +105,19 @@ export default function CheckoutPage() {
         <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 32 }}>
           Your order has been placed successfully. You'll receive updates on your dashboard.
         </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Button onClick={() => navigate('/dashboard/orders')}>View Orders</Button>
+          <Button variant="outline" icon={FiFileText} onClick={() => setShowInvoice(true)}>View Invoice</Button>
           <Button variant="outline" onClick={() => navigate('/marketplace')}>Continue Shopping</Button>
         </div>
+        
+        {showInvoice && placedOrder && (
+          <InvoiceModal 
+            order={placedOrder} 
+            preloadedItems={placedOrder.items} 
+            onClose={() => setShowInvoice(false)} 
+          />
+        )}
       </div>
     );
   }

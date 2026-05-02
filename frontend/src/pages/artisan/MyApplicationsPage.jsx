@@ -12,6 +12,7 @@ import { FiCheck, FiEdit3, FiChevronDown, FiChevronRight, FiBriefcase, FiFileTex
 import { orderService } from '../../services/orderService';
 import { formatCurrency } from '../../utils/formatCurrency';
 import toast from 'react-hot-toast';
+import InvoiceModal from '../../components/ui/InvoiceModal';
 
 export default function MyApplicationsPage() {
   const { user } = useAuth();
@@ -371,99 +372,10 @@ export default function MyApplicationsPage() {
 
       {/* Invoice / Receipt Modal */}
       {invoiceOrder && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 10000,
-          padding: 20
-        }} onClick={() => setInvoiceOrder(null)}>
-          <div style={{
-            background: '#fff',
-            color: '#111',
-            borderRadius: 'var(--radius-lg)',
-            padding: 40,
-            maxWidth: 800,
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            position: 'relative',
-            fontFamily: 'Courier, monospace',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
-          }} onClick={e => e.stopPropagation()}>
-            <button 
-              onClick={() => setInvoiceOrder(null)}
-              style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', cursor: 'pointer', fontSize: 24 }}
-            >
-              <FiX />
-            </button>
-            
-            <div style={{ borderBottom: '2px solid #eee', paddingBottom: 20, marginBottom: 20, display: 'flex', justifyContent: 'space-between' }}>
-              <div>
-                <h1 style={{ fontSize: 32, fontWeight: 900, margin: 0, letterSpacing: -1 }}>INVOICE</h1>
-                <p style={{ margin: '4px 0', opacity: 0.7 }}>Order #{invoiceOrder.id}</p>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <h2 style={{ margin: 0, color: 'var(--gold-primary)' }}>CURIO</h2>
-                <p style={{ margin: 0, fontSize: 12 }}>Marketplace for Artisans</p>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, marginBottom: 40 }}>
-              <div>
-                <h4 style={{ textTransform: 'uppercase', fontSize: 12, marginBottom: 10, borderBottom: '1px solid #eee' }}>Artisan Details</h4>
-                <p style={{ fontWeight: 700, margin: 0 }}>{user.firstName} {user.lastName}</p>
-                <p style={{ margin: 0, fontSize: 14 }}>{user.email}</p>
-                <p style={{ margin: 0, fontSize: 14 }}>{user.address || 'Cairo, Egypt'}</p>
-              </div>
-              <div>
-                <h4 style={{ textTransform: 'uppercase', fontSize: 12, marginBottom: 10, borderBottom: '1px solid #eee' }}>Buyer Details</h4>
-                <p style={{ fontWeight: 700, margin: 0 }}>{invoiceOrder.buyerName}</p>
-                <p style={{ margin: 0, fontSize: 14 }}>{invoiceOrder.deliveryAddress || 'N/A'}</p>
-                <p style={{ margin: 0, fontSize: 14 }}>Date: {formatDate(invoiceOrder.orderDate)}</p>
-              </div>
-            </div>
-
-            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 40 }}>
-              <thead>
-                <tr style={{ textAlign: 'left', borderBottom: '2px solid #111' }}>
-                  <th style={{ padding: '10px 0' }}>Description</th>
-                  <th style={{ padding: '10px 0', textAlign: 'right' }}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '20px 0' }}>
-                    <p style={{ fontWeight: 700, margin: 0 }}>Order Content</p>
-                    <p style={{ fontSize: 12, margin: 0, opacity: 0.6 }}>Artisan handmade product from marketplace</p>
-                  </td>
-                  <td style={{ padding: '20px 0', textAlign: 'right', fontWeight: 700 }}>
-                    {formatCurrency(invoiceOrder.totalAmount)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div style={{ textAlign: 'right', borderTop: '2px solid #111', paddingTop: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 40, marginBottom: 10 }}>
-                <span>Subtotal:</span>
-                <span>{formatCurrency(invoiceOrder.totalAmount)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 40, fontSize: 24, fontWeight: 900 }}>
-                <span>TOTAL:</span>
-                <span style={{ color: 'var(--gold-primary)' }}>{formatCurrency(invoiceOrder.totalAmount)}</span>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 60, textAlign: 'center', fontSize: 12, opacity: 0.5 }}>
-              <p>Thank you for supporting authentic Egyptian craftsmanship.</p>
-              <p>This is a computer generated invoice.</p>
-            </div>
-
-            <div style={{ marginTop: 40, display: 'flex', justifyContent: 'center' }}>
-               <Button icon={FiPrinter} onClick={() => window.print()}>Print Invoice</Button>
-            </div>
-          </div>
-        </div>
+        <InvoiceModal 
+          order={invoiceOrder} 
+          onClose={() => setInvoiceOrder(null)} 
+        />
       )}
     </div>
   );

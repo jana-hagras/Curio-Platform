@@ -69,6 +69,13 @@ export const createPayment = async (req, res, next) => {
       });
     }
 
+    if (Number(totalAmount) < 0) {
+      return res.status(400).json({
+        ok: false,
+        message: "Total amount cannot be negative."
+      });
+    }
+
     if (!order_id && !request_id) {
       return res.status(400).json({
         ok: false,
@@ -106,6 +113,24 @@ export const createPayment = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+// READ BY BUYER (via Order or Request)
+export const getPaymentsByBuyer = async (req, res, next) => {
+  try {
+    const buyerId = Number(req.query.buyer_id);
+    if (!buyerId) return res.status(400).json({ ok: false, message: "Query parameter 'buyer_id' is required." });
+
+    const query = `
+      SELECT p.* FROM Payment p
+      LEFT JOIN \`Order\` o ON p.Order_id = o.Order_id
+      LEFT JOIN Request r ON p.Request_id = r.Request_id
+      WHERE o.Buyer_id = ? OR r.Buyer_id = ?
+    `;
+
+    const [rows] = await pool.query(query, [buyerId, buyerId]);
+    return res.status(200).json({ ok: true, data: { payments: rows.map(sanitizePayment) } });
+  } catch (err) { next(err); }
 };
 
 
