@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { orderService } from '../../services/orderService';
 import { milestoneService } from '../../services/milestoneService';
 import { applicationService } from '../../services/applicationService';
-import { FiDollarSign, FiTrendingUp, FiClock, FiDownload } from 'react-icons/fi';
+import { FiDollarSign, FiTrendingUp, FiClock, FiDownload, FiInfo } from 'react-icons/fi';
 import DashboardSkeleton from '../../components/ui/DashboardSkeleton';
 import Badge from '../../components/ui/Badge';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -90,7 +90,6 @@ export default function WalletPage() {
       setWallet({
         totalEarnings: orderRevenue + totalMilestoneReleased,
         pendingBalance: pendingOrderRevenue + totalMilestonePending,
-        withdrawableBalance: orderRevenue + totalMilestoneReleased,
         transactions
       });
     })
@@ -125,7 +124,7 @@ export default function WalletPage() {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, marginBottom: 40 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24, marginBottom: 40 }}>
         <div style={{ background: 'var(--surface-primary)', padding: 24, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
             <FiTrendingUp />
@@ -143,16 +142,6 @@ export default function WalletPage() {
           <div>
             <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 4 }}>Pending Balance</p>
             <h3 style={{ fontSize: 28, fontWeight: 700 }}>{formatCurrency(wallet.pendingBalance)}</h3>
-          </div>
-        </div>
-
-        <div style={{ background: 'var(--surface-primary)', padding: 24, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(16, 185, 129, 0.1)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-            <FiDollarSign />
-          </div>
-          <div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 4 }}>Withdrawable</p>
-            <h3 style={{ fontSize: 28, fontWeight: 700 }}>{formatCurrency(wallet.withdrawableBalance)}</h3>
           </div>
         </div>
       </div>

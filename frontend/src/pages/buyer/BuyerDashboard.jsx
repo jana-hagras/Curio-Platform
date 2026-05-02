@@ -105,109 +105,106 @@ export default function BuyerDashboard() {
         ))}
       </div>
 
-      {/* Main Content Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24 }}>
-        {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* Recent Orders */}
+      {/* Main Content — Full Width */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {/* Recent Orders */}
+        <div style={{
+          background: 'var(--surface-primary)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--surface-border)',
+          overflow: 'hidden'
+        }}>
           <div style={{
-            background: 'var(--surface-primary)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--surface-border)',
-            overflow: 'hidden'
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '20px 24px',
+            borderBottom: '1px solid var(--surface-border)'
           }}>
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '20px 24px',
-              borderBottom: '1px solid var(--surface-border)'
-            }}>
-              <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600 }}>Recent Orders</h3>
-              <button onClick={() => navigate('/dashboard/orders')}
-                style={{ color: 'var(--gold-primary)', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                View All <FiArrowRight size={14} />
-              </button>
-            </div>
-            <div style={{ padding: '8px 0' }}>
-              {orders.length === 0 ? (
-                <p style={{ padding: '32px 24px', color: 'var(--text-secondary)', textAlign: 'center', fontSize: 14 }}>
-                  No orders yet. Explore the marketplace!
-                </p>
-              ) : (
-                orders.slice(0, 4).map((order, i) => (
-                  <div key={order.id} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 24px',
-                    borderBottom: i < Math.min(orders.length, 4) - 1 ? '1px solid var(--surface-border)' : 'none',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{
-                        width: 40, height: 40, borderRadius: 10,
-                        background: 'rgba(212, 168, 67, 0.1)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: 'var(--gold-primary)', fontSize: 18,
-                      }}>
-                        <FiShoppingBag />
-                      </div>
-                      <div>
-                        <p style={{ fontWeight: 600, fontSize: 14 }}>Order #{order.id}</p>
-                        <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{formatDate(order.orderDate)}</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                      <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--gold-primary)' }}>{formatCurrency(order.totalAmount)}</span>
-                      <Badge status={order.status} />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+            <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600 }}>Recent Orders</h3>
+            <button onClick={() => navigate('/dashboard/orders')}
+              style={{ color: 'var(--gold-primary)', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              View All <FiArrowRight size={14} />
+            </button>
           </div>
-
-          {/* My Requests */}
-          <div style={{
-            background: 'var(--surface-primary)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--surface-border)',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '20px 24px',
-              borderBottom: '1px solid var(--surface-border)'
-            }}>
-              <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600 }}>Active Requests</h3>
-              <button onClick={() => navigate('/dashboard/requests')}
-                style={{ color: 'var(--gold-primary)', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                View All <FiArrowRight size={14} />
-              </button>
-            </div>
-            <div style={{ padding: '8px 0' }}>
-              {requests.length === 0 ? (
-                <p style={{ padding: '32px 24px', color: 'var(--text-secondary)', textAlign: 'center', fontSize: 14 }}>
-                  No custom requests. Create one to find artisans!
-                </p>
-              ) : (
-                requests.slice(0, 4).map((req, i) => (
-                  <div key={req.id} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 24px',
-                    borderBottom: i < Math.min(requests.length, 4) - 1 ? '1px solid var(--surface-border)' : 'none',
-                    cursor: 'pointer',
-                  }} onClick={() => navigate(`/requests/${req.id}`)}>
-                    <div>
-                      <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{req.title}</p>
-                      <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{req.category} · {formatCurrency(req.budget)}</p>
+          <div style={{ padding: '8px 0' }}>
+            {orders.length === 0 ? (
+              <p style={{ padding: '32px 24px', color: 'var(--text-secondary)', textAlign: 'center', fontSize: 14 }}>
+                No orders yet. Explore the marketplace!
+              </p>
+            ) : (
+              orders.slice(0, 4).map((order, i) => (
+                <div key={order.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '14px 24px',
+                  borderBottom: i < Math.min(orders.length, 4) - 1 ? '1px solid var(--surface-border)' : 'none',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 10,
+                      background: 'rgba(212, 168, 67, 0.1)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: 'var(--gold-primary)', fontSize: 18,
+                    }}>
+                      <FiShoppingBag />
                     </div>
-                    <Badge status={req.status || 'Pending'} />
+                    <div>
+                      <p style={{ fontWeight: 600, fontSize: 14 }}>Order #{order.id}</p>
+                      <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{formatDate(order.orderDate)}</p>
+                    </div>
                   </div>
-                ))
-              )}
-            </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--gold-primary)' }}>{formatCurrency(order.totalAmount)}</span>
+                    <Badge status={order.status} />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* Right Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {/* My Requests — Full Width */}
+        <div style={{
+          background: 'var(--surface-primary)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--surface-border)',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '20px 24px',
+            borderBottom: '1px solid var(--surface-border)'
+          }}>
+            <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600 }}>Active Requests</h3>
+            <button onClick={() => navigate('/dashboard/requests')}
+              style={{ color: 'var(--gold-primary)', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              View All <FiArrowRight size={14} />
+            </button>
+          </div>
+          <div style={{ padding: '8px 0' }}>
+            {requests.length === 0 ? (
+              <p style={{ padding: '32px 24px', color: 'var(--text-secondary)', textAlign: 'center', fontSize: 14 }}>
+                No custom requests. Create one to find artisans!
+              </p>
+            ) : (
+              requests.slice(0, 4).map((req, i) => (
+                <div key={req.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '14px 24px',
+                  borderBottom: i < Math.min(requests.length, 4) - 1 ? '1px solid var(--surface-border)' : 'none',
+                  cursor: 'pointer',
+                }} onClick={() => navigate(`/requests/${req.id}`)}>
+                  <div>
+                    <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{req.title}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{req.category} · {formatCurrency(req.budget)}</p>
+                  </div>
+                  <Badge status={req.status || 'Pending'} />
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Secondary Row — Explore & Quick Actions side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
           {/* Workshop Suggestions */}
           <div style={{
             background: 'var(--surface-primary)',

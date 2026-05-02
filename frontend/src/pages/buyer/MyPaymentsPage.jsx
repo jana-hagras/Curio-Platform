@@ -15,7 +15,7 @@ export default function MyPaymentsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    paymentService.search(user.id)
+    paymentService.getByBuyer(user.id)
       .then(res => setPayments(res.data.payments || []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -23,9 +23,9 @@ export default function MyPaymentsPage() {
 
   const columns = [
     { header: 'Payment ID', accessor: 'id' },
-    { header: 'Amount', accessor: 'amount', render: r => formatCurrency(r.amount || 0) },
-    { header: 'Method', accessor: 'method' },
-    { header: 'Date', accessor: 'paymentDate', render: r => formatDate(r.paymentDate) },
+    { header: 'Amount', accessor: 'totalAmount', render: r => formatCurrency(r.totalAmount || 0) },
+    { header: 'Method', accessor: 'paymentMethod', render: r => r.paymentMethod || '—' },
+    { header: 'Date', accessor: 'transactionDate', render: r => formatDate(r.transactionDate) },
     { header: 'Status', accessor: 'status', render: r => <Badge status={r.status} /> }
   ];
 

@@ -77,10 +77,16 @@ export const createItem = async (req, res, next) => {
     if (!artisan_id || !item || !price) {
       return res.status(400).json({ ok: false, message: "artisan_id, item, and price are required." });
     }
+    if (Number(price) < 0) {
+      return res.status(400).json({ ok: false, message: "Price cannot be negative." });
+    }
+    if (availQuantity !== undefined && availQuantity !== null && Number(availQuantity) < 0) {
+      return res.status(400).json({ ok: false, message: "Available quantity cannot be negative." });
+    }
 
     const [result] = await pool.query(
       "INSERT INTO MarketItem (Artisan_id, Item, Description, AvailQuantity, Price, Category, DateAdded) VALUES (?, ?, ?, ?, ?, ?, CURRENT_DATE)",
-      [artisan_id, item, description || null, availQuantity || 0, price, category || null]
+      [artisan_id, item, description || null, Math.max(0, availQuantity || 0), Math.max(0, price), category || null]
     );
 
     const newItemId = result.insertId;
@@ -150,6 +156,12 @@ export const updateItem = async (req, res, next) => {
     if (!id) return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
 
     const { item, description, availQuantity, price, category } = req.body;
+    if (price !== undefined && price !== null && Number(price) < 0) {
+      return res.status(400).json({ ok: false, message: "Price cannot be negative." });
+    }
+    if (availQuantity !== undefined && availQuantity !== null && Number(availQuantity) < 0) {
+      return res.status(400).json({ ok: false, message: "Available quantity cannot be negative." });
+    }
     await pool.query(
       "UPDATE MarketItem SET Item=COALESCE(?,Item), Description=COALESCE(?,Description), AvailQuantity=COALESCE(?,AvailQuantity), Price=COALESCE(?,Price), Category=COALESCE(?,Category) WHERE Item_id=?",
       [item, description, availQuantity, price, category, id]

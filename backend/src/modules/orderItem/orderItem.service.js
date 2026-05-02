@@ -68,6 +68,9 @@ export const createOrderItem = async (req, res, next) => {
     if (!order_id || !item_id || !quantity) {
       return res.status(400).json({ ok: false, message: "order_id, item_id, and quantity are required." });
     }
+    if (Number(quantity) < 1) {
+      return res.status(400).json({ ok: false, message: "Quantity must be at least 1." });
+    }
 
     const [result] = await pool.query(
       "INSERT INTO OrderItem (Order_id, Item_id, Quantity) VALUES (?, ?, ?)",
@@ -111,6 +114,9 @@ export const updateOrderItem = async (req, res, next) => {
 
     const { quantity } = req.body;
     if (!quantity) return res.status(400).json({ ok: false, message: "Field 'quantity' is required." });
+    if (Number(quantity) < 1) {
+      return res.status(400).json({ ok: false, message: "Quantity must be at least 1." });
+    }
 
     const [result] = await pool.query(
       "UPDATE OrderItem SET Quantity = ? WHERE OrderItem_id = ?",

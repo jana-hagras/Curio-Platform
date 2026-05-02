@@ -26,6 +26,8 @@ export default function CreateProductPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.item || !form.price || !form.availQuantity) return toast.error('Fill required fields');
+    if (Number(form.price) < 0) return toast.error('Price cannot be negative');
+    if (Number(form.availQuantity) < 0) return toast.error('Quantity cannot be negative');
     setLoading(true);
     try {
       let finalImageUrl = form.image;
@@ -58,8 +60,8 @@ export default function CreateProductPage() {
         <Select label="Category *" options={CATEGORIES} value={form.category} onChange={e => setForm({...form, category: e.target.value})} required />
         <TextArea label="Description *" value={form.description} onChange={e => setForm({...form, description: e.target.value})} required />
         <div style={{ display: 'flex', gap: 16 }}>
-          <Input type="number" label="Price (USD) *" value={form.price} onChange={e => setForm({...form, price: e.target.value})} required />
-          <Input type="number" label="Quantity *" value={form.availQuantity} onChange={e => setForm({...form, availQuantity: e.target.value})} required />
+          <Input type="number" label="Price (USD) *" min="0" step="0.01" value={form.price} onChange={e => setForm({...form, price: e.target.value})} required />
+          <Input type="number" label="Quantity *" min="0" step="1" value={form.availQuantity} onChange={e => setForm({...form, availQuantity: e.target.value})} required />
         </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
