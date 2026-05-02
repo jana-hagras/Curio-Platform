@@ -10,7 +10,7 @@ import {
   FiTrendingUp, FiStar, FiArrowRight, FiPlus, FiBarChart2, FiClock,
   FiMessageCircle
 } from 'react-icons/fi';
-import Spinner from '../../components/ui/Spinner';
+import DashboardSkeleton from '../../components/ui/DashboardSkeleton';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -27,15 +27,19 @@ export default function ArtisanDashboard() {
     Promise.all([
       marketItemService.getByArtisan(user.id).catch(() => ({ data: { items: [] } })),
       applicationService.getByArtisan(user.id).catch(() => ({ data: { applications: [] } })),
-      orderService.getAll().catch(() => ({ data: { orders: [] } })),
+      orderService.getByArtisan(user.id).catch(() => ({ data: { orders: [] } })),
     ]).then(([pRes, aRes, oRes]) => {
       const prods = pRes.data?.items || [];
       const apps = aRes.data?.applications || [];
-      const orders = oRes.data?.orders || [];
-      const myOrders = orders.filter(o => prods.some(p => p.id === o.item_id));
-      const revenue = myOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+      const artisanOrders = oRes.data?.orders || [];
+      
+      // Aggregate revenue only from completed orders
+      const revenue = artisanOrders
+        .filter(o => o.status === 'Completed')
+        .reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+
       const accepted = apps.filter(a => a.status === 'Approved').length;
-      const inProgress = apps.filter(a => a.status === 'Approved').length;
+      const inProgress = apps.filter(a => a.status === 'Approved' || a.status === 'Pending').length;
 
       setProducts(prods);
       setApplications(apps);
@@ -51,7 +55,7 @@ export default function ArtisanDashboard() {
     });
   }, [user.id]);
 
-  if (loading) return <Spinner />;
+  if (loading) return <DashboardSkeleton />;
 
   const statCards = [
     { label: 'Active Products', value: stats.products, icon: FiPackage, color: '#D4A843' },
@@ -221,8 +225,8 @@ export default function ArtisanDashboard() {
       }}>
         {[
           { label: 'Browse Requests', desc: 'Find new craft opportunities', icon: FiMessageCircle, path: '/requests' },
+          { label: 'My Wallet', desc: 'Manage your earnings', icon: FiDollarSign, path: '/dashboard/wallet' },
           { label: 'My Portfolio', desc: 'Showcase your best work', icon: FiBarChart2, path: '/dashboard/portfolio' },
-          { label: 'View Analytics', desc: 'Track your performance', icon: FiTrendingUp, path: '/dashboard' },
         ].map((action, i) => (
           <div key={i} onClick={() => navigate(action.path)} style={{
             background: 'var(--surface-primary)',

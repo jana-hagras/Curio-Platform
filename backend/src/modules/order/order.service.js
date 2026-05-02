@@ -117,6 +117,39 @@ export const getOrdersByBuyer = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// READ BY ARTISAN
+export const getOrdersByArtisan = async (req, res, next) => {
+  try {
+    const artisanId = Number(req.query.artisan_id);
+    if (!artisanId) return res.status(400).json({ ok: false, message: "Query parameter 'artisan_id' is required." });
+
+    const query = `
+      SELECT o.Order_id, o.Buyer_id, o.OrderDate, o.DeliveryAddress, o.Status, u.FName, u.LName, 
+             oi.Item_id, oi.Quantity, mi.Price, (oi.Quantity * mi.Price) AS TotalAmount
+      FROM \`Order\` o
+      JOIN OrderItem oi ON o.Order_id = oi.Order_id
+      JOIN MarketItem mi ON oi.Item_id = mi.Item_id
+      LEFT JOIN Buyer b ON o.Buyer_id = b.Buyer_id
+      LEFT JOIN user u ON b.Buyer_id = u.User_id
+      WHERE mi.Artisan_id = ?
+    `;
+
+    const [rows] = await pool.query(query, [artisanId]);
+    const orders = rows.map(row => ({
+      id: row.Order_id,
+      buyer_id: row.Buyer_id,
+      orderDate: row.OrderDate,
+      deliveryAddress: row.DeliveryAddress,
+      status: row.Status,
+      buyerName: row.FName ? `${row.FName} ${row.LName}` : null,
+      totalAmount: row.TotalAmount || 0,
+      item_id: row.Item_id
+    }));
+
+    return res.status(200).json({ ok: true, data: { orders } });
+  } catch (err) { next(err); }
+};
+
 // UPDATE STATUS
 export const updateOrder = async (req, res, next) => {
   try {

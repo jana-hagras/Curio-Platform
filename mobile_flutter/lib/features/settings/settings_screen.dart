@@ -2,7 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/api/api_service.dart';
+import '../../providers/auth_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,8 +16,23 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   File? _profileImage;
-  final _nameController = TextEditingController(text: "Jana Hagras");
-  final _emailController = TextEditingController(text: "janahagras.jh@gmail.com");
+  late TextEditingController _nameController;
+  late TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    _nameController = TextEditingController(text: user?.fullName ?? "");
+    _emailController = TextEditingController(text: user?.email ?? "");
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
@@ -89,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
               child: Column(
                 children: [
                   GestureDetector(
@@ -125,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Edit profile fields
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -139,14 +157,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 8),
                   TextField(controller: _emailController, decoration: const InputDecoration(prefixIcon: Icon(Icons.email_outlined, size: 20))),
                   const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Profile updated!"), backgroundColor: AppColors.success),
-                      );
-                    },
-                    child: const Text("Save Changes"),
-                  ),
+                  Consumer<AuthProvider>(builder: (context, auth, _) {
+                    return ElevatedButton(
+                      onPressed: () async {
+                        final user = auth.user;
+                        if (user == null) return;
+                        try {
+                          final names = _nameController.text.trim().split(' ');
+                          final fName = names.isNotEmpty ? names.first : '';
+                          final lName = names.length > 1 ? names.sublist(2).join(' ') : '';
+                          
+                          await ApiService.put('/user?id=${user.id}', body: {
+                            'first_name': fName,
+                            'last_name': lName,
+                            'email': _emailController.text.trim(),
+                          });
+                          
+                          final updated = user.copyWith(
+                            firstName: fName,
+                            lastName: lName,
+                            email: _emailController.text.trim(),
+                          );
+                          auth.updateUser(updated);
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Profile updated!"), backgroundColor: AppColors.success),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Failed to update: $e"), backgroundColor: AppColors.error),
+                            );
+                          }
+                        }
+                      },
+                      child: const Text("Save Changes"),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -154,7 +203,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Other settings
             Container(
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
               child: Column(
                 children: [
                   _tile(Icons.lock_outline, "Change Password"),
@@ -172,7 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
 
             Container(
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
               child: _tile(Icons.delete_outline, "Delete Account", isRed: true),
             ),
             const SizedBox(height: 24),

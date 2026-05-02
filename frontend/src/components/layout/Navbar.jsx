@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useContext } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import {
   FiMenu,
   FiX,
@@ -31,7 +31,19 @@ export default function Navbar() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   const { theme, toggleTheme } = useContext(ThemeContext);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) document.addEventListener("mousedown", handleClickOutside);
+    else document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [dropdownOpen]);
 
   // Role-based navigation links
   const getNavLinks = () => {
@@ -92,7 +104,11 @@ export default function Navbar() {
             <Link
               key={link.path}
               to={link.path}
-              className={`navbar-link ${location.pathname === link.path || location.pathname.startsWith(link.path + "/") ? "navbar-link-active" : ""}`}
+              className={`navbar-link ${
+                link.path === '/' || link.path === '/dashboard'
+                  ? location.pathname === link.path ? "navbar-link-active" : ""
+                  : location.pathname === link.path || location.pathname.startsWith(link.path + "/") ? "navbar-link-active" : ""
+              }`}
               onClick={() => setMobileOpen(false)}
             >
               {link.label}
@@ -123,7 +139,7 @@ export default function Navbar() {
           )}
 
           {isAuthenticated ? (
-            <div className="navbar-user-menu">
+            <div className="navbar-user-menu" ref={dropdownRef}>
               <button
                 className="navbar-user-btn"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -154,10 +170,6 @@ export default function Navbar() {
 
               {dropdownOpen && (
                 <>
-                  <div
-                    className="navbar-dropdown-overlay"
-                    onClick={() => setDropdownOpen(false)}
-                  />
                   <div className="navbar-dropdown" id="navbar-dropdown">
                     <div className="navbar-dropdown-header">
                       <p className="navbar-dropdown-name">

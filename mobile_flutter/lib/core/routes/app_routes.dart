@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import '../config/app_config.dart';
 
-// Screens
+// Shared screens
 import '../../features/splash/splash_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
-import '../../features/admin/admin_screen.dart';
-import '../../features/admin/admin_users_screen.dart';
-import '../../features/admin/admin_verify_screen.dart';
+
+// User-flavor screens
 import '../../features/shell/main_shell.dart';
 import '../../features/product/product_details_screen.dart';
 import '../../features/cart/cart_screen.dart';
@@ -18,24 +18,28 @@ import '../../features/workshops/workshops_screen.dart';
 import '../../features/cultural/cultural_screen.dart';
 import '../../features/logistics/logistics_screen.dart';
 import '../../features/settings/settings_screen.dart';
-import '../../features/artisan/artisan_screen.dart';
+import '../../features/shell/artisan_shell.dart';
 import '../../features/chat/chat_screen.dart';
 import '../../features/notifications/notifications_screen.dart';
 
+// Admin-flavor screens
+import '../../features/admin/admin_dashboard_screen.dart';
+
 /// Centralized route definitions for the Curio app.
+/// Routes are filtered by the current [AppFlavor] so admin screens
+/// are never accessible in the user flavor and vice versa.
 class AppRoutes {
   AppRoutes._();
 
-  // Route names
+  // ── Shared route names ─────────────────────────────────────────────
   static const String splash = '/';
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
-  static const String artisan = '/artisan';
-  static const String admin = '/admin';
-  static const String adminUsers = '/admin/users';
-  static const String adminVerify = '/admin/verify';
+
+  // ── User route names ───────────────────────────────────────────────
   static const String home = '/home';
+  static const String artisan = '/artisan';
   static const String productDetails = '/product-details';
   static const String cart = '/cart';
   static const String orders = '/orders';
@@ -48,27 +52,41 @@ class AppRoutes {
   static const String chat = '/chat';
   static const String notifications = '/notifications';
 
-  /// All named routes used by MaterialApp.
-  static Map<String, WidgetBuilder> get routes => {
-        splash: (ctx) => const SplashScreen(),
-        onboarding: (ctx) => const OnboardingScreen(),
-        login: (ctx) => const LoginScreen(),
-        register: (ctx) => const RegisterScreen(),
-        artisan: (ctx) => const ArtisanScreen(),
-        admin: (ctx) => const AdminScreen(),
-        adminUsers: (ctx) => const AdminUsersScreen(),
-        adminVerify: (ctx) => const AdminVerifyScreen(),
-        home: (ctx) => const MainShell(),
-        productDetails: (ctx) => const ProductDetailsScreen(),
-        cart: (ctx) => const CartScreen(),
-        orders: (ctx) => const OrdersScreen(),
-        reviews: (ctx) => const ReviewsScreen(),
-        customOrder: (ctx) => const CustomOrderScreen(),
-        workshops: (ctx) => const WorkshopsScreen(),
-        cultural: (ctx) => const CulturalScreen(),
-        logistics: (ctx) => const LogisticsScreen(),
-        settings: (ctx) => const SettingsScreen(),
-        chat: (ctx) => const ChatScreen(),
-        notifications: (ctx) => const NotificationsScreen(),
+  // ── Admin route names ──────────────────────────────────────────────
+  static const String adminDashboard = '/admin/dashboard';
+
+  /// Returns the route map filtered by the active flavor.
+  static Map<String, WidgetBuilder> get routes {
+    final shared = <String, WidgetBuilder>{
+      splash: (ctx) => const SplashScreen(),
+      login: (ctx) => const LoginScreen(),
+      register: (ctx) => const RegisterScreen(),
+    };
+
+    if (AppConfig.isAdmin) {
+      return {
+        ...shared,
+        adminDashboard: (ctx) => const AdminDashboardScreen(),
       };
+    }
+
+    // User flavor
+    return {
+      ...shared,
+      onboarding: (ctx) => const OnboardingScreen(),
+      home: (ctx) => const MainShell(),
+      artisan: (ctx) => const ArtisanShell(),
+      productDetails: (ctx) => const ProductDetailsScreen(),
+      cart: (ctx) => const CartScreen(),
+      orders: (ctx) => const OrdersScreen(),
+      reviews: (ctx) => const ReviewsScreen(),
+      customOrder: (ctx) => const CustomOrderScreen(),
+      workshops: (ctx) => const WorkshopsScreen(),
+      cultural: (ctx) => const CulturalScreen(),
+      logistics: (ctx) => const LogisticsScreen(),
+      settings: (ctx) => const SettingsScreen(),
+      chat: (ctx) => const ChatScreen(),
+      notifications: (ctx) => const NotificationsScreen(),
+    };
+  }
 }

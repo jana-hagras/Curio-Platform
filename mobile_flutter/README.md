@@ -1,17 +1,60 @@
-# curio_app
+# <img src="assets/icons/logo.png" alt="CURIO Logo" width="80" /> Curio Mobile
 
-A new Flutter project.
+### 📱 Multi-Flavor Flutter Ecosystem
+The Curio mobile app is a high-performance, feature-rich application designed with a **Feature-First Modular Architecture**. It utilizes Flutter's **Flavors** to provide distinct binaries for platform users and administrators from a single codebase.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🎨 Design System
+- **Theme:** Luxury Gold & Dark Mode.
+- **Typography:** Playfair Display (Headers) & Montserrat (Body).
+- **Components:** Custom theme-aware cards, buttons, and inputs with high-contrast accessibility.
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## 🚀 Running the App
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To run the application in development mode, you must specify the flavor and the corresponding entry point.
+
+### Target Flavors
+| User Type | Entry Point | Command |
+| :--- | :--- | :--- |
+| **Buyer / Artisan** | `lib/main_user.dart` | `flutter run --flavor user -t lib/main_user.dart` |
+| **Administrator** | `lib/main_admin.dart` | `flutter run --flavor admin -t lib/main_admin.dart` |
+
+---
+
+## 📦 Building Production APKs
+
+Generate release binaries for distribution:
+
+### Build User APK
+```bash
+flutter build apk --flavor user -t lib/main_user.dart
+```
+*Output:* `build/app/outputs/flutter-apk/app-user-release.apk`
+
+### Build Admin APK
+```bash
+flutter build apk --flavor admin -t lib/main_admin.dart
+```
+*Output:* `build/app/outputs/flutter-apk/app-admin-release.apk`
+
+---
+
+## 📁 Modular Structure
+- `lib/core/`: Centralized themes, routing, and API configuration.
+- `lib/features/`: Modularity by feature (e.g., `admin`, `artisan`, `auth`, `profile`).
+- `lib/models/`: Robust data parsing (JSON to Object).
+- `lib/providers/`: Global state management with **Provider**.
+
+---
+
+## 📊 Core Dependencies
+- **fl_chart:** Advanced analytics and data visualization in the Admin dashboard.
+- **http:** Seamless REST API integration.
+- **provider:** Reactive state management.
+- **image_picker:** Media handling for profiles and products.
+
+---
+<p align="center">Part of the Curio Marketplace Ecosystem</p>

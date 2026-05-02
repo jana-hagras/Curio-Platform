@@ -1,8 +1,8 @@
 import './DataTable.css';
-import Spinner from './Spinner';
+import { ShimmerTable } from 'react-shimmer-effects';
 
 export default function DataTable({ columns, data, loading, emptyMessage = "No data available." }) {
-  if (loading) return <div style={{ padding: '40px 0' }}><Spinner /></div>;
+  if (loading) return <div style={{ padding: '20px' }}><ShimmerTable row={5} col={columns.length || 4} /></div>;
   if (!data || data.length === 0) return <div className="data-table-empty">{emptyMessage}</div>;
 
   return (

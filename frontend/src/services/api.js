@@ -8,7 +8,6 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const user = JSON.parse(localStorage.getItem('curio_user') || 'null');
@@ -20,7 +19,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {

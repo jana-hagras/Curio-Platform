@@ -39,7 +39,11 @@ export default function CreateProductPage() {
         }
       }
 
-      await marketItemService.create({ ...form, image: finalImageUrl, artisan_id: user.id });
+      await marketItemService.create({ 
+        ...form, 
+        images: finalImageUrl ? [finalImageUrl] : [], 
+        artisan_id: user.id 
+      });
       toast.success('Product listed!');
       navigate('/dashboard/products');
     } catch (err) { toast.error('Failed to create product'); }

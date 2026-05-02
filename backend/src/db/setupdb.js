@@ -54,12 +54,20 @@ const createAllTables = async (conn) => {
             Artisan_id INT,
             Item VARCHAR(100),
             Description TEXT,
-            Image VARCHAR(255),
             AvailQuantity INT,
             Price DECIMAL(10,2),
             Category VARCHAR(50),
             DateAdded DATE,
             FOREIGN KEY (Artisan_id) REFERENCES Artisan(Artisan_id) ON DELETE CASCADE
+        )`,
+        // MARKET ITEM IMAGE
+        `CREATE TABLE IF NOT EXISTS Market_Item_Image (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            item_id INT,
+            image_url VARCHAR(255) NOT NULL,
+            is_primary BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (item_id) REFERENCES MarketItem(Item_id) ON DELETE CASCADE
         )`,
         // FAVORITE
         `CREATE TABLE IF NOT EXISTS Favorite (
@@ -92,7 +100,7 @@ const createAllTables = async (conn) => {
             DueDate DATE,
             EscrowAmount DECIMAL(10,2),
             EscrowReleaseDate DATE,
-            Status ENUM('Pending','Completed') DEFAULT 'Pending',
+            Status ENUM('Pending', 'Released', 'Completed') DEFAULT 'Pending',
             FOREIGN KEY (Request_id) REFERENCES Request(Request_id) ON DELETE CASCADE
         )`,
         // APPLICATION

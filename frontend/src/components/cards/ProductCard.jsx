@@ -4,6 +4,7 @@ import { FiShoppingCart, FiUser, FiHeart } from "react-icons/fi";
 import { useFavorites } from "../../hooks/useFavorites";
 import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
+import Image from "../ui/Image";
 import "./ProductCard.css";
 
 export default function ProductCard({ product, onAddToCart }) {
@@ -34,20 +35,11 @@ export default function ProductCard({ product, onAddToCart }) {
   return (
     <Link to={`/marketplace/${product.id}`} className="product-card" id={`product-card-${product.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
         <div className="product-card-image">
-          {product.image ? (
-            <img
-              src={product.image}
-              alt={product.item || product.itemName}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80";
-              }}
-            />
-          ) : (
-            <div className="product-card-placeholder">
-              <FiShoppingCart />
-            </div>
-          )}
+          <Image 
+            src={product.image}
+            alt={product.item || product.itemName}
+            fallback="https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80"
+          />
           {product.category && (
             <span className="product-card-category">{product.category}</span>
           )}

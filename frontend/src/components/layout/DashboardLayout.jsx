@@ -5,6 +5,7 @@ import {
   FiPackage, FiImage, FiSend, FiHeart, FiInbox, FiBriefcase, FiMessageCircle
 } from 'react-icons/fi';
 import Navbar from './Navbar';
+import Footer from './Footer';
 import BackButton from '../ui/BackButton';
 import './Sidebar.css';
 
@@ -27,6 +28,7 @@ export default function DashboardLayout() {
     { path: '/dashboard/products', label: 'My Products', icon: FiPackage },
     { path: '/dashboard/applications', label: 'My Orders', icon: FiBriefcase },
     { path: '/dashboard/portfolio', label: 'Portfolio', icon: FiImage },
+    { path: '/dashboard/wallet', label: 'Wallet', icon: FiDollarSign },
     { path: '/dashboard/chat', label: 'Chat', icon: FiMessageCircle },
     { path: '/dashboard/profile', label: 'Profile', icon: FiUser },
   ];
@@ -60,6 +62,7 @@ export default function DashboardLayout() {
           <Outlet />
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

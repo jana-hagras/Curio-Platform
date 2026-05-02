@@ -8,7 +8,7 @@ import {
   FiShoppingBag, FiFileText, FiCalendar, FiTrendingUp,
   FiArrowRight, FiPlus, FiHeart, FiClock, FiStar
 } from 'react-icons/fi';
-import Spinner from '../../components/ui/Spinner';
+import DashboardSkeleton from '../../components/ui/DashboardSkeleton';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -43,7 +43,7 @@ export default function BuyerDashboard() {
     });
   }, [user.id]);
 
-  if (loading) return <Spinner />;
+  if (loading) return <DashboardSkeleton />;
 
   const statCards = [
     { label: 'Total Orders', value: stats.orders, icon: FiShoppingBag, color: '#D4A843' },

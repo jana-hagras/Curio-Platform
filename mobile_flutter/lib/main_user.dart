@@ -12,8 +12,7 @@ import 'providers/order_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/notification_provider.dart';
 
-/// Default entry point — launches the **User** flavor.
-/// For admin, run `main_admin.dart` instead.
+/// Entry point for the **User** flavor (buyers + artisans).
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppConfig.flavor = AppFlavor.user;
@@ -30,13 +29,13 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
-      child: const CurioApp(),
+      child: const CurioUserApp(),
     ),
   );
 }
 
-class CurioApp extends StatelessWidget {
-  const CurioApp({super.key});
+class CurioUserApp extends StatelessWidget {
+  const CurioUserApp({super.key});
 
   @override
   Widget build(BuildContext context) {

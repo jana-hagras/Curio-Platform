@@ -11,12 +11,22 @@ export default function MyOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [filter, setFilter] = useState('All');
+
   useEffect(() => {
     orderService.getByBuyer(user.id)
       .then(res => setOrders(res.data.orders || []))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [user.id]);
+
+  const filteredAndSortedOrders = orders
+    .filter(o => filter === 'All' || o.status === filter)
+    .sort((a, b) => {
+      if (a.status === 'Completed' && b.status !== 'Completed') return -1;
+      if (a.status !== 'Completed' && b.status === 'Completed') return 1;
+      return new Date(b.orderDate) - new Date(a.orderDate);
+    });
 
   const columns = [
     { header: 'Order ID', accessor: 'id' },
@@ -27,8 +37,20 @@ export default function MyOrdersPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: 24 }}>My Orders</h1>
-      <DataTable columns={columns} data={orders} loading={loading} emptyMessage="You haven't placed any orders yet." />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ margin: 0 }}>My Orders</h1>
+        <select 
+          className="select-field" 
+          style={{ width: 'auto', padding: '8px 16px' }}
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="All">All Orders</option>
+          <option value="Completed">Completed</option>
+          <option value="Pending">Pending</option>
+        </select>
+      </div>
+      <DataTable columns={columns} data={filteredAndSortedOrders} loading={loading} emptyMessage="You haven't placed any orders yet." />
     </div>
   );
 }

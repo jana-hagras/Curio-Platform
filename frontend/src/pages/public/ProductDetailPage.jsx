@@ -9,6 +9,7 @@ import StarRating from '../../components/ui/StarRating';
 import Badge from '../../components/ui/Badge';
 import Spinner from '../../components/ui/Spinner';
 import TextArea from '../../components/ui/TextArea';
+import Image from '../../components/ui/Image';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { FiShoppingCart, FiUser, FiMinus, FiPlus, FiPackage, FiArrowLeft } from 'react-icons/fi';
@@ -22,6 +23,7 @@ export default function ProductDetailPage() {
   const [qty, setQty] = useState(1);
   const [reviewForm, setReviewForm] = useState({ rating: 0, comment: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const { user, isBuyer } = useAuth();
   const { addItem } = useCart();
   const navigate = useNavigate();
@@ -72,11 +74,33 @@ export default function ProductDetailPage() {
           <FiArrowLeft size={20} /> 
         </button>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, marginBottom: 48 }}>
-          <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--surface-border)' }}>
-            {product.image ? (
-              <img src={product.image} alt={product.item} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80'; }} /> 
-            ) : (
-              <FiPackage style={{ fontSize: 80, color: 'var(--sand-dark)' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--surface-border)' }}>
+              {product.images?.length > 0 || product.image ? (
+                <Image 
+                  src={selectedImage || product.images?.[0]?.url || product.image} 
+                  alt={product.item} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                /> 
+              ) : (
+                <FiPackage style={{ fontSize: 80, color: 'var(--sand-dark)' }} />
+              )}
+            </div>
+            {product.images && product.images.length > 1 && (
+              <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }}>
+                {product.images.map((img) => (
+                  <div 
+                    key={img.id} 
+                    onClick={() => setSelectedImage(img.url)}
+                    style={{ 
+                      width: 80, height: 80, borderRadius: 'var(--radius-md)', overflow: 'hidden', cursor: 'pointer', flexShrink: 0,
+                      border: selectedImage === img.url ? '2px solid var(--gold-primary)' : '2px solid transparent'
+                    }}
+                  >
+                    <Image src={img.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ))}
+              </div>
             )}
           </div>
           <div>

@@ -76,6 +76,9 @@ export const createRequest = async (req, res, next) => {
     if (!buyer_id || !title) {
       return res.status(400).json({ ok: false, message: "buyer_id and title are required." });
     }
+    if (budget !== undefined && budget !== null && Number(budget) < 1) {
+      return res.status(400).json({ ok: false, message: "Budget must be at least $1 USD." });
+    }
 
     const [result] = await pool.query(
       "INSERT INTO Request (Buyer_id, Title, Description, Request_Date, Budget, `3D_Model`, Category) VALUES (?, ?, ?, CURRENT_DATE, ?, ?, ?)",
@@ -126,6 +129,9 @@ export const updateRequest = async (req, res, next) => {
     if (!id) return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
 
     const { title, description, budget, model3D, category } = req.body;
+    if (budget !== undefined && budget !== null && Number(budget) < 1) {
+      return res.status(400).json({ ok: false, message: "Budget must be at least $1 USD." });
+    }
     await pool.query(
       "UPDATE Request SET Title=COALESCE(?,Title), Description=COALESCE(?,Description), Budget=COALESCE(?,Budget), `3D_Model`=COALESCE(?,`3D_Model`), Category=COALESCE(?,Category) WHERE Request_id=?",
       [title, description, budget, model3D, category, id]

@@ -59,7 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final hasImage = profileImage != null && profileImage.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: const Text("Profile", style: TextStyle(fontFamily: 'Playfair')),
         actions: [
@@ -77,7 +77,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
               child: Column(
                 children: [
                   GestureDetector(
@@ -103,7 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
                               ),
                               child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
                             ),
@@ -113,37 +113,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 14),
                   Text(isGuest ? "Guest User" : user.fullName,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, fontFamily: 'Playfair')),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, fontFamily: 'Playfair', color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(height: 4),
                   Text(isGuest ? "Log in to view stats" : "Premium ${user.type}",
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13)),
                 ],
               ),
             ),
             const SizedBox(height: 16),
 
-            // Stats
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-              decoration: BoxDecoration(color: AppColors.dark, borderRadius: BorderRadius.circular(16)),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _stat("12", "Orders"),
-                  Container(width: 1, height: 36, color: Colors.white12),
-                  _stat("450", "Points"),
-                  Container(width: 1, height: 36, color: Colors.white12),
-                  _stat("5", "Reviews"),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+
 
             // Menu items
             Container(
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
               child: Column(
                 children: [
+                  if (user != null && user.isArtisan) ...[
+                    _menuItem(context, Icons.add_box_outlined, "Add Product", "List a new item", '/add-product'),
+                    const Divider(height: 1, indent: 56),
+                    _menuItem(context, Icons.storefront_outlined, "My Store", "Manage your products", '/my-store'),
+                    const Divider(height: 1, indent: 56),
+                  ],
                   _menuItem(context, Icons.shopping_bag_outlined, "My Orders", "Track your purchases", '/orders'),
                   const Divider(height: 1, indent: 56),
                   _menuItem(context, Icons.favorite_outline, "Saved Items", "Items you love", '/favorites'),

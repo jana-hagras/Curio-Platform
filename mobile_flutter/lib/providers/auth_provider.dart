@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../core/local_storage/local_storage_service.dart';
 import '../core/local_storage/storage_keys.dart';
+import '../core/api/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   UserModel? _user;
@@ -18,11 +19,18 @@ class AuthProvider extends ChangeNotifier {
     final userId = LocalStorageService.loadInt(StorageKeys.currentUserId);
     if (userId == null) return;
 
-    final users = LocalStorageService.loadList(StorageKeys.users);
-    final match = users.where((u) => u['id'] == userId).toList();
-    if (match.isNotEmpty) {
-      _user = UserModel.fromJson(match.first);
-      notifyListeners();
+    try {
+      final res = await ApiService.get('/user/me/$userId');
+      if (res['ok'] == true && res['data']['user'] != null) {
+        _user = UserModel.fromJson(res['data']['user']);
+        notifyListeners();
+      } else {
+        await logout();
+      }
+    } catch (e) {
+      // If network fails on auto-login, we might want to just stay logged out
+      // or implement offline caching. For now, clear session if it fails hard.
+      await logout();
     }
   }
 
@@ -31,38 +39,33 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    // Simulate a brief loading delay
-    await Future.delayed(const Duration(milliseconds: 500));
-
     try {
-      final users = LocalStorageService.loadList(StorageKeys.users);
-      final match = users.where((u) =>
-          u['email']?.toString().toLowerCase() == email.toLowerCase() &&
-          u['password'] == password).toList();
+      final res = await ApiService.post('/user/login', body: {
+        'email': email,
+        'password': password,
+      });
 
-      if (match.isEmpty) {
-        _error = 'Invalid email or password';
+      if (res['ok'] == true && res['data']['user'] != null) {
+        final userData = res['data']['user'];
+        _user = UserModel.fromJson(userData);
+        await LocalStorageService.saveInt(StorageKeys.currentUserId, _user!.id);
+        
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = res['message'] ?? 'Login failed';
         _isLoading = false;
         notifyListeners();
         return false;
       }
-
-      final userData = match.first;
-
-      if (userData['isBanned'] == true) {
-        _error = 'This account has been banned. Contact support.';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-
-      _user = UserModel.fromJson(userData);
-      await LocalStorageService.saveInt(StorageKeys.currentUserId, _user!.id);
+    } on ApiException catch (e) {
+      _error = e.message;
       _isLoading = false;
       notifyListeners();
-      return true;
+      return false;
     } catch (e) {
-      _error = 'Login failed: ${e.toString()}';
+      _error = 'An unexpected error occurred';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -80,51 +83,31 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 500));
-
     try {
-      final users = LocalStorageService.loadList(StorageKeys.users);
+      final res = await ApiService.post('/user/register', body: {
+        'fName': fName,
+        'lName': lName,
+        'email': email,
+        'password': password,
+        'type': type,
+      });
 
-      // Check if email already exists
-      final exists = users.any((u) =>
-          u['email']?.toString().toLowerCase() == email.toLowerCase());
-      if (exists) {
-        _error = 'Email already registered';
+      if (res['ok'] == true) {
+        // Auto-login after successful registration
+        return await login(email, password);
+      } else {
+        _error = res['message'] ?? 'Registration failed';
         _isLoading = false;
         notifyListeners();
         return false;
       }
-
-      final newId = LocalStorageService.getNextId(StorageKeys.users);
-      final now = DateTime.now();
-
-      final newUser = {
-        'id': newId,
-        'firstName': fName,
-        'middleName': null,
-        'lastName': lName,
-        'email': email,
-        'password': password,
-        'phone': null,
-        'address': null,
-        'type': type,
-        'profileImage': '',
-        'joinDate': '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
-        'country': null,
-        'bio': type == 'Artisan' ? '' : null,
-        'status': 'Active',
-        'verified': type == 'Artisan' ? false : true,
-        'isBanned': false,
-      };
-
-      users.add(newUser);
-      await LocalStorageService.saveList(StorageKeys.users, users);
-
+    } on ApiException catch (e) {
+      _error = e.message;
       _isLoading = false;
       notifyListeners();
-      return true;
+      return false;
     } catch (e) {
-      _error = 'Registration failed: ${e.toString()}';
+      _error = 'An unexpected error occurred';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -139,13 +122,17 @@ class AuthProvider extends ChangeNotifier {
 
   void updateUser(UserModel newUser) {
     _user = newUser;
-    // Also update in local storage
-    final users = LocalStorageService.loadList(StorageKeys.users);
-    final index = users.indexWhere((u) => u['id'] == newUser.id);
-    if (index != -1) {
-      users[index] = newUser.toJson();
-      LocalStorageService.saveList(StorageKeys.users, users);
-    }
+    notifyListeners();
+  }
+
+  void setAdminBypassUser() {
+    _user = UserModel(
+      id: 999,
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@mail.com',
+      type: 'Admin',
+    );
     notifyListeners();
   }
 }

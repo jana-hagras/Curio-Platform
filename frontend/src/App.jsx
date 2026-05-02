@@ -36,6 +36,7 @@ import MyProductsPage from './pages/artisan/MyProductsPage';
 import CreateProductPage from './pages/artisan/CreateProductPage';
 import MyPortfolioPage from './pages/artisan/MyPortfolioPage';
 import MyApplicationsPage from './pages/artisan/MyApplicationsPage';
+import WalletPage from './pages/artisan/WalletPage';
 
 // Shared
 import ProfilePage from './pages/shared/ProfilePage';
@@ -70,6 +71,7 @@ function DashboardRouter() {
         <Route path="/products/new" element={<CreateProductPage />} />
         <Route path="/portfolio" element={<MyPortfolioPage />} />
         <Route path="/applications" element={<MyApplicationsPage />} />
+        <Route path="/wallet" element={<WalletPage />} />
         <Route path="/chat" element={<ChatPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -1,26 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
-import '../home/home_screen.dart';
-import '../search/search_screen.dart';
-import '../profile/favorites_screen.dart';
+import '../artisan/artisan_dashboard_screen.dart';
+import '../artisan/artisan_products_screen.dart';
 import '../profile/profile_screen.dart';
 
-/// A persistent navigation shell that wraps the four main tabs.
+/// A persistent navigation shell that wraps the main tabs for Artisans.
 /// Uses IndexedStack to keep each tab's state alive when switching.
-class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+class ArtisanShell extends StatefulWidget {
+  const ArtisanShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  State<ArtisanShell> createState() => _ArtisanShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _ArtisanShellState extends State<ArtisanShell> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = const [
-    HomeScreen(),
-    SearchScreen(),
-    FavoritesScreen(),
+    ArtisanDashboardScreen(),
+    ArtisanProductsScreen(),
     ProfileScreen(),
   ];
 
@@ -35,9 +33,9 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.divider),
+          border: Border.all(color: Theme.of(context).dividerColor),
           boxShadow: [
             BoxShadow(
               color: AppColors.gold.withValues(alpha: 0.06),
@@ -58,9 +56,8 @@ class _MainShellState extends State<MainShell> {
             animationDuration: const Duration(milliseconds: 400),
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             destinations: [
-              _buildDestination(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-              _buildDestination(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore'),
-              _buildDestination(icon: Icons.favorite_outline_rounded, activeIcon: Icons.favorite_rounded, label: 'Saved'),
+              _buildDestination(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard_rounded, label: 'Dashboard'),
+              _buildDestination(icon: Icons.inventory_2_outlined, activeIcon: Icons.inventory_2_rounded, label: 'My Products'),
               _buildDestination(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile'),
             ],
           ),

@@ -6,17 +6,12 @@ import 'core/routes/app_routes.dart';
 import 'core/local_storage/local_storage_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/market_provider.dart';
-import 'providers/favorite_provider.dart';
-import 'providers/cart_provider.dart';
-import 'providers/order_provider.dart';
-import 'providers/chat_provider.dart';
 import 'providers/notification_provider.dart';
 
-/// Default entry point — launches the **User** flavor.
-/// For admin, run `main_admin.dart` instead.
+/// Entry point for the **Admin** flavor.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  AppConfig.flavor = AppFlavor.user;
+  AppConfig.flavor = AppFlavor.admin;
   await LocalStorageService.init();
 
   runApp(
@@ -24,28 +19,23 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MarketProvider()),
-        ChangeNotifierProvider(create: (_) => FavoriteProvider()),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
-        ChangeNotifierProvider(create: (_) => OrderProvider()),
-        ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
-      child: const CurioApp(),
+      child: const CurioAdminApp(),
     ),
   );
 }
 
-class CurioApp extends StatelessWidget {
-  const CurioApp({super.key});
+class CurioAdminApp extends StatelessWidget {
+  const CurioAdminApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      theme: AppTheme.adminTheme,
+      themeMode: ThemeMode.dark,
       initialRoute: AppConfig.initialRoute,
       routes: AppRoutes.routes,
     );

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { marketItemService } from '../../services/marketItemService';
 import ProductCard from '../../components/cards/ProductCard';
 import SearchBar from '../../components/ui/SearchBar';
-import Spinner from '../../components/ui/Spinner';
+import { ShimmerSimpleGallery } from 'react-shimmer-effects';
 import EmptyState from '../../components/ui/EmptyState';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
@@ -72,7 +72,11 @@ export default function MarketplacePage() {
           </div>
         </div>
 
-        {loading ? <Spinner /> : filtered.length === 0 ? (
+        {loading ? (
+          <div style={{ marginTop: '32px' }}>
+            <ShimmerSimpleGallery card imageHeight={200} caption />
+          </div>
+        ) : filtered.length === 0 ? (
           <EmptyState icon={FiShoppingBag} title="No products found" message="Try adjusting your search or filters." />
         ) : (
           <>

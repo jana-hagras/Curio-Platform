@@ -7,6 +7,7 @@ router.post("/", Order.createOrder);
 router.get("/all", Order.getAllOrders);
 router.get("/", Order.getOrderById);
 router.get("/buyer", Order.getOrdersByBuyer);
+router.get("/artisan", Order.getOrdersByArtisan);
 router.get("/search",Order.searchOrders);
 router.put("/", Order.updateOrder);
 router.delete("/", Order.deleteOrder);

@@ -103,7 +103,7 @@ export default function ProfilePage() {
   const imgSrc = getImageSrc();
 
   return (
-    <div style={{ maxWidth: 600, animation: 'fadeInUp 0.4s ease forwards' }}>
+    <div style={{ maxWidth: '100%', margin: '0 auto', animation: 'fadeInUp 0.4s ease forwards' }}>
       <h1 style={{ fontSize: 28, marginBottom: 24 }}>My Profile</h1>
       <div style={{ background: 'var(--surface-primary)', padding: 32, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)' }}>
         {/* Avatar */}
