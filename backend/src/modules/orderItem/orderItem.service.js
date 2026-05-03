@@ -77,6 +77,12 @@ export const createOrderItem = async (req, res, next) => {
       [order_id, item_id, quantity]
     );
 
+    // Decrement the available quantity in MarketItem
+    await pool.query(
+      "UPDATE MarketItem SET AvailQuantity = GREATEST(AvailQuantity - ?, 0) WHERE Item_id = ?",
+      [quantity, item_id]
+    );
+
     const [rows] = await pool.query(`${OI_QUERY} WHERE oi.OrderItem_id = ?`, [result.insertId]);
     return res.status(201).json({ ok: true, data: { orderItem: sanitizeOrderItem(rows[0]) } });
   } catch (err) { next(err); }

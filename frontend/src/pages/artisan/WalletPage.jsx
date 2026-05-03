@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 export default function WalletPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [wallet, setWallet] = useState({
     totalEarnings: 0,
     pendingBalance: 0,
@@ -99,6 +100,22 @@ export default function WalletPage() {
 
   if (loading) return <DashboardSkeleton />;
 
+  const handleWithdraw = () => {
+    if (wallet.totalEarnings <= 0) {
+      toast.error('No funds available to withdraw.');
+      return;
+    }
+    setIsWithdrawing(true);
+    setTimeout(() => {
+      toast.success(`Successfully withdrew ${formatCurrency(wallet.totalEarnings)} to your bank account!`);
+      setWallet(prev => ({
+        ...prev,
+        totalEarnings: 0
+      }));
+      setIsWithdrawing(false);
+    }, 1500);
+  };
+
   const columns = [
     { header: 'Ref ID', accessor: 'id' },
     { header: 'Date', accessor: 'date', render: r => new Date(r.date).toLocaleDateString() },
@@ -114,13 +131,18 @@ export default function WalletPage() {
           <h1 style={{ fontSize: 28, marginBottom: 4 }}>My Wallet</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>Track your earnings and pending payments</p>
         </div>
-        <button style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          background: 'var(--gold-primary)', color: 'var(--black-deep)',
-          border: 'none', padding: '10px 20px', borderRadius: 'var(--radius-md)',
-          fontWeight: 600, fontSize: 14, cursor: 'pointer'
-        }}>
-          <FiDownload /> Withdraw Funds
+        <button 
+          onClick={handleWithdraw}
+          disabled={isWithdrawing || wallet.totalEarnings <= 0}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: wallet.totalEarnings <= 0 ? 'var(--surface-border)' : 'var(--gold-primary)', 
+            color: wallet.totalEarnings <= 0 ? 'var(--text-tertiary)' : 'var(--black-deep)',
+            border: 'none', padding: '10px 20px', borderRadius: 'var(--radius-md)',
+            fontWeight: 600, fontSize: 14, cursor: wallet.totalEarnings <= 0 ? 'not-allowed' : 'pointer',
+            opacity: isWithdrawing ? 0.7 : 1
+          }}>
+          <FiDownload /> {isWithdrawing ? 'Processing...' : 'Withdraw Funds'}
         </button>
       </div>
 

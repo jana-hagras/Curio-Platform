@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { requestService } from '../../services/requestService';
 import { applicationService } from '../../services/applicationService';
 import { milestoneService } from '../../services/milestoneService';
@@ -10,11 +10,12 @@ import TextArea from '../../components/ui/TextArea';
 import Spinner from '../../components/ui/Spinner';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { FiSend } from 'react-icons/fi';
+import { FiSend, FiArrowLeft } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function RequestDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [request, setRequest] = useState(null);
   const [apps, setApps] = useState([]);
   const [milestones, setMilestones] = useState([]);
@@ -57,6 +58,11 @@ export default function RequestDetailPage() {
   return (
     <div style={{ padding: '40px 0' }}>
       <div className="container">
+        <div style={{ marginBottom: 16 }}>
+          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 16, padding: 0, fontFamily: 'inherit' }}>
+            <FiArrowLeft /> Back
+          </button>
+        </div>
         <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
             <h1 style={{ fontSize: 28 }}>{request.title}</h1>
