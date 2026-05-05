@@ -59,8 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final surfaceColor = theme.colorScheme.surface;
+    final textColor = theme.colorScheme.onSurface;
+    final secondaryText = isDark ? AppColors.textSecondary : AppColors.textSecondaryLight;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? AppColors.background : AppColors.backgroundLight,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 28),
@@ -68,6 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 50),
+              // Logo with gold glow
               Center(
                 child: Container(
                   decoration: BoxDecoration(
@@ -84,44 +91,48 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 28),
-              const Center(
+              // Title — Playfair Display like frontend
+              Center(
                   child: Text("Welcome Back",
                       style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          fontFamily: 'Playfair',
+                          fontFamily: 'Playfair Display',
                           color: AppColors.gold))),
               const SizedBox(height: 8),
               Center(
                   child: Text("Sign in to continue exploring",
-                      style:
-                          TextStyle(color: AppColors.textMuted, fontSize: 14))),
+                      style: TextStyle(color: secondaryText, fontSize: 14))),
               const SizedBox(height: 48),
-              const Text("Email",
+
+              // Email label
+              Text("Email",
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
-                      color: AppColors.textSecondary)),
+                      color: secondaryText)),
               const SizedBox(height: 8),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+                style: TextStyle(color: textColor),
                 decoration: const InputDecoration(
                     hintText: "your@email.com",
                     prefixIcon: Icon(Icons.email_outlined, size: 20)),
               ),
               const SizedBox(height: 24),
-              const Text("Password",
+
+              // Password label
+              Text("Password",
                   style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
-                      color: AppColors.textSecondary)),
+                      color: secondaryText)),
               const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
-                style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+                style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   hintText: "Enter your password",
                   prefixIcon: const Icon(Icons.lock_outline, size: 20),
@@ -131,7 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         size: 20,
-                        color: AppColors.textMuted),
+                        color: secondaryText),
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
@@ -144,31 +155,37 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {}, child: const Text("Forgot Password?")),
               ),
               const SizedBox(height: 24),
+
+              // Sign In button — gold primary like frontend .btn-primary
               Consumer<AuthProvider>(
                 builder: (ctx, auth, _) {
                   return ElevatedButton(
                     onPressed: auth.isLoading ? null : _handleLogin,
                     child: auth.isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.black))
+                                strokeWidth: 2, color: AppColors.dark))
                         : const Text("Sign In"),
                   );
                 },
               ),
               const SizedBox(height: 24),
+
+              // Divider with "or"
               Row(children: [
-                Expanded(child: Divider(color: AppColors.divider)),
+                Expanded(child: Divider(color: isDark ? AppColors.divider : AppColors.borderLight)),
                 Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text("or",
                         style: TextStyle(
-                            color: AppColors.textMuted, fontSize: 13))),
-                Expanded(child: Divider(color: AppColors.divider)),
+                            color: secondaryText, fontSize: 13))),
+                Expanded(child: Divider(color: isDark ? AppColors.divider : AppColors.borderLight)),
               ]),
               const SizedBox(height: 24),
+
+              // Create Account — outline button like frontend .btn-outline
               OutlinedButton(
                 onPressed: () => Navigator.pushNamed(context, '/register'),
                 child: const Text("Create Account"),

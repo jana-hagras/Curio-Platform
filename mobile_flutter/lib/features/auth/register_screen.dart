@@ -52,8 +52,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = theme.colorScheme.onSurface;
+    final secondaryText = isDark ? AppColors.textSecondary : AppColors.textSecondaryLight;
+    final divColor = isDark ? AppColors.divider : AppColors.borderLight;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? AppColors.background : AppColors.backgroundLight,
       appBar: AppBar(title: const Text("Create Account")),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -64,31 +70,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
               Center(child: Image.asset('assets/icons/logo.png', width: 56, height: 56)),
               const SizedBox(height: 24),
-              const Center(child: Text("Join Curio", style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, fontFamily: 'Playfair'))),
+              Center(child: Text("Join Curio", style: TextStyle(
+                fontSize: 26, fontWeight: FontWeight.w800,
+                fontFamily: 'Playfair Display', color: textColor))),
               const SizedBox(height: 8),
-              const Center(child: Text("Start your artisan journey", style: TextStyle(color: AppColors.textSecondary, fontSize: 14))),
+              Center(child: Text("Start your artisan journey", style: TextStyle(color: secondaryText, fontSize: 14))),
               const SizedBox(height: 36),
 
-              Row(children: [_roleChip("Buyer", Icons.shopping_bag_outlined), const SizedBox(width: 12), _roleChip("Artisan", Icons.brush_outlined)]),
+              // Role selector — matches frontend .auth-type-selector
+              Row(children: [
+                _roleChip("Buyer", Icons.shopping_bag_outlined, isDark, divColor),
+                const SizedBox(width: 12),
+                _roleChip("Artisan", Icons.brush_outlined, isDark, divColor),
+              ]),
               const SizedBox(height: 28),
 
-              _label("First Name"),
-              TextField(controller: _firstNameCtrl, decoration: const InputDecoration(hintText: "Your first name")),
+              _label("First Name", secondaryText),
+              TextField(
+                controller: _firstNameCtrl,
+                style: TextStyle(color: textColor),
+                decoration: const InputDecoration(hintText: "Your first name"),
+              ),
               const SizedBox(height: 20),
-              _label("Last Name"),
-              TextField(controller: _lastNameCtrl, decoration: const InputDecoration(hintText: "Your last name")),
+              _label("Last Name", secondaryText),
+              TextField(
+                controller: _lastNameCtrl,
+                style: TextStyle(color: textColor),
+                decoration: const InputDecoration(hintText: "Your last name"),
+              ),
               const SizedBox(height: 20),
-              _label("Email"),
-              TextField(controller: _emailCtrl, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(hintText: "your@email.com", prefixIcon: Icon(Icons.email_outlined, size: 20))),
+              _label("Email", secondaryText),
+              TextField(
+                controller: _emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                style: TextStyle(color: textColor),
+                decoration: const InputDecoration(hintText: "your@email.com", prefixIcon: Icon(Icons.email_outlined, size: 20)),
+              ),
               const SizedBox(height: 20),
-              _label("Password"),
+              _label("Password", secondaryText),
               TextField(
                 controller: _passwordCtrl,
                 obscureText: _obscure,
+                style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   hintText: "Min. 8 characters",
                   prefixIcon: const Icon(Icons.lock_outline, size: 20),
-                  suffixIcon: IconButton(icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20), onPressed: () => setState(() => _obscure = !_obscure)),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: secondaryText),
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
@@ -97,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   return ElevatedButton(
                     onPressed: auth.isLoading ? null : _handleRegister,
                     child: auth.isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.dark))
                         : const Text("Create Account"),
                   );
                 },
@@ -106,7 +136,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Already have an account?"),
+                  Text("Already have an account?", style: TextStyle(color: secondaryText)),
                   TextButton(onPressed: () => Navigator.pop(context), child: const Text("Sign In", style: TextStyle(fontWeight: FontWeight.w700))),
                 ],
               ),
@@ -118,9 +148,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _label(String text) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)));
+  Widget _label(String text, Color color) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(text, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: color)),
+  );
 
-  Widget _roleChip(String role, IconData icon) {
+  Widget _roleChip(String role, IconData icon, bool isDark, Color borderColor) {
     final selected = _selectedType == role;
     return Expanded(
       child: GestureDetector(
@@ -129,16 +162,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: selected ? AppColors.primary : AppColors.divider),
+            color: selected
+                ? AppColors.primary
+                : (isDark ? Colors.transparent : AppColors.surfaceLight),
+            borderRadius: BorderRadius.circular(16), // --radius-lg
+            border: Border.all(
+              color: selected ? AppColors.primary : borderColor,
+              width: selected ? 2 : 1,
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: selected ? Colors.white : AppColors.textSecondary),
+              Icon(icon, size: 18, color: selected ? AppColors.dark : (isDark ? AppColors.textSecondary : AppColors.textSecondaryLight)),
               const SizedBox(width: 8),
-              Text(role, style: TextStyle(fontWeight: FontWeight.w600, color: selected ? Colors.white : AppColors.textSecondary)),
+              Text(role, style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: selected ? AppColors.dark : (isDark ? AppColors.textSecondary : AppColors.textSecondaryLight),
+              )),
             ],
           ),
         ),

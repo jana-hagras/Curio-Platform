@@ -10,8 +10,21 @@
   animation: fadeIn 200ms ease;
 }
 
+.modal-sm {
+  max-width: 360px;
+}
+
+.modal-md {
+  max-width: 520px;
+}
+
+.modal-lg {
+  max-width: 760px;
+}
+
 .modal {
   background: var(--surface-primary);
+  color: var(--text-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   border: 1px solid var(--surface-border);
@@ -49,4 +62,10 @@
 
 .modal-body {
   padding: 24px;
+  color: var(--text-primary);
+}
+
+.modal-body p {
+  margin-bottom: 1rem;
+  color: inherit;
 }

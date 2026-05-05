@@ -53,15 +53,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final user = Provider.of<AuthProvider>(context).user;
     final isGuest = user == null;
     final profileImage = user?.profileImage;
     final hasImage = profileImage != null && profileImage.isNotEmpty;
 
+    final surfaceColor = isDark ? AppColors.surface : AppColors.surfaceLight;
+    final bgColor = isDark ? AppColors.background : AppColors.backgroundLight;
+    final textColor = isDark ? AppColors.textPrimary : AppColors.textPrimaryLight;
+    final secondaryText = isDark ? AppColors.textSecondary : AppColors.textSecondaryLight;
+    final borderColor = isDark ? AppColors.divider : AppColors.borderLight;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text("Profile", style: TextStyle(fontFamily: 'Playfair')),
+        title: const Text("Profile", style: TextStyle(fontFamily: 'Playfair Display')),
         actions: [
           IconButton(
             onPressed: () => Navigator.pushNamed(context, '/settings'),
@@ -73,11 +81,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Avatar + Name
+            // Avatar + Name card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor),
+              ),
               child: Column(
                 children: [
                   GestureDetector(
@@ -86,12 +98,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         CircleAvatar(
                           radius: 48,
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                          backgroundColor: AppColors.gold.withValues(alpha: 0.1),
                           backgroundImage: hasImage ? FileImage(File(profileImage)) : null,
                           child: _isUploading
                             ? const CircularProgressIndicator()
                             : !hasImage
-                                ? const Icon(Icons.person, size: 48, color: AppColors.primary)
+                                ? const Icon(Icons.person, size: 48, color: AppColors.gold)
                                 : null,
                         ),
                         if (!isGuest && !_isUploading)
@@ -101,11 +113,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: AppColors.primary,
+                                color: AppColors.gold,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                                border: Border.all(color: surfaceColor, width: 2),
                               ),
-                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                              child: Icon(Icons.camera_alt, color: AppColors.dark, size: 16),
                             ),
                           ),
                       ],
@@ -113,50 +125,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 14),
                   Text(isGuest ? "Guest User" : user.fullName,
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, fontFamily: 'Playfair', color: Theme.of(context).colorScheme.onSurface)),
+                    style: TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.w700,
+                      fontFamily: 'Playfair Display', color: textColor)),
                   const SizedBox(height: 4),
                   Text(isGuest ? "Log in to view stats" : "Premium ${user.type}",
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13)),
+                    style: TextStyle(color: secondaryText, fontSize: 13)),
                 ],
               ),
             ),
             const SizedBox(height: 16),
 
-
-
-            // Menu items
+            // Menu items card
             Container(
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor),
+              ),
               child: Column(
                 children: [
                   if (user != null && user.isArtisan) ...[
-                    _menuItem(context, Icons.add_box_outlined, "Add Product", "List a new item", '/add-product'),
-                    const Divider(height: 1, indent: 56),
-                    _menuItem(context, Icons.storefront_outlined, "My Store", "Manage your products", '/my-store'),
-                    const Divider(height: 1, indent: 56),
+                    _menuItem(context, Icons.add_box_outlined, "Add Product", "List a new item", '/add-product', textColor, secondaryText),
+                    Divider(height: 1, indent: 56, color: borderColor),
+                    _menuItem(context, Icons.storefront_outlined, "My Store", "Manage your products", '/my-store', textColor, secondaryText),
+                    Divider(height: 1, indent: 56, color: borderColor),
                   ],
-                  _menuItem(context, Icons.shopping_bag_outlined, "My Orders", "Track your purchases", '/orders'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.favorite_outline, "Saved Items", "Items you love", '/favorites'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.star_outline, "My Reviews", "See your feedback", '/reviews'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.local_shipping_outlined, "Track Delivery", "Order #1024", '/logistics'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.school_outlined, "Workshops", "Learn a new craft", '/workshops'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.auto_stories_outlined, "Cultural Stories", "Explore heritage", '/cultural'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.chat_bubble_outline, "Messages", "Chat with artisans", '/chat'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.notifications_outlined, "Notifications", "Stay updated", '/notifications'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.headset_mic_outlined, "Support", "Get help anytime", '/settings'),
-                  const Divider(height: 1, indent: 56),
-                  _menuItemAction(context, Icons.logout, "Sign Out", "See you again", isRed: true, onTap: () {
-                    Provider.of<AuthProvider>(context, listen: false).logout();
-                    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
-                  }),
+                  _menuItem(context, Icons.shopping_bag_outlined, "My Orders", "Track your purchases", '/orders', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItem(context, Icons.favorite_outline, "Saved Items", "Items you love", '/favorites', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItem(context, Icons.star_outline, "My Reviews", "See your feedback", '/reviews', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItem(context, Icons.local_shipping_outlined, "Track Delivery", "Order #1024", '/logistics', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItem(context, Icons.school_outlined, "Workshops", "Learn a new craft", '/workshops', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItem(context, Icons.auto_stories_outlined, "Cultural Stories", "Explore heritage", '/cultural', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItem(context, Icons.chat_bubble_outline, "Messages", "Chat with artisans", '/chat', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItem(context, Icons.notifications_outlined, "Notifications", "Stay updated", '/notifications', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItem(context, Icons.headset_mic_outlined, "Support", "Get help anytime", '/settings', textColor, secondaryText),
+                  Divider(height: 1, indent: 56, color: borderColor),
+                  _menuItemAction(context, Icons.logout, "Sign Out", "See you again",
+                    isRed: true, textColor: textColor, secondaryText: secondaryText,
+                    onTap: () {
+                      Provider.of<AuthProvider>(context, listen: false).logout();
+                      Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                    },
+                  ),
                 ],
               ),
             ),
@@ -166,33 +185,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _menuItem(BuildContext context, IconData icon, String title, String sub, String route) {
+  Widget _menuItem(BuildContext context, IconData icon, String title, String sub, String route, Color textColor, Color secondaryText) {
     return ListTile(
       onTap: () => Navigator.pushNamed(context, route),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: AppColors.primary, size: 20),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: AppColors.gold, size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(sub, style: const TextStyle(fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: textColor)),
+      subtitle: Text(sub, style: TextStyle(fontSize: 12, color: secondaryText)),
+      trailing: Icon(Icons.chevron_right, color: secondaryText, size: 20),
     );
   }
 
-  Widget _menuItemAction(BuildContext context, IconData icon, String title, String sub, {bool isRed = false, required VoidCallback onTap}) {
+  Widget _menuItemAction(BuildContext context, IconData icon, String title, String sub,
+      {bool isRed = false, required VoidCallback onTap, required Color textColor, required Color secondaryText}) {
     return ListTile(
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: (isRed ? AppColors.error : AppColors.primary).withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: isRed ? AppColors.error : AppColors.primary, size: 20),
+        decoration: BoxDecoration(
+          color: (isRed ? AppColors.error : AppColors.gold).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: isRed ? AppColors.error : AppColors.gold, size: 20),
       ),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: isRed ? AppColors.error : null)),
-      subtitle: Text(sub, style: const TextStyle(fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: isRed ? AppColors.error : textColor)),
+      subtitle: Text(sub, style: TextStyle(fontSize: 12, color: secondaryText)),
+      trailing: Icon(Icons.chevron_right, color: secondaryText, size: 20),
     );
   }
 }

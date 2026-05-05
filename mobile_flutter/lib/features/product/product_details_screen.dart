@@ -7,14 +7,16 @@ import '../../providers/favorite_provider.dart';
 import '../../models/market_item_model.dart';
 import '../../models/cart_item_model.dart';
 
+/// Product detail screen matching frontend ProductDetailPage design.
 class ProductDetailsScreen extends StatelessWidget {
   const ProductDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final item = ModalRoute.of(context)?.settings.arguments as MarketItemModel?;
 
-    // Fallback if no arguments passed
     final title = item?.item ?? 'Handmade Clay Vase';
     final price = item != null ? 'EGP ${item.price.toStringAsFixed(0)}' : 'EGP 450';
     final description = item?.description ??
@@ -24,14 +26,21 @@ class ProductDetailsScreen extends StatelessWidget {
     final image = item?.image;
     final productId = item?.id ?? 0;
 
+    final surfaceColor = isDark ? AppColors.surface : AppColors.surfaceLight;
+    final bgColor = isDark ? AppColors.background : AppColors.backgroundLight;
+    final textColor = isDark ? AppColors.textPrimary : AppColors.textPrimaryLight;
+    final secondaryText = isDark ? AppColors.textSecondary : AppColors.textSecondaryLight;
+    final borderColor = isDark ? AppColors.divider : AppColors.borderLight;
+    final chipBg = isDark ? AppColors.surfaceElevated : AppColors.surfaceTertiaryLight;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 380,
             pinned: true,
-            backgroundColor: AppColors.background,
+            backgroundColor: AppColors.dark,
             flexibleSpace: FlexibleSpaceBar(
               background: CustomImage(imageUrl: image, fit: BoxFit.cover),
             ),
@@ -39,59 +48,79 @@ class ProductDetailsScreen extends StatelessWidget {
               Consumer<FavoriteProvider>(
                 builder: (ctx, favProvider, _) {
                   final isFav = favProvider.isFavorite(productId.toString());
-                  return IconButton(
-                    onPressed: () => favProvider.toggleFavorite(productId.toString()),
-                    icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : null),
-                    style: IconButton.styleFrom(backgroundColor: Colors.white70),
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: IconButton(
+                      onPressed: () => favProvider.toggleFavorite(productId.toString()),
+                      icon: Icon(
+                        isFav ? Icons.favorite : Icons.favorite_border,
+                        color: isFav ? AppColors.error : Colors.white,
+                      ),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.dark.withValues(alpha: 0.5),
+                      ),
+                    ),
                   );
                 },
               ),
-              const SizedBox(width: 8),
             ],
           ),
           SliverToBoxAdapter(
             child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title + Price
+                  // Title — Playfair Display like frontend
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, fontFamily: 'Playfair'),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      fontFamily: 'Playfair Display',
+                      color: textColor,
+                    ),
                   ),
                   const SizedBox(height: 8),
+                  // Price — gold, bold like frontend .product-card-price
                   Text(
                     price,
-                    style: const TextStyle(color: AppColors.primary, fontSize: 22, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      color: AppColors.gold,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 20),
 
-                  // Artisan row
+                  // Artisan row — card container like frontend
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
+                      color: isDark ? AppColors.surfaceElevated : AppColors.surfaceTertiaryLight,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: borderColor),
                     ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 22,
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                          child: const Icon(Icons.person, color: AppColors.primary, size: 22),
+                          backgroundColor: AppColors.gold.withValues(alpha: 0.1),
+                          child: const Icon(Icons.person, color: AppColors.gold, size: 22),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(artisanName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                              Text("Master Potter · Cairo", style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                              Text(artisanName, style: TextStyle(
+                                fontWeight: FontWeight.w600, color: textColor)),
+                              Text("Master Potter · Cairo", style: TextStyle(
+                                fontSize: 12, color: secondaryText)),
                             ],
                           ),
                         ),
@@ -110,15 +139,16 @@ class ProductDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Description
-                  const Text("About This Piece", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  Text("About This Piece", style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w700, color: textColor)),
                   const SizedBox(height: 10),
                   Text(
                     description,
-                    style: const TextStyle(color: AppColors.textSecondary, height: 1.7, fontSize: 14),
+                    style: TextStyle(color: secondaryText, height: 1.7, fontSize: 14),
                   ),
                   const SizedBox(height: 24),
 
-                  // Tags
+                  // Tags — styled like frontend category chips
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -126,10 +156,15 @@ class ProductDetailsScreen extends StatelessWidget {
                         .map((t) => Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                               decoration: BoxDecoration(
-                                color: AppColors.background,
+                                color: chipBg,
                                 borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: borderColor),
                               ),
-                              child: Text(t, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                              child: Text(t, style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: textColor,
+                              )),
                             ))
                         .toList(),
                   ),
@@ -140,11 +175,17 @@ class ProductDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
+      // Bottom action bar
       bottomSheet: Container(
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
         decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, -4))],
+          color: surfaceColor,
+          border: Border(top: BorderSide(color: borderColor)),
+          boxShadow: [BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          )],
         ),
         child: Row(
           children: [
@@ -173,7 +214,11 @@ class ProductDetailsScreen extends StatelessWidget {
                           image: item.image,
                         ));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Added to cart!"), backgroundColor: AppColors.success, duration: Duration(seconds: 1)),
+                          const SnackBar(
+                            content: Text("Added to cart!"),
+                            backgroundColor: AppColors.success,
+                            duration: Duration(seconds: 1),
+                          ),
                         );
                       }
                     },

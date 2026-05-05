@@ -26,6 +26,10 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBg = isDark ? AppColors.surface : AppColors.surfaceLight;
+    final borderColor = isDark ? AppColors.divider : AppColors.borderLight;
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -35,9 +39,9 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: navBg,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.divider),
+          border: Border.all(color: borderColor),
           boxShadow: [
             BoxShadow(
               color: AppColors.gold.withValues(alpha: 0.06),
@@ -58,10 +62,30 @@ class _MainShellState extends State<MainShell> {
             animationDuration: const Duration(milliseconds: 400),
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             destinations: [
-              _buildDestination(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-              _buildDestination(icon: Icons.explore_outlined, activeIcon: Icons.explore_rounded, label: 'Explore'),
-              _buildDestination(icon: Icons.favorite_outline_rounded, activeIcon: Icons.favorite_rounded, label: 'Saved'),
-              _buildDestination(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile'),
+              _buildDestination(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home_rounded,
+                label: 'Home',
+                isDark: isDark,
+              ),
+              _buildDestination(
+                icon: Icons.explore_outlined,
+                activeIcon: Icons.explore_rounded,
+                label: 'Explore',
+                isDark: isDark,
+              ),
+              _buildDestination(
+                icon: Icons.favorite_outline_rounded,
+                activeIcon: Icons.favorite_rounded,
+                label: 'Saved',
+                isDark: isDark,
+              ),
+              _buildDestination(
+                icon: Icons.person_outline_rounded,
+                activeIcon: Icons.person_rounded,
+                label: 'Profile',
+                isDark: isDark,
+              ),
             ],
           ),
         ),
@@ -73,9 +97,11 @@ class _MainShellState extends State<MainShell> {
     required IconData icon,
     required IconData activeIcon,
     required String label,
+    required bool isDark,
   }) {
+    final inactiveColor = isDark ? AppColors.textMuted : AppColors.textSecondaryLight;
     return NavigationDestination(
-      icon: Icon(icon, size: 24, color: AppColors.textMuted),
+      icon: Icon(icon, size: 24, color: inactiveColor),
       selectedIcon: Icon(activeIcon, size: 24, color: AppColors.gold),
       label: label,
     );

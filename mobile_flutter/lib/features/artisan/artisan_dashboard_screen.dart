@@ -65,10 +65,11 @@ class _ArtisanDashboardScreenState extends State<ArtisanDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: isDark ? AppColors.background : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('Artisan Dashboard', style: TextStyle(fontFamily: 'Playfair', fontWeight: FontWeight.w700)),
+        title: const Text('Artisan Dashboard', style: TextStyle(fontFamily: 'Playfair Display', fontWeight: FontWeight.w700)),
         centerTitle: false,
       ),
       body: _loading
@@ -85,11 +86,11 @@ class _ArtisanDashboardScreenState extends State<ArtisanDashboardScreen> {
                       children: [
                         _buildSummaryCards(context),
                         const SizedBox(height: 32),
-                        const Text('Earnings Trend', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('Earnings Trend', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: Theme.of(context).colorScheme.onSurface)),
                         const SizedBox(height: 16),
                         _buildEarningsChart(context),
                         const SizedBox(height: 32),
-                        const Text('Order Status Breakdown', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('Order Status Breakdown', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Playfair Display', color: Theme.of(context).colorScheme.onSurface)),
                         const SizedBox(height: 16),
                         _buildOrdersChart(context),
                         const SizedBox(height: 100), // Space for bottom nav

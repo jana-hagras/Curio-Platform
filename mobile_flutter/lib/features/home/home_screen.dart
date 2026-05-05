@@ -16,8 +16,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _navIndex = 0;
-
   final List<String> _categories = [
     "All",
     "Pottery",
@@ -38,6 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final secondaryText = isDark ? AppColors.textSecondary : AppColors.textSecondaryLight;
+    final borderColor = isDark ? AppColors.divider : AppColors.borderLight;
+
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
@@ -45,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Image.asset('assets/icons/logo.png'),
         ),
         title: const Text("CURIO",
-            style: TextStyle(fontFamily: 'Playfair', letterSpacing: 3)),
+            style: TextStyle(fontFamily: 'Playfair Display', letterSpacing: 3)),
         actions: [
           IconButton(
             onPressed: () => Navigator.pushNamed(context, '/search'),
@@ -113,34 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Consumer<MarketProvider>(
         builder: (ctx, market, _) =>
-            market.isLoading ? _buildShimmer() : _buildBody(market),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _navIndex,
-        onTap: (i) {
-          setState(() => _navIndex = i);
-          if (i == 1) Navigator.pushNamed(context, '/search');
-          if (i == 2) Navigator.pushNamed(context, '/favorites');
-          if (i == 3) Navigator.pushNamed(context, '/profile');
-        },
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.explore_outlined),
-              activeIcon: Icon(Icons.explore),
-              label: "Explore"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_outline),
-              activeIcon: Icon(Icons.favorite),
-              label: "Saved"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: "Profile"),
-        ],
+            market.isLoading ? _buildShimmer() : _buildBody(market, isDark, secondaryText, borderColor),
       ),
     );
   }
@@ -156,23 +132,33 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSpacing: 14,
         ),
         itemCount: 6,
-        itemBuilder: (_, __) => const CardShimmer(borderRadius: 12),
+        itemBuilder: (_, __) => const CardShimmer(borderRadius: 16),
       ),
     );
   }
 
-  Widget _buildBody(MarketProvider market) {
+  Widget _buildBody(MarketProvider market, bool isDark, Color secondaryText, Color borderColor) {
+    final surfaceColor = isDark ? AppColors.surface : AppColors.surfaceLight;
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Hero Banner
+          // ── Hero Banner — matches frontend .hero section ──────────
           Container(
             margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: AppColors.dark,
               borderRadius: BorderRadius.circular(16),
+              // Gold radial glow like frontend hero::before
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.gold.withValues(alpha: 0.08),
+                  blurRadius: 40,
+                  spreadRadius: 5,
+                ),
+              ],
             ),
             child: Row(
               children: [
@@ -180,33 +166,62 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Badge — matches .hero-badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.gold.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          "✦ Authentic Crafts",
+                          style: TextStyle(
+                            color: AppColors.gold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
                       const Text(
-                        "New\nCollection",
+                        "Discover the\nArt of Egypt",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 26,
+                          fontSize: 24,
                           fontWeight: FontWeight.w800,
-                          fontFamily: 'Playfair',
+                          fontFamily: 'Playfair Display',
                           height: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Text(
-                        "Handmade with love",
+                        "Handmade treasures from\nmaster artisans",
                         style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
-                            fontSize: 13),
+                            color: Colors.white.withValues(alpha: 0.55),
+                            fontSize: 13,
+                            height: 1.5),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
                         height: 40,
-                        width: 120,
+                        width: 130,
                         child: ElevatedButton(
-                          onPressed: () {},
-                          style:
-                              ElevatedButton.styleFrom(minimumSize: Size.zero),
-                          child: const Text("Shop Now",
-                              style: TextStyle(fontSize: 13)),
+                          onPressed: () => Navigator.pushNamed(context, '/search'),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: Size.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Explore", style: TextStyle(fontSize: 13)),
+                              SizedBox(width: 4),
+                              Icon(Icons.arrow_forward, size: 16),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -218,9 +233,30 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
+          // ── Stats bar — matches frontend .hero-stats ──────────────
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            decoration: BoxDecoration(
+              color: surfaceColor,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderColor),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildStat("500+", "Artisans", secondaryText),
+                Container(width: 1, height: 30, color: borderColor),
+                _buildStat("2K+", "Products", secondaryText),
+                Container(width: 1, height: 30, color: borderColor),
+                _buildStat("10K+", "Happy Buyers", secondaryText),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 24),
 
-          // Category chips
+          // ── Category chips — styled like frontend category filters ─
           SizedBox(
             height: 40,
             child: ListView.builder(
@@ -241,20 +277,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       decoration: BoxDecoration(
-                        color:
-                            selected ? AppColors.primary : Colors.transparent,
+                        color: selected ? AppColors.primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                             color: selected
                                 ? AppColors.primary
-                                : AppColors.divider),
+                                : borderColor),
+                        // Gold shadow on selected chip
+                        boxShadow: selected ? [
+                          BoxShadow(
+                            color: AppColors.gold.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ] : [],
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         _categories[i],
                         style: TextStyle(
-                          color:
-                              selected ? Colors.white : AppColors.textSecondary,
+                          color: selected ? AppColors.dark : secondaryText,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
@@ -268,86 +310,79 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 24),
 
-          // Workshops Banner
-          GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/workshops'),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.dark, AppColors.surfaceLight],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Learn from Masters",
-                          style: TextStyle(
-                            color: AppColors.gold,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'Playfair',
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Book workshops & mentorship sessions",
-                          style: TextStyle(
-                              color: AppColors.textPrimary.withValues(alpha: 0.7),
-                              fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.gold, size: 16),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
+          // ── Why Choose CURIO — matches frontend features section ─
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                const Text("Featured Items",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/search'),
-                  child: const Text("See All", style: TextStyle(fontSize: 13)),
+                Row(
+                  children: [
+                    _buildFeatureCard(Icons.verified_user_outlined, "Verified\nArtisans", isDark, surfaceColor, borderColor),
+                    const SizedBox(width: 12),
+                    _buildFeatureCard(Icons.public_outlined, "Global\nShipping", isDark, surfaceColor, borderColor),
+                    const SizedBox(width: 12),
+                    _buildFeatureCard(Icons.favorite_outline, "Custom\nOrders", isDark, surfaceColor, borderColor),
+                    const SizedBox(width: 12),
+                    _buildFeatureCard(Icons.star_outline, "Secure\nPayments", isDark, surfaceColor, borderColor),
+                  ],
                 ),
               ],
             ),
           ),
 
-          // Product Grid — dynamic from local storage
+          const SizedBox(height: 24),
+
+          // ── Featured Items header — matches frontend section header ─
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Featured Products",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'Playfair Display',
+                          color: Theme.of(context).colorScheme.onSurface,
+                        )),
+                    const SizedBox(height: 4),
+                    Text("Handpicked artisan creations",
+                        style: TextStyle(color: secondaryText, fontSize: 13)),
+                  ],
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(context, '/search'),
+                  child: Row(
+                    children: [
+                      Text("View All", style: TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      )),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward, size: 14, color: AppColors.gold),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // ── Product Grid ─────────────────────────────────────────
           Consumer<MarketProvider>(
             builder: (ctx, marketProvider, _) {
               final displayItems = marketProvider.items;
               if (displayItems.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(40),
+                return Padding(
+                  padding: const EdgeInsets.all(40),
                   child: Center(
                       child: Text("No items found",
-                          style: TextStyle(color: AppColors.textSecondary))),
+                          style: TextStyle(color: secondaryText))),
                 );
               }
               return GridView.builder(
@@ -374,6 +409,63 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Stat widget — gold values like frontend .hero-stat ─────────
+  Widget _buildStat(String value, String label, Color secondaryText) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: AppColors.gold,
+          fontFamily: 'Playfair Display',
+        )),
+        const SizedBox(height: 2),
+        Text(label, style: TextStyle(
+          fontSize: 11,
+          color: secondaryText,
+        )),
+      ],
+    );
+  }
+
+  // ── Feature card — matches frontend .feature-card ──────────────
+  Widget _buildFeatureCard(IconData icon, String label, bool isDark, Color surfaceColor, Color borderColor) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: borderColor),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.gold.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: AppColors.gold, size: 22),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isDark ? AppColors.textPrimary : AppColors.textPrimaryLight,
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

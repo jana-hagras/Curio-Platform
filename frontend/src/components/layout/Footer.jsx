@@ -1,9 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiMail, FiMapPin, FiPhone } from "react-icons/fi";
+import Modal from "../ui/Modal";
 import "./Footer.css";
 import logo from "../../assets/logo.png";
 
 export default function Footer() {
+  const [activeModal, setActiveModal] = useState(null);
+  const closeModal = () => setActiveModal(null);
+
   return (
     <footer className="footer" id="footer">
       <div className="container">
@@ -62,10 +67,65 @@ export default function Footer() {
         <div className="footer-bottom">
           <p>&copy; {new Date().getFullYear()} CURIO. All rights reserved.</p>
           <div className="footer-bottom-links">
-            <span className="footer-bottom-link">Privacy Policy</span>
-            <span className="footer-bottom-link">Terms of Service</span>
+            <button
+              type="button"
+              className="footer-bottom-link footer-link-button"
+              onClick={() => setActiveModal("privacy")}
+            >
+              Privacy Policy
+            </button>
+            <button
+              type="button"
+              className="footer-bottom-link footer-link-button"
+              onClick={() => setActiveModal("terms")}
+            >
+              Terms of Service
+            </button>
           </div>
         </div>
+
+        <Modal
+          isOpen={activeModal === "privacy"}
+          onClose={closeModal}
+          title="Privacy Policy"
+          size="lg"
+        >
+          <p>
+            CURIO collects only the information needed to provide services,
+            process orders, and communicate with users. We never sell personal
+            data and we protect stored information with reasonable security
+            controls.
+          </p>
+          <p>
+            We may use your email address, name, and preferences to personalize
+            your experience, send confirmations, and respond to support
+            requests.
+          </p>
+          <p>
+            If you have questions about your information, contact us at
+            hello@curio.com.
+          </p>
+        </Modal>
+
+        <Modal
+          isOpen={activeModal === "terms"}
+          onClose={closeModal}
+          title="Terms of Service"
+          size="lg"
+        >
+          <p>
+            By using CURIO, you agree to follow our platform rules, provide
+            accurate information, and respect the rights of artisans and buyers.
+          </p>
+          <p>
+            All purchases are subject to the terms of the relevant offer and
+            delivery timelines. CURIO is not responsible for third-party
+            disputes, but we encourage fair resolution.
+          </p>
+          <p>
+            Continued use of the platform constitutes acceptance of these terms.
+          </p>
+        </Modal>
       </div>
     </footer>
   );

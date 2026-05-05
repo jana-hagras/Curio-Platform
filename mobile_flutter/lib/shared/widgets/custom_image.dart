@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 import 'card_shimmer.dart';
 
 /// A custom image widget that handles asset images, file images, and placeholders.
+/// Placeholder colors are theme-aware to match frontend design system.
 class CustomImage extends StatelessWidget {
   final String? imageUrl;
   final double? height;
@@ -22,7 +24,7 @@ class CustomImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
-      return _buildPlaceholder();
+      return _buildPlaceholder(context);
     }
 
     // Check if it's an asset image
@@ -34,7 +36,7 @@ class CustomImage extends StatelessWidget {
           height: height,
           width: width,
           fit: fit,
-          errorBuilder: (ctx, error, stack) => _buildPlaceholder(),
+          errorBuilder: (ctx, error, stack) => _buildPlaceholder(ctx),
         ),
       );
     }
@@ -52,7 +54,7 @@ class CustomImage extends StatelessWidget {
             if (loadingProgress == null) return child;
             return shimmer(height: height, width: width, borderRadius: borderRadius);
           },
-          errorBuilder: (ctx, error, stack) => _buildPlaceholder(),
+          errorBuilder: (ctx, error, stack) => _buildPlaceholder(ctx),
         ),
       );
     }
@@ -68,23 +70,27 @@ class CustomImage extends StatelessWidget {
             height: height,
             width: width,
             fit: fit,
-            errorBuilder: (ctx, error, stack) => _buildPlaceholder(),
+            errorBuilder: (ctx, error, stack) => _buildPlaceholder(ctx),
           ),
         );
       }
-      return _buildPlaceholder();
+      return _buildPlaceholder(context);
     }
 
     // Fallback placeholder
-    return _buildPlaceholder();
+    return _buildPlaceholder(context);
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? AppColors.surfaceElevated : AppColors.surfaceTertiaryLight;
+    final iconColor = isDark ? AppColors.textMuted : AppColors.textTertiaryLight;
+
     return Container(
       height: height,
       width: width,
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: bgColor,
         borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Center(
@@ -93,14 +99,14 @@ class CustomImage extends StatelessWidget {
           children: [
             Icon(
               Icons.image_outlined,
-              color: Colors.grey[400],
+              color: iconColor,
               size: 36,
             ),
             const SizedBox(height: 4),
             Text(
               'No Image',
               style: TextStyle(
-                color: Colors.grey[400],
+                color: iconColor,
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
               ),
