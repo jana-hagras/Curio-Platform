@@ -13,8 +13,6 @@ export default function InvoiceModal({ order, preloadedItems = null, onClose }) 
   useEffect(() => {
     if (!preloadedItems && order?.id) {
       setLoading(true);
-      // Try to fetch order items by order.id
-      // In orderItemService it is actually order_id as parameter, let's make sure it matches
       orderItemService.getByOrder(order.id)
         .then(res => {
           setItems(res.data?.orderItems || res.data?.items || []);
