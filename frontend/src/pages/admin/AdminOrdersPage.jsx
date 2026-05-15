@@ -26,15 +26,17 @@ export default function AdminOrdersPage() {
 
   const enriched = orders.map(o => ({
     ...o,
-    buyerName: userName(o.buyerId),
+    // Backend already provides buyerName from JOIN; fall back to lookup only if null
+    buyerName: o.buyerName || userName(o.buyer_id || o.buyerId),
+    buyerId: o.buyer_id ?? o.buyerId,
   }));
 
   const filtered = filterByAllColumns(enriched, search, o =>
     `${o.id} ${o.buyerName} ${o.status} ${o.totalAmount} ${o.deliveryAddress || ''} ${o.orderDate || ''}`
   );
 
-  const pending = orders.filter(o => o.status === 'Pending').length;
-  const completed = orders.filter(o => o.status === 'Completed').length;
+  const pending = orders.filter(o => (o.status || '').toLowerCase() === 'pending').length;
+  const completed = orders.filter(o => (o.status || '').toLowerCase() === 'completed').length;
   const total = orders.reduce((s, o) => s + Number(o.totalAmount || 0), 0);
 
   const statusBadge = (status) => {

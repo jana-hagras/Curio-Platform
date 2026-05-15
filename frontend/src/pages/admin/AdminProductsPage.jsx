@@ -35,7 +35,9 @@ export default function AdminProductsPage() {
 
   const enriched = items.map(i => ({
     ...i,
-    artisanName: userName(i.artisanId),
+    // Backend already provides artisanName from JOIN; fall back to lookup only if null
+    artisanName: i.artisanName || userName(i.artisan_id || i.artisanId),
+    artisanId: i.artisan_id ?? i.artisanId,
   }));
 
   const filtered = filterByAllColumns(enriched, search, i =>

@@ -25,8 +25,11 @@ export default function AdminApplicationsPage() {
 
   const enriched = applications.map(a => ({
     ...a,
-    artisanName: userName(a.artisanId),
-    requestName: requestTitle(a.requestId),
+    // Backend already provides artisanName from JOIN; fall back to lookup only if null
+    artisanName: a.artisanName || userName(a.artisan_id || a.artisanId),
+    requestName: requestTitle(a.request_id ?? a.requestId),
+    artisanId: a.artisan_id ?? a.artisanId,
+    requestId: a.request_id ?? a.requestId,
   }));
 
   const filtered = filterByAllColumns(enriched, search, a =>

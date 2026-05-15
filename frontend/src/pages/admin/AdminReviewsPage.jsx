@@ -34,8 +34,11 @@ export default function AdminReviewsPage() {
 
   const enriched = reviews.map(r => ({
     ...r,
-    buyerName: userName(r.buyerId),
-    productName: itemName(r.itemId),
+    // Backend already provides buyerName/itemName from JOIN; fall back to lookup only if null
+    buyerName: r.buyerName || userName(r.buyer_id || r.buyerId),
+    productName: r.itemName || itemName(r.item_id || r.itemId),
+    buyerId: r.buyer_id ?? r.buyerId,
+    itemId: r.item_id ?? r.itemId,
   }));
 
   const filtered = filterByAllColumns(enriched, search, r =>

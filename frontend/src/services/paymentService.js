@@ -1,6 +1,8 @@
 import api from './api';
 
 export const paymentService = {
+  // '%' wildcard → backend wraps it as '%%%' → matches all rows
+  getAll: () => api.get(`/payments/search?value=${encodeURIComponent('%')}`),
   create: (data) => api.post('/payments/', data),
   getById: (id) => api.get(`/payments/?id=${id}`),
   getByBuyer: (buyerId) => api.get(`/payments/buyer?buyer_id=${buyerId}`),

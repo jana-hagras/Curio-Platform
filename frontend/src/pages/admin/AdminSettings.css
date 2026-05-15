@@ -1,0 +1,292 @@
+/* =============================================
+   AdminSettings.css — Settings Page Styles
+   ============================================= */
+
+/* ── Page tweaks ── */
+.settings-page .admin-table-header {
+  align-items: center;
+}
+
+/* ── Save button ── */
+.settings-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--gold-primary, #D4A843);
+  color: #000;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+  white-space: nowrap;
+}
+.settings-save-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(212, 168, 67, 0.35);
+}
+.settings-save-btn.saved {
+  background: #10B981;
+  color: #fff;
+}
+
+/* ── Tab bar ── */
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 2px solid rgba(212, 168, 67, 0.15);
+  margin-bottom: 28px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.settings-tabs::-webkit-scrollbar { display: none; }
+
+.settings-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-secondary, #888);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  margin-bottom: -2px;
+}
+.settings-tab:hover {
+  color: var(--text-primary, #fff);
+}
+.settings-tab.active {
+  color: var(--gold-primary, #D4A843);
+  border-bottom-color: var(--gold-primary, #D4A843);
+}
+
+/* ── Panel ── */
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Section ── */
+.settings-section {
+  background: var(--surface-primary, #161616);
+  border: 1px solid rgba(212, 168, 67, 0.1);
+  border-radius: 14px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold-primary, #D4A843);
+  margin: 0 0 4px;
+}
+
+/* ── Info badge ── */
+.settings-info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: #A78BFA;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  line-height: 1.4;
+  width: fit-content;
+}
+
+/* ── Toggle ── */
+.settings-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.settings-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.settings-toggle-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #fff);
+}
+.settings-toggle-desc {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  line-height: 1.5;
+}
+
+.settings-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.settings-toggle-btn svg {
+  font-size: 18px;
+}
+.settings-toggle-btn.on {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+.settings-toggle-btn.off {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-secondary, #888);
+  border-color: rgba(255,255,255,0.1);
+}
+.settings-toggle-btn:hover {
+  filter: brightness(1.15);
+}
+
+/* ── Field ── */
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.settings-field-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #fff);
+}
+.settings-field-desc {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+}
+.settings-field-control {
+  margin-top: 4px;
+}
+
+/* ── Input ── */
+.settings-input {
+  background: var(--surface-secondary, #1e1e1e);
+  border: 1px solid rgba(212, 168, 67, 0.2);
+  border-radius: 8px;
+  color: var(--text-primary, #fff);
+  font-size: 14px;
+  padding: 9px 14px;
+  width: 180px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.settings-input:focus {
+  border-color: var(--gold-primary, #D4A843);
+  box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.12);
+}
+
+/* ── Health grid ── */
+.settings-health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.settings-health-card {
+  background: var(--surface-secondary, #1a1a1a);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+.settings-health-label {
+  font-size: 12px;
+  color: var(--text-secondary, #888);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.settings-health-value {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.settings-health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: health-pulse 2s infinite;
+}
+@keyframes health-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Maintenance action buttons ── */
+.settings-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.settings-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s;
+  border: none;
+}
+.settings-action-btn:hover {
+  transform: translateY(-1px);
+}
+.settings-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary, #fff);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.settings-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.11);
+}
+.settings-action-btn.danger-outline {
+  background: transparent;
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.settings-action-btn.danger-outline:hover {
+  background: rgba(239, 68, 68, 0.08);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .settings-section {
+    padding: 18px 16px;
+  }
+  .settings-toggle-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .settings-input {
+    width: 100%;
+  }
+}

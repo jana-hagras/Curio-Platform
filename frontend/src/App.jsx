@@ -48,7 +48,8 @@ import AdminRequestsPage from './pages/admin/AdminRequestsPage';
 import AdminApplicationsPage from './pages/admin/AdminApplicationsPage';
 import AdminReviewsPage from './pages/admin/AdminReviewsPage';
 import AdminPaymentsPage from './pages/admin/AdminPaymentsPage';
-import AdminPlaceholder from './pages/admin/AdminPlaceholder';
+import AdminPortfoliosPage from './pages/admin/AdminPortfoliosPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
 // Shared
 import ProfilePage from './pages/shared/ProfilePage';
@@ -141,7 +142,8 @@ export default function App() {
                 <Route path="applications" element={<AdminApplicationsPage />} />
                 <Route path="reviews" element={<AdminReviewsPage />} />
                 <Route path="payments" element={<AdminPaymentsPage />} />
-                <Route path="settings" element={<AdminPlaceholder title="Settings" />} />
+                <Route path="portfolios" element={<AdminPortfoliosPage />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>
             </Routes>
