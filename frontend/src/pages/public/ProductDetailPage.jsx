@@ -12,8 +12,48 @@ import TextArea from '../../components/ui/TextArea';
 import Image from '../../components/ui/Image';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { FiShoppingCart, FiUser, FiMinus, FiPlus, FiPackage, FiArrowLeft } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiMinus, FiPlus, FiPackage, FiArrowLeft, FiEdit3, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+
+/* ── Edit Review Modal ───────────────────────── */
+function EditReviewModal({ review, onClose, onSave }) {
+  const [rating, setRating] = useState(review.rating);
+  const [comment, setComment] = useState(review.comment || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!rating) return toast.error('Please select a rating');
+    setSaving(true);
+    try {
+      await onSave(review.id, { rating, comment });
+      onClose();
+    } catch { /* handled in parent */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', maxWidth: 520, width: '95%', animation: 'scaleIn 0.2s ease', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-xl)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>Edit Your Review</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4 }}><FiX size={18} /></button>
+        </div>
+        <form onSubmit={handleSubmit} style={{ padding: '24px 28px' }}>
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ fontSize: 14, fontWeight: 600, display: 'block', marginBottom: 10, color: 'var(--text-primary)' }}>Rating</label>
+            <StarRating rating={rating} onRate={setRating} size={32} />
+          </div>
+          <TextArea label="Comment" value={comment} onChange={e => setComment(e.target.value)} placeholder="Update your experience..." rows={4} />
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--surface-border)' }}>
+            <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
+            <Button type="submit" loading={saving}>Save Changes</Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -24,6 +64,7 @@ export default function ProductDetailPage() {
   const [reviewForm, setReviewForm] = useState({ rating: 0, comment: '' });
   const [submitting, setSubmitting] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [editingReview, setEditingReview] = useState(null);
   const { user, isBuyer } = useAuth();
   const { addItem } = useCart();
   const navigate = useNavigate();
@@ -58,6 +99,24 @@ export default function ProductDetailPage() {
     } catch (err) { toast.error(err.message); }
     finally { setSubmitting(false); }
   };
+
+  const handleEditReview = async (reviewId, data) => {
+    try {
+      const res = await reviewService.update(reviewId, { ...data, buyer_id: user.id });
+      const updated = res.data?.review;
+      if (updated) {
+        setReviews(prev => prev.map(r => r.id === reviewId ? updated : r));
+      }
+      toast.success('Review updated!');
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Failed to update review';
+      toast.error(msg);
+      throw err;
+    }
+  };
+
+  // Check if current user already has a review on this product
+  const userReview = isBuyer && user ? reviews.find(r => r.buyer_id === user.id) : null;
 
   if (loading) return <Spinner />;
   if (!product) return <div className="container" style={{ padding: '60px 24px', textAlign: 'center' }}><h2>Product not found</h2></div>;
@@ -132,7 +191,8 @@ export default function ProductDetailPage() {
         {/* Reviews */}
         <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--surface-border)' }}>
           <h2 style={{ marginBottom: 24 }}>Reviews ({reviews.length})</h2>
-          {isBuyer && (
+          {/* Show write form only if buyer hasn't reviewed yet */}
+          {isBuyer && !userReview && (
             <form onSubmit={handleReviewSubmit} style={{ marginBottom: 32, padding: 24, background: 'var(--sand-light)', borderRadius: 'var(--radius-md)' }}>
               <h4 style={{ marginBottom: 12 }}>Write a Review</h4>
               <StarRating rating={reviewForm.rating} onRate={(r) => setReviewForm(p => ({ ...p, rating: r }))} size={28} />
@@ -142,20 +202,59 @@ export default function ProductDetailPage() {
           )}
           {reviews.length === 0 ? <p style={{ color: 'var(--text-secondary)' }}>No reviews yet.</p> : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {reviews.map(r => (
-                <div key={r.id} style={{ paddingBottom: 20, borderBottom: '1px solid var(--surface-border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--gold-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>{r.buyerName?.charAt(0) || 'U'}</div>
-                    <div><p style={{ fontWeight: 600, fontSize: 15 }}>{r.buyerName || 'Anonymous'}</p><p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{formatDate(r.reviewDate)}</p></div>
-                    <div style={{ marginLeft: 'auto' }}><StarRating rating={r.rating} readonly size={16} /></div>
+              {reviews.map(r => {
+                const isOwner = isBuyer && user && r.buyer_id === user.id;
+                return (
+                  <div key={r.id} style={{ paddingBottom: 20, borderBottom: '1px solid var(--surface-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--gold-gradient)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, fontWeight: 700 }}>{r.buyerName?.charAt(0) || 'U'}</div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <p style={{ fontWeight: 600, fontSize: 15 }}>{r.buyerName || 'Anonymous'}</p>
+                          {r.editedAt && (
+                            <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontStyle: 'italic', background: 'var(--surface-secondary)', padding: '2px 6px', borderRadius: 4 }}>Edited</span>
+                          )}
+                        </div>
+                        <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{formatDate(r.reviewDate)}</p>
+                      </div>
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <StarRating rating={r.rating} readonly size={16} />
+                        {isOwner && (
+                          <button
+                            onClick={() => setEditingReview(r)}
+                            title="Edit your review"
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px',
+                              borderRadius: 6, border: '1px solid var(--surface-border)',
+                              background: 'transparent', color: 'var(--text-secondary)',
+                              cursor: 'pointer', fontSize: 12, fontWeight: 500,
+                              transition: 'all 0.2s',
+                            }}
+                            onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--gold-primary)'; e.currentTarget.style.color = 'var(--gold-primary)'; }}
+                            onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--surface-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
+                          >
+                            <FiEdit3 size={11} /> Edit
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {r.comment && <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>{r.comment}</p>}
                   </div>
-                  {r.comment && <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6 }}>{r.comment}</p>}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editingReview && (
+        <EditReviewModal
+          review={editingReview}
+          onClose={() => setEditingReview(null)}
+          onSave={handleEditReview}
+        />
+      )}
     </div>
   );
 }

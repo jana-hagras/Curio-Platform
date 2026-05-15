@@ -1,6 +1,7 @@
 import api from './api';
 
 export const applicationService = {
+  getAll: () => api.get('/applications/all'),
   create: (data) => api.post('/applications/', data),
   getByRequest: (requestId) => api.get(`/applications/request?request_id=${requestId}`),
   getByArtisan: (artisanId) => api.get(`/applications/artisan?artisan_id=${artisanId}`),

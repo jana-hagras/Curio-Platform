@@ -3,6 +3,7 @@ import api from './api';
 export const portfolioService = {
   create: (data) => api.post('/portfolio/', data),
   getAll: () => api.get('/portfolio/all'),
+  getByArtisan: (artisanId) => api.get(`/portfolio/artisan?artisan_id=${artisanId}`),
   getById: (id) => api.get(`/portfolio/?id=${id}`),
   update: (id, data) => api.put(`/portfolio/?id=${id}`, data),
   delete: (id) => api.delete(`/portfolio/?id=${id}`),

@@ -1,21 +1,25 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { requestService } from '../../services/requestService';
 import { applicationService } from '../../services/applicationService';
 import { milestoneService } from '../../services/milestoneService';
+import { paymentService } from '../../services/paymentService';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import Spinner from '../../components/ui/Spinner';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { FiCheck, FiX, FiInbox } from 'react-icons/fi';
+import { FiCheck, FiX, FiInbox, FiLock } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function ProposalsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [proposals, setProposals] = useState({});
   const [loading, setLoading] = useState(true);
+  const [acceptingId, setAcceptingId] = useState(null);
   const [expandedReq, setExpandedReq] = useState(null);
   const [milestones, setMilestones] = useState({});
 
@@ -37,43 +41,84 @@ export default function ProposalsPage() {
       .finally(() => setLoading(false));
   }, [user.id]);
 
-  const handleAccept = async (requestId, appId) => {
+  const handleAccept = async (requestId, appId, artisanId) => {
+    setAcceptingId(appId);
     try {
+      // 1. Approve selected application
       await applicationService.update(appId, { status: 'Approved' });
-      // Reject others
+
+      // 2. Reject others
       const others = (proposals[requestId] || []).filter(a => a.id !== appId);
       await Promise.all(others.map(a => applicationService.update(a.id, { status: 'Rejected' }).catch(() => {})));
-      // Generate milestones
+
+      // 3. Get request budget for escrow amount
+      const req = requests.find(r => r.id === requestId);
+      const budget = Number(req?.budget || 0);
+
+      // 4. Generate milestones with escrow amounts
       const milestoneTitles = ['Project Kickoff', 'Design Phase', 'Production', 'Quality Review', 'Delivery'];
+      const milestoneShare = budget > 0 ? parseFloat((budget / milestoneTitles.length).toFixed(2)) : 0;
       const now = new Date();
       const created = [];
+
       for (let i = 0; i < milestoneTitles.length; i++) {
         const due = new Date(now);
         due.setDate(due.getDate() + (i + 1) * 7);
+
+        // Last milestone gets remaining amount to avoid rounding issues
+        const amount = (i === milestoneTitles.length - 1 && budget > 0)
+          ? parseFloat((budget - milestoneShare * (milestoneTitles.length - 1)).toFixed(2))
+          : milestoneShare;
+
         try {
           const mRes = await milestoneService.create({
             request_id: requestId,
             title: milestoneTitles[i],
             description: `${milestoneTitles[i]} phase`,
             dueDate: due.toISOString().slice(0, 19).replace('T', ' '),
+            escrowAmount: amount,
             status: 'Pending',
           });
-          created.push(mRes.data?.milestone || { id: Date.now() + i, title: milestoneTitles[i], status: 'Pending', dueDate: due.toISOString() });
+          created.push(mRes.data?.milestone || { id: Date.now() + i, title: milestoneTitles[i], status: 'Pending', dueDate: due.toISOString(), escrowAmount: amount });
         } catch {}
       }
       setMilestones(prev => ({ ...prev, [requestId]: created }));
 
-      // Update local state
+      // 5. Create pending escrow payment
+      const paymentRes = await paymentService.create({
+        request_id: requestId,
+        artisan_id: artisanId,
+        totalAmount: budget,
+        paymentMethod: 'Cash', // placeholder, buyer picks at checkout
+        paymentType: 'escrow',
+        status: 'Pending',
+      });
+
+      const paymentId = paymentRes?.data?.payment?.id;
+
+      // 6. Update local state
       setProposals(prev => ({
         ...prev,
         [requestId]: prev[requestId].map(a =>
           a.id === appId ? { ...a, status: 'Approved' } : { ...a, status: 'Rejected' }
         ),
       }));
-      toast.success('Proposal accepted! Milestones generated.');
-      setExpandedReq(requestId);
+
+      toast.success('Proposal accepted! Redirecting to escrow checkout...');
+
+      // 7. Redirect to checkout with escrow payment
+      if (paymentId) {
+        setTimeout(() => {
+          navigate(`/checkout?payment_id=${paymentId}&request_id=${requestId}`);
+        }, 800);
+      } else {
+        setExpandedReq(requestId);
+      }
     } catch (err) {
+      console.error('Accept proposal error:', err);
       toast.error('Failed to accept proposal');
+    } finally {
+      setAcceptingId(null);
     }
   };
 
@@ -134,12 +179,33 @@ export default function ProposalsPage() {
                           </div>
                           {app.status === 'Pending' && !hasApproved && (
                             <div style={{ display: 'flex', gap: 8 }}>
-                              <Button size="sm" onClick={() => handleAccept(req.id, app.id)} icon={FiCheck}>Accept</Button>
+                              <Button 
+                                size="sm" 
+                                onClick={() => handleAccept(req.id, app.id, app.artisan_id)} 
+                                icon={FiCheck}
+                                loading={acceptingId === app.id}
+                              >
+                                Accept & Pay
+                              </Button>
                             </div>
                           )}
                         </div>
                       ))
                     )}
+
+                    {/* Escrow Info for accepted proposals */}
+                    {hasApproved && (
+                      <div style={{ marginTop: 16, padding: '14px 18px', background: 'rgba(59, 130, 246, 0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(59, 130, 246, 0.12)', display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <FiLock style={{ color: '#3B82F6', fontSize: 18, flexShrink: 0 }} />
+                        <div>
+                          <p style={{ fontWeight: 600, fontSize: 13, color: '#3B82F6' }}>Escrow Payment Active</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                            Budget of {formatCurrency(req.budget)} is held in escrow and released as milestones are completed.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Milestones */}
                     {reqMilestones.length > 0 && (
                       <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--surface-border)' }}>
@@ -152,7 +218,10 @@ export default function ProposalsPage() {
                               </div>
                               <div style={{ flex: 1 }}>
                                 <p style={{ fontWeight: 600, fontSize: 14 }}>{m.title}</p>
-                                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Due: {formatDate(m.dueDate)}</p>
+                                <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                                  Due: {formatDate(m.dueDate)}
+                                  {m.escrowAmount > 0 && <span style={{ marginLeft: 8, color: 'var(--gold-primary)' }}>· {formatCurrency(m.escrowAmount)}</span>}
+                                </p>
                               </div>
                               <Badge status={m.status} />
                             </div>

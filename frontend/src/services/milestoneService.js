@@ -5,6 +5,7 @@ export const milestoneService = {
   getByRequest: (requestId) => api.get(`/milestones/request?request_id=${requestId}`),
   getById: (id) => api.get(`/milestones/?id=${id}`),
   update: (id, data) => api.put(`/milestones/?id=${id}`, data),
+  complete: (id) => api.put(`/milestones/complete?id=${id}`, {}),
   delete: (id) => api.delete(`/milestones/?id=${id}`),
   search: (value) => api.get(`/milestones/search?value=${encodeURIComponent(value)}`),
 };

@@ -7,6 +7,7 @@ router.get("/search", Milestone.searchMilestones);
 router.post("/", Milestone.createMilestone);
 router.get("/request", Milestone.getMilestonesByRequest);
 router.get("/", Milestone.getMilestoneById);
+router.put("/complete", Milestone.completeMilestone);
 router.put("/", Milestone.updateMilestone);
 router.delete("/", Milestone.deleteMilestone);
 

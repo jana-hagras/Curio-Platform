@@ -35,6 +35,7 @@ import ProposalsPage from './pages/buyer/ProposalsPage';
 import ArtisanDashboard from './pages/artisan/ArtisanDashboard';
 import MyProductsPage from './pages/artisan/MyProductsPage';
 import CreateProductPage from './pages/artisan/CreateProductPage';
+import EditProductPage from './pages/artisan/EditProductPage';
 import MyPortfolioPage from './pages/artisan/MyPortfolioPage';
 import MyApplicationsPage from './pages/artisan/MyApplicationsPage';
 import WalletPage from './pages/artisan/WalletPage';
@@ -84,6 +85,7 @@ function DashboardRouter() {
         <Route path="/" element={<ArtisanDashboard />} />
         <Route path="/products" element={<MyProductsPage />} />
         <Route path="/products/new" element={<CreateProductPage />} />
+        <Route path="/products/edit/:id" element={<EditProductPage />} />
         <Route path="/portfolio" element={<MyPortfolioPage />} />
         <Route path="/applications" element={<MyApplicationsPage />} />
         <Route path="/wallet" element={<WalletPage />} />

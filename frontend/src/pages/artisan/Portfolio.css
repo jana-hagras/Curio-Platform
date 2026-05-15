@@ -1,0 +1,333 @@
+/* ─── Image Uploader ─────────────────────────── */
+.img-uploader { display: flex; flex-direction: column; gap: 10px; }
+
+.img-uploader-label {
+  font-size: 14px; font-weight: 600; color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+.img-uploader-zone {
+  border: 2px dashed var(--surface-border);
+  border-radius: var(--radius-lg);
+  padding: 40px 24px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: var(--surface-secondary);
+}
+.img-uploader-zone:hover,
+.img-uploader-zone--active {
+  border-color: var(--gold-primary);
+  background: rgba(212, 168, 67, 0.04);
+}
+.img-uploader-zone--error {
+  border-color: var(--error);
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.img-uploader-icon { font-size: 32px; color: var(--text-tertiary); margin-bottom: 4px; }
+.img-uploader-text { font-size: 14px; color: var(--text-secondary); text-align: center; }
+.img-uploader-link { color: var(--gold-primary); font-weight: 600; text-decoration: underline; }
+.img-uploader-hint { font-size: 12px; color: var(--text-tertiary); text-align: center; }
+
+.img-uploader-error {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--error); font-weight: 500;
+}
+
+.img-uploader-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.img-uploader-preview {
+  position: relative; aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid var(--surface-border);
+  transition: border-color 0.2s;
+}
+.img-uploader-preview:hover { border-color: var(--gold-primary); }
+
+.img-uploader-thumb {
+  width: 100%; height: 100%; object-fit: cover;
+  display: block;
+}
+
+.img-uploader-remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(0,0,0,0.7); color: #fff;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+}
+.img-uploader-preview:hover .img-uploader-remove { opacity: 1; }
+
+.img-uploader-primary-badge {
+  position: absolute; bottom: 4px; left: 4px;
+  background: var(--gold-primary); color: var(--black-deep);
+  font-size: 10px; font-weight: 700; padding: 2px 6px;
+  border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.img-uploader-count {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-tertiary);
+}
+
+/* ─── Portfolio Page ─────────────────────────── */
+.portfolio-page { animation: fadeInUp 0.4s ease forwards; }
+
+.portfolio-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
+}
+.portfolio-header h1 { font-size: 28px; margin-bottom: 4px; }
+.portfolio-header p { color: var(--text-secondary); font-size: 15px; }
+
+.portfolio-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ─── Portfolio Grid ─────────────────────────── */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.portfolio-card {
+  position: relative;
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.portfolio-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--gold-primary);
+  box-shadow: 0 12px 40px rgba(212, 168, 67, 0.1);
+}
+
+.portfolio-card-img {
+  width: 100%; height: 220px; object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.portfolio-card:hover .portfolio-card-img { transform: scale(1.03); }
+
+.portfolio-card-img-wrap {
+  position: relative; overflow: hidden;
+  background: var(--surface-secondary);
+}
+
+.portfolio-card-img-count {
+  position: absolute; bottom: 10px; right: 10px;
+  background: rgba(0,0,0,0.7); color: #fff;
+  font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 20px;
+  display: flex; align-items: center; gap: 4px;
+  backdrop-filter: blur(4px);
+}
+
+.portfolio-card-img-placeholder {
+  width: 100%; height: 220px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-secondary);
+  color: var(--text-tertiary); font-size: 48px;
+}
+
+.portfolio-card-body { padding: 20px; }
+.portfolio-card-title {
+  font-size: 18px; font-weight: 700; margin-bottom: 6px;
+  font-family: var(--font-heading);
+  color: var(--text-primary);
+}
+.portfolio-card-desc {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.6; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.portfolio-card-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px; border-top: 1px solid var(--surface-border);
+  font-size: 12px; color: var(--text-tertiary);
+}
+.portfolio-card-footer-actions {
+  display: flex; gap: 6px;
+}
+.portfolio-card-action {
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: var(--surface-secondary); border: none;
+  color: var(--text-secondary); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.portfolio-card-action:hover {
+  background: var(--gold-primary); color: var(--black-deep);
+}
+.portfolio-card-action--danger:hover {
+  background: var(--error); color: #fff;
+}
+
+/* ─── Portfolio Detail ─────────────────────────── */
+.portfolio-detail { animation: fadeInUp 0.4s ease forwards; max-width: 960px; }
+
+.portfolio-detail-hero {
+  position: relative; border-radius: var(--radius-lg);
+  overflow: hidden; margin-bottom: 24px;
+  background: var(--surface-secondary);
+}
+
+.portfolio-detail-hero img {
+  width: 100%; height: 440px; object-fit: cover; display: block;
+  transition: opacity 0.3s ease;
+}
+
+.portfolio-detail-hero-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(0,0,0,0.6); border: none; color: #fff;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: all 0.2s;
+  backdrop-filter: blur(6px);
+}
+.portfolio-detail-hero-nav:hover { background: var(--gold-primary); color: var(--black-deep); }
+.portfolio-detail-hero-nav--prev { left: 16px; }
+.portfolio-detail-hero-nav--next { right: 16px; }
+
+.portfolio-detail-dots {
+  position: absolute; bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 6px;
+}
+.portfolio-detail-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,0.4); border: none;
+  cursor: pointer; transition: all 0.2s; padding: 0;
+}
+.portfolio-detail-dot--active {
+  background: var(--gold-primary); width: 24px; border-radius: 4px;
+}
+
+.portfolio-detail-thumbs {
+  display: flex; gap: 8px; margin-bottom: 32px;
+  overflow-x: auto; padding-bottom: 4px;
+}
+.portfolio-detail-thumb {
+  width: 72px; height: 72px; border-radius: var(--radius-sm);
+  overflow: hidden; cursor: pointer; flex-shrink: 0;
+  border: 2px solid transparent; transition: all 0.2s;
+  opacity: 0.6;
+}
+.portfolio-detail-thumb--active {
+  border-color: var(--gold-primary); opacity: 1;
+}
+.portfolio-detail-thumb img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+.portfolio-detail-meta {
+  background: var(--surface-primary); border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border); padding: 32px;
+  margin-bottom: 24px;
+}
+.portfolio-detail-title {
+  font-size: 28px; font-weight: 700; margin-bottom: 16px;
+  font-family: var(--font-heading);
+}
+.portfolio-detail-desc {
+  font-size: 15px; color: var(--text-secondary);
+  line-height: 1.8; margin-bottom: 24px;
+}
+.portfolio-detail-info {
+  display: flex; gap: 24px; flex-wrap: wrap;
+  padding-top: 20px; border-top: 1px solid var(--surface-border);
+}
+.portfolio-detail-info-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-tertiary);
+}
+
+.portfolio-detail-actions {
+  display: flex; gap: 12px; margin-top: 24px;
+}
+
+/* ─── Create / Edit Form ─────────────────────── */
+.portfolio-form {
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  padding: 32px;
+  animation: fadeInUp 0.4s ease forwards;
+}
+.portfolio-form h2 {
+  font-size: 22px; font-weight: 700; margin-bottom: 24px;
+  font-family: var(--font-heading);
+}
+.portfolio-form-fields { display: flex; flex-direction: column; gap: 20px; }
+.portfolio-form-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+@media (max-width: 640px) {
+  .portfolio-form-row { grid-template-columns: 1fr; }
+  .portfolio-grid { grid-template-columns: 1fr; }
+}
+
+.portfolio-form-actions {
+  display: flex; gap: 12px; margin-top: 28px;
+  padding-top: 24px; border-top: 1px solid var(--surface-border);
+}
+
+/* ─── Confirm Modal ──────────────────────────── */
+.portfolio-confirm-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+.portfolio-confirm-modal {
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  padding: 32px; max-width: 420px; width: 90%;
+  animation: scaleIn 0.2s ease;
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-xl);
+}
+.portfolio-confirm-modal h3 {
+  font-size: 20px; font-family: var(--font-body);
+  font-weight: 600; margin-bottom: 12px;
+}
+.portfolio-confirm-modal p {
+  color: var(--text-secondary); font-size: 14px;
+  margin-bottom: 24px; line-height: 1.6;
+}
+.portfolio-confirm-actions {
+  display: flex; gap: 12px; justify-content: flex-end;
+}
+
+/* ─── Empty State ────────────────────────────── */
+.portfolio-empty {
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  padding: 80px 32px;
+  text-align: center;
+}
+.portfolio-empty-icon {
+  font-size: 64px; color: var(--surface-border);
+  margin-bottom: 20px;
+}
+.portfolio-empty h3 {
+  font-size: 22px; font-family: var(--font-body);
+  font-weight: 600; margin-bottom: 8px;
+}
+.portfolio-empty p {
+  color: var(--text-secondary); font-size: 15px;
+  margin-bottom: 24px;
+}

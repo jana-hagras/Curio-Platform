@@ -116,6 +116,92 @@ export const updateMilestone = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// =============================
+// ✅ COMPLETE MILESTONE (with escrow release logic)
+// =============================
+export const completeMilestone = async (req, res, next) => {
+  try {
+    const id = Number(req.query.id);
+    if (!id) return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
+
+    // 1. Fetch the milestone
+    const [milestoneRows] = await pool.query("SELECT * FROM Milestone WHERE Milestone_id = ?", [id]);
+    if (!milestoneRows.length) return res.status(404).json({ ok: false, message: "Milestone not found." });
+
+    const milestone = milestoneRows[0];
+
+    // Prevent re-completing
+    if (milestone.Status === 'Completed') {
+      return res.status(400).json({ ok: false, message: "Milestone is already completed." });
+    }
+
+    const requestId = milestone.Request_id;
+    const releaseAmount = Number(milestone.EscrowAmount || 0);
+
+    // 2. Mark milestone as Completed with release date
+    await pool.query(
+      "UPDATE Milestone SET Status = 'Completed', EscrowReleaseDate = CURRENT_DATE WHERE Milestone_id = ?",
+      [id]
+    );
+
+    // 3. Release escrow funds on the Payment record
+    if (releaseAmount > 0) {
+      // Find the escrow payment for this request
+      const [paymentRows] = await pool.query(
+        "SELECT * FROM Payment WHERE Request_id = ? AND PaymentType = 'escrow' LIMIT 1",
+        [requestId]
+      );
+
+      if (paymentRows.length) {
+        const payment = paymentRows[0];
+        const newReleased = Number(payment.EscrowReleased || 0) + releaseAmount;
+        const newHeld = Math.max(0, Number(payment.EscrowHeld || 0) - releaseAmount);
+
+        // Determine new escrow status
+        let newEscrowStatus;
+        if (newHeld <= 0) {
+          newEscrowStatus = 'fully_released';
+        } else {
+          newEscrowStatus = 'partially_released';
+        }
+
+        await pool.query(
+          `UPDATE Payment SET 
+            EscrowReleased = ?,
+            EscrowHeld = ?,
+            EscrowStatus = ?
+           WHERE Payment_id = ?`,
+          [newReleased, newHeld, newEscrowStatus, payment.Payment_id]
+        );
+      }
+    }
+
+    // 4. Check if all milestones for this request are now completed
+    const [allMilestones] = await pool.query(
+      "SELECT Status FROM Milestone WHERE Request_id = ?",
+      [requestId]
+    );
+    const allCompleted = allMilestones.every(m => m.Status === 'Completed');
+
+    // If all milestones done, update payment status
+    if (allCompleted) {
+      await pool.query(
+        "UPDATE Payment SET EscrowStatus = 'fully_released' WHERE Request_id = ? AND PaymentType = 'escrow'",
+        [requestId]
+      );
+    }
+
+    // 5. Return updated milestone
+    const [updatedRows] = await pool.query("SELECT * FROM Milestone WHERE Milestone_id = ?", [id]);
+    return res.status(200).json({
+      ok: true,
+      message: "Milestone completed and escrow funds released.",
+      data: { milestone: sanitizeMilestone(updatedRows[0]) }
+    });
+
+  } catch (err) { next(err); }
+};
+
 // DELETE
 export const deleteMilestone = async (req, res, next) => {
   try {

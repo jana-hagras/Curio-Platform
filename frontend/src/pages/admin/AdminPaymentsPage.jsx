@@ -9,40 +9,31 @@ import {
   FiSearch, FiX, FiDollarSign, FiTrendingUp,
   FiShield, FiPercent, FiShoppingBag,
   FiFileText, FiChevronDown, FiEye, FiRefreshCw,
+  FiLock, FiUnlock,
 } from 'react-icons/fi';
 import './AdminTable.css';
 import './AdminPaymentsPage.css';
 
 /* ── Constants ───────────────────────────────────────── */
 const FEE_RATE = 0.10;
-const THIS_MONTH = new Date().toISOString().slice(0, 7); // "YYYY-MM"
 
 /* ── Business logic helpers ──────────────────────────── */
-function paymentType(p) {
-  return p.request_id ? 'custom' : 'product';
-}
-
-function escrowStatus(p) {
-  if (!p.request_id) return 'na';
-  const s = (p.status || '').toLowerCase();
-  if (s === 'pending')   return 'escrow_pending';
-  if (s === 'completed') return 'escrow_held';
-  if (s === 'failed')    return 'refunded';
-  return 'na';
-}
-
 function enrich(p, orderMap, requestMap) {
   const oid = p.order_id;
   const rid = p.request_id;
   const order   = oid ? orderMap[oid]   : null;
   const request = rid ? requestMap[rid] : null;
 
-  const type      = paymentType(p);
+  const type      = p.paymentType || (rid ? 'escrow' : 'product');
   const amount    = Number(p.totalAmount || 0);
   const fee       = parseFloat((amount * FEE_RATE).toFixed(2));
   const payout    = parseFloat((amount - fee).toFixed(2));
-  const isEscrow  = type === 'custom';
-  const escrow    = escrowStatus(p);
+  const isEscrow  = type === 'escrow';
+
+  // Use real DB escrow fields
+  const escrowHeld     = Number(p.escrowHeld || 0);
+  const escrowReleased = Number(p.escrowReleased || 0);
+  const escrowSt       = p.escrowStatus || 'none';
 
   return {
     ...p,
@@ -55,21 +46,21 @@ function enrich(p, orderMap, requestMap) {
     platformFee:     fee,
     artisanEarnings: payout,
     escrowAmount:    isEscrow ? amount : 0,
-    releasedAmount:  0,
-    heldAmount:      isEscrow ? amount : 0,
-    escrowStatus:    escrow,
-    milestoneStatus: isEscrow ? 'Pending' : 'N/A',
+    releasedAmount:  escrowReleased,
+    heldAmount:      escrowHeld,
+    escrowStatus:    escrowSt,
     order,
     request,
   };
 }
 
 /* ── Search + filter ─────────────────────────────────── */
-function applyFilters(rows, { query, type, status, method }) {
+function applyFilters(rows, { query, type, status, method, escrow }) {
   return rows.filter(p => {
     if (type   && type   !== 'all' && p.paymentType !== type)           return false;
     if (status && status !== 'all' && (p.status||'').toLowerCase() !== status) return false;
     if (method && method !== 'all' && (p.paymentMethod||'').toLowerCase() !== method) return false;
+    if (escrow && escrow !== 'all' && p.escrowStatus !== escrow) return false;
     if (!query) return true;
     const q = query.toLowerCase();
     return [
@@ -83,6 +74,7 @@ function applyFilters(rows, { query, type, status, method }) {
 /* ── Sub-components ──────────────────────────────────── */
 const TYPE_CONF = {
   product: { label: 'Product Purchase', icon: FiShoppingBag, cls: 'type-product' },
+  escrow:  { label: 'Escrow Payment',   icon: FiLock,        cls: 'type-custom'  },
   custom:  { label: 'Custom Request',   icon: FiFileText,    cls: 'type-custom'  },
 };
 const STATUS_CONF = {
@@ -91,13 +83,12 @@ const STATUS_CONF = {
   failed:    { label: 'Failed',    cls: 'badge-red'    },
 };
 const ESCROW_CONF = {
-  escrow_pending:     { label: 'Escrow Pending',     cls: 'badge-yellow' },
-  escrow_held:        { label: 'Escrow Held',        cls: 'badge-blue'   },
+  pending:            { label: 'Awaiting Payment',   cls: 'badge-yellow' },
+  held:               { label: 'Escrow Held',        cls: 'badge-blue'   },
   partially_released: { label: 'Partially Released', cls: 'badge-purple' },
   fully_released:     { label: 'Fully Released',     cls: 'badge-green'  },
   refunded:           { label: 'Refunded',           cls: 'badge-red'    },
-  disputed:           { label: 'Disputed',           cls: 'badge-red'    },
-  na:                 { label: '—',                  cls: 'badge-neutral'},
+  none:               { label: '—',                  cls: 'badge-neutral'},
 };
 
 function TypeBadge({ type }) {
@@ -116,7 +107,7 @@ function StatusBadge({ status }) {
   return <span className={`admin-badge ${c.cls}`}>{c.label}</span>;
 }
 function EscrowBadge({ status }) {
-  const c = ESCROW_CONF[status] || ESCROW_CONF.na;
+  const c = ESCROW_CONF[status] || ESCROW_CONF.none;
   return <span className={`admin-badge ${c.cls}`}>{c.label}</span>;
 }
 
@@ -132,16 +123,20 @@ function AnalyticsCards({ payments }) {
       return d.getMonth() === now && d.getFullYear() === nowYear;
     })
     .reduce((s, p) => s + p.amount, 0);
-  const escrow    = payments.filter(p => p.paymentType === 'custom').reduce((s, p) => s + p.heldAmount, 0);
-  const fees      = payments.reduce((s, p) => s + p.platformFee, 0);
-  const payouts   = payments.reduce((s, p) => s + p.artisanEarnings, 0);
+
+  // Real escrow values from DB
+  const escrowHeld     = payments.filter(p => p.paymentType === 'escrow').reduce((s, p) => s + p.heldAmount, 0);
+  const escrowReleased = payments.filter(p => p.paymentType === 'escrow').reduce((s, p) => s + p.releasedAmount, 0);
+  const fees           = payments.reduce((s, p) => s + p.platformFee, 0);
+  const payouts        = payments.reduce((s, p) => s + p.artisanEarnings, 0);
 
   const cards = [
-    { icon: FiDollarSign,  label: 'Total Revenue',   value: formatCurrency(total),   color: '#D4A843' },
-    { icon: FiTrendingUp,  label: 'Monthly Revenue', value: formatCurrency(monthly), color: '#8B5CF6' },
-    { icon: FiShield,      label: 'Active Escrow',   value: formatCurrency(escrow),  color: '#3B82F6' },
-    { icon: FiPercent,     label: 'Platform Fees',   value: formatCurrency(fees),    color: '#10B981' },
-    { icon: FiDollarSign,  label: 'Artisan Payouts', value: formatCurrency(payouts), color: '#A78BFA' },
+    { icon: FiDollarSign,  label: 'Total Revenue',      value: formatCurrency(total),          color: '#D4A843' },
+    { icon: FiTrendingUp,  label: 'Monthly Revenue',    value: formatCurrency(monthly),        color: '#8B5CF6' },
+    { icon: FiLock,        label: 'Escrow Held',        value: formatCurrency(escrowHeld),     color: '#3B82F6' },
+    { icon: FiUnlock,      label: 'Escrow Released',    value: formatCurrency(escrowReleased), color: '#10B981' },
+    { icon: FiPercent,     label: 'Platform Fees',      value: formatCurrency(fees),           color: '#F59E0B' },
+    { icon: FiDollarSign,  label: 'Artisan Payouts',    value: formatCurrency(payouts),        color: '#A78BFA' },
   ];
 
   return (
@@ -162,7 +157,7 @@ function AnalyticsCards({ payments }) {
 }
 
 /* ── Filter bar ──────────────────────────────────────── */
-function Select({ value, onChange, options, placeholder }) {
+function FilterSelect({ value, onChange, options, placeholder }) {
   return (
     <div className="pmt-select-wrap">
       <select value={value} onChange={e => onChange(e.target.value)} className="pmt-select">
@@ -215,7 +210,7 @@ function PaymentModal({ payment: p, onClose }) {
                 <span className="pmt-modal-field-label">Status</span>
                 <StatusBadge status={p.status} />
               </div>
-              {p.paymentType === 'custom' && (
+              {p.paymentType === 'escrow' && (
                 <div className="pmt-modal-field">
                   <span className="pmt-modal-field-label">Escrow Status</span>
                   <EscrowBadge status={p.escrowStatus} />
@@ -243,26 +238,38 @@ function PaymentModal({ payment: p, onClose }) {
             </div>
           </section>
 
-          {/* Escrow section (custom requests only) */}
-          {p.paymentType === 'custom' && (
+          {/* Escrow section (escrow payments only) */}
+          {p.paymentType === 'escrow' && (
             <section className="pmt-modal-section">
               <h4 className="pmt-modal-section-title">Escrow Details</h4>
               <div className="pmt-modal-finance">
                 <div className="pmt-finance-row">
-                  <span>Total Escrow Held</span>
+                  <span>Total Escrow Amount</span>
                   <span className="pmt-finance-amount">{formatCurrency(p.escrowAmount)}</span>
+                </div>
+                <div className="pmt-finance-row">
+                  <span>Currently Held</span>
+                  <span className="pmt-finance-fee">{formatCurrency(p.heldAmount)}</span>
                 </div>
                 <div className="pmt-finance-row">
                   <span>Released to Artisan</span>
                   <span className="pmt-finance-payout">{formatCurrency(p.releasedAmount)}</span>
                 </div>
-                <div className="pmt-finance-row">
-                  <span>Remaining in Escrow</span>
-                  <span className="pmt-finance-fee">{formatCurrency(p.heldAmount)}</span>
-                </div>
               </div>
+              {/* Progress bar */}
+              {p.escrowAmount > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6, color: 'var(--text-secondary)' }}>
+                    <span>Release Progress</span>
+                    <span>{Math.round((p.releasedAmount / p.escrowAmount) * 100)}%</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: 'var(--surface-tertiary)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 3, background: 'linear-gradient(90deg, #3B82F6, #10B981)', width: `${Math.min(100, (p.releasedAmount / p.escrowAmount) * 100)}%`, transition: 'width 0.3s ease' }} />
+                  </div>
+                </div>
+              )}
               <p className="pmt-modal-note">
-                ℹ Escrow funds are released milestone-by-milestone upon buyer confirmation.
+                ℹ Escrow funds are released milestone-by-milestone as the artisan completes project phases.
               </p>
             </section>
           )}
@@ -280,7 +287,9 @@ function PaymentModal({ payment: p, onClose }) {
               </div>
               <div className="pmt-modal-field">
                 <span className="pmt-modal-field-label">Artisan</span>
-                <span className="pmt-modal-field-value">{p.artisanName || '—'}</span>
+                <span className="pmt-modal-field-value">
+                  {p.artisan_id ? `Artisan #${p.artisan_id}` : '—'}
+                </span>
               </div>
             </div>
           </section>
@@ -361,6 +370,7 @@ export default function AdminPaymentsPage() {
   const [fType,  setFType]  = useState('all');
   const [fStat,  setFStat]  = useState('all');
   const [fMeth,  setFMeth]  = useState('all');
+  const [fEscrow, setFEscrow] = useState('all');
 
   const { loaded: lookupReady } = useAdminData();
 
@@ -397,8 +407,8 @@ export default function AdminPaymentsPage() {
 
   /* Filter */
   const filtered = useMemo(
-    () => applyFilters(payments, { query, type: fType, status: fStat, method: fMeth }),
-    [payments, query, fType, fStat, fMeth]
+    () => applyFilters(payments, { query, type: fType, status: fStat, method: fMeth, escrow: fEscrow }),
+    [payments, query, fType, fStat, fMeth, fEscrow]
   );
 
   const isReady = !loading && lookupReady;
@@ -408,11 +418,16 @@ export default function AdminPaymentsPage() {
     return [...set].map(m => ({ value: m.toLowerCase(), label: m }));
   }, [payments]);
 
-  const hasFilters = query || fType !== 'all' || fStat !== 'all' || fMeth !== 'all';
+  const hasFilters = query || fType !== 'all' || fStat !== 'all' || fMeth !== 'all' || fEscrow !== 'all';
 
   function clearFilters() {
-    setQuery(''); setFType('all'); setFStat('all'); setFMeth('all');
+    setQuery(''); setFType('all'); setFStat('all'); setFMeth('all'); setFEscrow('all');
   }
+
+  // Summary counts
+  const escrowCount = payments.filter(p => p.paymentType === 'escrow').length;
+  const heldCount = payments.filter(p => p.escrowStatus === 'held').length;
+  const releasedCount = payments.filter(p => p.escrowStatus === 'fully_released' || p.escrowStatus === 'partially_released').length;
 
   return (
     <div className="admin-table-page pmt-page">
@@ -422,7 +437,7 @@ export default function AdminPaymentsPage() {
           <h1>Payments</h1>
           <p className="admin-table-count">
             {isReady
-              ? `${filtered.length} of ${payments.length} transactions · ${payments.filter(p => p.paymentType === 'custom').length} escrow payments`
+              ? `${filtered.length} of ${payments.length} transactions · ${escrowCount} escrow · ${heldCount} held · ${releasedCount} released`
               : 'Loading financial data…'}
           </p>
         </div>
@@ -451,14 +466,14 @@ export default function AdminPaymentsPage() {
         <div className="pmt-filter-left">
           <FiRefreshCw size={13} className="pmt-filter-icon" />
           <span className="pmt-filter-label">Filters:</span>
-          <Select
+          <FilterSelect
             value={fType} onChange={setFType} placeholder="All Types"
             options={[
               { value: 'product', label: '🛍 Product Purchase' },
-              { value: 'custom',  label: '🎨 Custom Request'   },
+              { value: 'escrow',  label: '🔐 Escrow Payment'   },
             ]}
           />
-          <Select
+          <FilterSelect
             value={fStat} onChange={setFStat} placeholder="All Statuses"
             options={[
               { value: 'completed', label: 'Completed' },
@@ -466,9 +481,19 @@ export default function AdminPaymentsPage() {
               { value: 'failed',    label: 'Failed'    },
             ]}
           />
-          <Select
+          <FilterSelect
             value={fMeth} onChange={setFMeth} placeholder="All Methods"
             options={methods}
+          />
+          <FilterSelect
+            value={fEscrow} onChange={setFEscrow} placeholder="All Escrow"
+            options={[
+              { value: 'pending',            label: '⏳ Awaiting Payment' },
+              { value: 'held',               label: '🔒 Held' },
+              { value: 'partially_released', label: '🔓 Partially Released' },
+              { value: 'fully_released',     label: '✅ Fully Released' },
+              { value: 'refunded',           label: '↩️ Refunded' },
+            ]}
           />
         </div>
         {hasFilters && (
@@ -504,6 +529,7 @@ export default function AdminPaymentsPage() {
                 <th>Method</th>
                 <th>Status</th>
                 <th>Escrow</th>
+                <th>Held / Released</th>
                 <th>Date</th>
                 <th></th>
               </tr>
@@ -546,6 +572,21 @@ export default function AdminPaymentsPage() {
                   <td><StatusBadge status={p.status} /></td>
 
                   <td><EscrowBadge status={p.escrowStatus} /></td>
+
+                  <td>
+                    {p.paymentType === 'escrow' ? (
+                      <div className="admin-cell-stack">
+                        <span className="admin-cell-stack-primary" style={{ color: '#3B82F6', fontSize: 12 }}>
+                          H: {formatCurrency(p.heldAmount)}
+                        </span>
+                        <span className="admin-cell-stack-secondary" style={{ color: '#10B981', fontSize: 11 }}>
+                          R: {formatCurrency(p.releasedAmount)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span style={{ color: 'var(--text-tertiary)', fontSize: 12 }}>—</span>
+                    )}
+                  </td>
 
                   <td className="admin-cell-secondary">
                     {p.transactionDate

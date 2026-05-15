@@ -110,13 +110,9 @@ export const getGalleryByProject = async (req, res, next) => {
       [project_id]
     );
 
-    if (!rows.length) {
-      return res.status(404).json({ ok: false, message: "No images found for this project." });
-    }
-
     return res.status(200).json({
       ok: true,
-      data: rows.map(sanitizeGallery)
+      data: { gallery: rows.map(sanitizeGallery) }
     });
 
   } catch (err) {

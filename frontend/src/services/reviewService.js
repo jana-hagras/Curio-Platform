@@ -1,6 +1,7 @@
 import api from './api';
 
 export const reviewService = {
+  getAll: () => api.get('/reviews/all'),
   create: (data) => api.post('/reviews/', data),
   getById: (id) => api.get(`/reviews/?id=${id}`),
   getByItem: (itemId) => api.get(`/reviews/item?item_id=${itemId}`),

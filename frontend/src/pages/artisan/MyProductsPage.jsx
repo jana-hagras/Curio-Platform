@@ -5,7 +5,7 @@ import { marketItemService } from '../../services/marketItemService';
 import DataTable from '../../components/ui/DataTable';
 import Button from '../../components/ui/Button';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiEdit3 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function MyProductsPage() {
@@ -13,6 +13,7 @@ export default function MyProductsPage() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchProducts = () => {
     setLoading(true);
@@ -26,11 +27,13 @@ export default function MyProductsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
+    setDeletingId(id);
     try {
       await marketItemService.delete(id);
       toast.success('Product deleted');
       fetchProducts();
     } catch { toast.error('Failed to delete product'); }
+    finally { setDeletingId(null); }
   };
 
   const columns = [
@@ -38,7 +41,19 @@ export default function MyProductsPage() {
     { header: 'Category', accessor: 'category' },
     { header: 'Price', accessor: 'price', render: r => formatCurrency(r.price) },
     { header: 'Stock', accessor: 'availQuantity' },
-    { header: 'Action', render: r => <Button size="sm" variant="danger" onClick={() => handleDelete(r.id)}><FiTrash2 /></Button> }
+    {
+      header: 'Actions',
+      render: r => (
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Button size="sm" variant="ghost" onClick={() => navigate(`/dashboard/products/edit/${r.id}`)} title="Edit">
+            <FiEdit3 size={14} />
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(r.id)} title="Delete" loading={deletingId === r.id}>
+            <FiTrash2 size={14} />
+          </Button>
+        </div>
+      )
+    }
   ];
 
   return (

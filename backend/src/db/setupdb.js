@@ -140,12 +140,18 @@ const createAllTables = async (conn) => {
             Payment_id INT AUTO_INCREMENT PRIMARY KEY,
             Order_id INT,
             Request_id INT,
+            Artisan_id INT,
             TotalAmount DECIMAL(10,2),
             PaymentMethod VARCHAR(50),
             TransactionDate DATE,
             Status ENUM('Pending','Completed','Failed') DEFAULT 'Pending',
+            PaymentType ENUM('product','escrow') DEFAULT 'product',
+            EscrowHeld DECIMAL(10,2) DEFAULT 0.00,
+            EscrowReleased DECIMAL(10,2) DEFAULT 0.00,
+            EscrowStatus ENUM('none','pending','held','partially_released','fully_released','refunded') DEFAULT 'none',
             FOREIGN KEY (Order_id) REFERENCES \`Order\`(Order_id) ON DELETE SET NULL,
-            FOREIGN KEY (Request_id) REFERENCES Request(Request_id) ON DELETE SET NULL
+            FOREIGN KEY (Request_id) REFERENCES Request(Request_id) ON DELETE SET NULL,
+            FOREIGN KEY (Artisan_id) REFERENCES Artisan(Artisan_id) ON DELETE SET NULL
         )`,
         // REVIEW
         `CREATE TABLE IF NOT EXISTS Review (
@@ -215,6 +221,54 @@ const seedAdmin = async (conn) => {
 };
 
 
+// Migrate Payment table to add escrow columns (safe for existing DBs)
+const migratePaymentTable = async (conn) => {
+    const migrations = [
+        { column: 'PaymentType', sql: "ALTER TABLE Payment ADD COLUMN PaymentType ENUM('product','escrow') DEFAULT 'product'" },
+        { column: 'EscrowHeld', sql: "ALTER TABLE Payment ADD COLUMN EscrowHeld DECIMAL(10,2) DEFAULT 0.00" },
+        { column: 'EscrowReleased', sql: "ALTER TABLE Payment ADD COLUMN EscrowReleased DECIMAL(10,2) DEFAULT 0.00" },
+        { column: 'EscrowStatus', sql: "ALTER TABLE Payment ADD COLUMN EscrowStatus ENUM('none','pending','held','partially_released','fully_released','refunded') DEFAULT 'none'" },
+        { column: 'Artisan_id', sql: "ALTER TABLE Payment ADD COLUMN Artisan_id INT, ADD FOREIGN KEY (Artisan_id) REFERENCES Artisan(Artisan_id) ON DELETE SET NULL" },
+    ];
+
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'Payment'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    for (const m of migrations) {
+        if (!existing.has(m.column)) {
+            try {
+                await conn.query(m.sql);
+                console.log(`  ✅ Added Payment.${m.column}`);
+            } catch (e) {
+                // Column might already exist from a partial migration
+                if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ Migration warning for ${m.column}:`, e.message);
+            }
+        }
+    }
+    console.log("Payment table escrow migration complete ✅");
+};
+
+// ─── Review table migration: add EditedAt column ───
+const migrateReviewTable = async (conn) => {
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'Review'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    if (!existing.has('EditedAt')) {
+        try {
+            await conn.query("ALTER TABLE Review ADD COLUMN EditedAt DATETIME DEFAULT NULL");
+            console.log("  ✅ Added Review.EditedAt");
+        } catch (e) {
+            if (!e.message.includes('Duplicate column')) console.warn("  ⚠️ Review migration warning:", e.message);
+        }
+    }
+    console.log("Review table migration complete ✅");
+};
+
+
 // Initialize database at startup
 export const initDatabase = async () => {
     // 1. Create DB with a temp connection (pool can't connect to a DB that doesn't exist yet)
@@ -235,9 +289,34 @@ export const initDatabase = async () => {
         await createAllTables(conn);
         await ensureAdminEnum(conn);
         await seedAdmin(conn);
-
+        await migratePaymentTable(conn);
+        await migrateReviewTable(conn);
+        await migrateOrderTable(conn);
 
     } finally {
         conn.release();
     }
 };
+
+// ─── Order table migration: add Phone + DeliveryNotes columns ───
+async function migrateOrderTable(conn) {
+    const migrations = [
+        { column: 'Phone', sql: "ALTER TABLE `Order` ADD COLUMN Phone VARCHAR(30) DEFAULT NULL" },
+        { column: 'DeliveryNotes', sql: "ALTER TABLE `Order` ADD COLUMN DeliveryNotes TEXT DEFAULT NULL" },
+    ];
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'Order'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+    for (const m of migrations) {
+        if (!existing.has(m.column)) {
+            try {
+                await conn.query(m.sql);
+                console.log(`  ✅ Added Order.${m.column}`);
+            } catch (e) {
+                if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ Order migration warning for ${m.column}:`, e.message);
+            }
+        }
+    }
+    console.log("Order table migration complete ✅");
+}

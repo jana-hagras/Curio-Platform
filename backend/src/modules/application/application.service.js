@@ -9,20 +9,46 @@ const sanitizeApplication = (row) => {
     applicationDate: row.ApplicationDate,
     proposal: row.Proposal,
     status: row.Status,
-    artisanName: row.FName ? `${row.FName} ${row.LName}` : null,
+    artisanName: row.ArtisanFName ? `${row.ArtisanFName} ${row.ArtisanLName}` : null,
+    requestTitle: row.RequestTitle || null,
+    requestCategory: row.RequestCategory || null,
+    requestBudget: row.RequestBudget || null,
+    buyerName: row.BuyerFName ? `${row.BuyerFName} ${row.BuyerLName}` : null,
+    buyer_id: row.BuyerId || null,
   };
 };
 
+// Rich JOIN query — resolves artisan name, request details, and buyer name
 const APP_QUERY = `
-  SELECT ap.*, u.FName, u.LName
+  SELECT 
+    ap.*,
+    artU.FName AS ArtisanFName, artU.LName AS ArtisanLName,
+    r.Title AS RequestTitle, r.Category AS RequestCategory, r.Budget AS RequestBudget,
+    r.Buyer_id AS BuyerId,
+    buyU.FName AS BuyerFName, buyU.LName AS BuyerLName
   FROM Application ap
-  LEFT JOIN Artisan a ON ap.Artisan_id = a.Artisan_id
-  LEFT JOIN user u ON a.Artisan_id = u.User_id
+  LEFT JOIN Artisan a   ON ap.Artisan_id = a.Artisan_id
+  LEFT JOIN user artU   ON a.Artisan_id  = artU.User_id
+  LEFT JOIN Request r   ON ap.Request_id = r.Request_id
+  LEFT JOIN Buyer b     ON r.Buyer_id    = b.Buyer_id
+  LEFT JOIN user buyU   ON b.Buyer_id    = buyU.User_id
 `;
 
 
-// SEARCH APPLICATIONS 
+// =============================
+// 📋 GET ALL APPLICATIONS
+// =============================
+export const getAllApplications = async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(`${APP_QUERY} ORDER BY ap.ApplicationDate DESC, ap.Application_id DESC`);
+    return res.status(200).json({ ok: true, data: { applications: rows.map(sanitizeApplication) } });
+  } catch (err) { next(err); }
+};
 
+
+// =============================
+// 🔍 SEARCH APPLICATIONS
+// =============================
 export const searchApplications = async (req, res, next) => {
   try {
     const value = req.query.value;
@@ -45,11 +71,15 @@ export const searchApplications = async (req, res, next) => {
         OR ap.Proposal LIKE ?
         OR ap.Status LIKE ?
         OR ap.ApplicationDate LIKE ?
-        OR u.FName LIKE ?
-        OR u.LName LIKE ?
+        OR artU.FName LIKE ?
+        OR artU.LName LIKE ?
+        OR r.Title LIKE ?
+        OR buyU.FName LIKE ?
+        OR buyU.LName LIKE ?
+      ORDER BY ap.ApplicationDate DESC, ap.Application_id DESC
     `;
 
-    const values = Array(8).fill(searchValue);
+    const values = Array(11).fill(searchValue);
 
     const [rows] = await pool.query(query, values);
 

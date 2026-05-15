@@ -149,23 +149,66 @@ export const getItemsByArtisan = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// UPDATE
+// UPDATE (with ownership validation + image management)
 export const updateItem = async (req, res, next) => {
   try {
     const id = Number(req.query.id);
     if (!id) return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
 
-    const { item, description, availQuantity, price, category } = req.body;
+    const { item, description, availQuantity, price, category, artisan_id, newImages, removeImageIds } = req.body;
+
+    // Ownership validation — artisan can only edit their own products
+    if (artisan_id) {
+      const [existing] = await pool.query("SELECT Artisan_id FROM MarketItem WHERE Item_id = ?", [id]);
+      if (!existing.length) return res.status(404).json({ ok: false, message: "Product not found." });
+      if (existing[0].Artisan_id !== Number(artisan_id)) {
+        return res.status(403).json({ ok: false, message: "You can only edit your own products." });
+      }
+    }
+
     if (price !== undefined && price !== null && Number(price) < 0) {
       return res.status(400).json({ ok: false, message: "Price cannot be negative." });
     }
     if (availQuantity !== undefined && availQuantity !== null && Number(availQuantity) < 0) {
       return res.status(400).json({ ok: false, message: "Available quantity cannot be negative." });
     }
+
+    // Update core fields
     await pool.query(
       "UPDATE MarketItem SET Item=COALESCE(?,Item), Description=COALESCE(?,Description), AvailQuantity=COALESCE(?,AvailQuantity), Price=COALESCE(?,Price), Category=COALESCE(?,Category) WHERE Item_id=?",
       [item, description, availQuantity, price, category, id]
     );
+
+    // Remove specified images
+    if (removeImageIds && removeImageIds.length > 0) {
+      const placeholders = removeImageIds.map(() => '?').join(',');
+      await pool.query(
+        `DELETE FROM Market_Item_Image WHERE id IN (${placeholders}) AND item_id = ?`,
+        [...removeImageIds, id]
+      );
+    }
+
+    // Add new images
+    if (newImages && newImages.length > 0) {
+      // Check if product currently has any images (to determine primary)
+      const [currentImgs] = await pool.query("SELECT COUNT(*) as cnt FROM Market_Item_Image WHERE item_id = ?", [id]);
+      const hasImages = currentImgs[0].cnt > 0;
+
+      for (let i = 0; i < newImages.length; i++) {
+        await pool.query(
+          "INSERT INTO Market_Item_Image (item_id, image_url, is_primary) VALUES (?, ?, ?)",
+          [id, newImages[i], !hasImages && i === 0 ? 1 : 0]
+        );
+      }
+    }
+
+    // If no images remain, ensure no orphan primary flags
+    // If images exist but none are primary, make the first one primary
+    const [allImgs] = await pool.query("SELECT id, is_primary FROM Market_Item_Image WHERE item_id = ? ORDER BY id", [id]);
+    if (allImgs.length > 0 && !allImgs.some(img => img.is_primary)) {
+      await pool.query("UPDATE Market_Item_Image SET is_primary = 1 WHERE id = ?", [allImgs[0].id]);
+    }
+
     return getItemById(req, res, next);
   } catch (err) { next(err); }
 };

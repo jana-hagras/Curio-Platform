@@ -154,7 +154,7 @@ export default function AdminSettingsPage() {
                 onChange={e => setMkt('commissionRate')(Number(e.target.value))}
               />
             </SettingField>
-            <SettingField label="Minimum Product Price (EGP)" description="Products below this price cannot be listed.">
+            <SettingField label="Minimum Product Price (USD)" description="Products below this price cannot be listed.">
               <input
                 type="number" min={0}
                 className="settings-input"
@@ -162,7 +162,7 @@ export default function AdminSettingsPage() {
                 onChange={e => setMkt('minPrice')(Number(e.target.value))}
               />
             </SettingField>
-            <SettingField label="Maximum Product Price (EGP)" description="Cap for product listings.">
+            <SettingField label="Maximum Product Price (USD)" description="Cap for product listings.">
               <input
                 type="number" min={0}
                 className="settings-input"

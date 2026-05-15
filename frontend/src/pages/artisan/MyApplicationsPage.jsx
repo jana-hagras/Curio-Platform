@@ -86,14 +86,14 @@ export default function MyApplicationsPage() {
     const { milestoneId, requestId, type } = confirmDialog;
     try {
       if (type === 'milestone') {
-        await milestoneService.update(milestoneId, { status: 'Completed' });
+        await milestoneService.complete(milestoneId);
         setMilestones(prev => ({
           ...prev,
           [requestId]: prev[requestId].map(m =>
             m.id === milestoneId ? { ...m, status: 'Completed' } : m
           ),
         }));
-        toast.success('Milestone marked as completed!');
+        toast.success('Milestone completed! Escrow funds released.');
       } else {
         await orderService.update(milestoneId, { status: 'Completed' });
         setOrders(prev => prev.map(o => o.id === milestoneId ? { ...o, status: 'Completed' } : o));

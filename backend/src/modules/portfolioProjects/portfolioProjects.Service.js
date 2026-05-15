@@ -122,6 +122,19 @@ export const getAllProjects = async (req, res, next) => {
   }
 };
 
+// READ BY ARTISAN
+export const getProjectsByArtisan = async (req, res, next) => {
+  try {
+    const artisanId = Number(req.query.artisan_id);
+    if (!artisanId) return res.status(400).json({ ok: false, message: "Query parameter 'artisan_id' is required." });
+
+    const [rows] = await pool.query(`${PROJ_QUERY} WHERE p.Artisan_id = ?`, [artisanId]);
+    return res.status(200).json({ ok: true, data: { projects: rows.map(sanitizeProject) } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // READ ONE
 export const getProjectById = async (req, res, next) => {
   try {

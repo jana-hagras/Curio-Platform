@@ -3,6 +3,7 @@ import * as Payment from "./payment.service.js";
 
 const router = Router();
 
+router.get("/all", Payment.getAllPayments);
 router.get("/search", Payment.searchPayments);
 router.get("/buyer", Payment.getPaymentsByBuyer);
 router.post("/", Payment.createPayment);
