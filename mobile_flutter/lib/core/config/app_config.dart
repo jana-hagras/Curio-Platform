@@ -1,27 +1,9 @@
-/// Defines the two app flavors and holds per-flavor configuration.
-enum AppFlavor { user, admin }
-
 class AppConfig {
-  static late AppFlavor flavor;
+  // Single flavor configuration (User)
+  static const String appName = 'Curio — Egyptian Artisan Marketplace';
+  static const String initialRoute = '/';
 
-  static String get appName {
-    switch (flavor) {
-      case AppFlavor.user:
-        return 'Curio — Egyptian Artisan Marketplace';
-      case AppFlavor.admin:
-        return 'Curio Admin';
-    }
-  }
-
-  static String get initialRoute {
-    switch (flavor) {
-      case AppFlavor.user:
-        return '/';
-      case AppFlavor.admin:
-        return '/admin/dashboard';
-    }
-  }
-
-  static bool get isUser => flavor == AppFlavor.user;
-  static bool get isAdmin => flavor == AppFlavor.admin;
+  // Helper getters for compatibility
+  static bool get isUser => true;
+  static bool get isAdmin => false;
 }

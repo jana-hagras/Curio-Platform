@@ -20,6 +20,10 @@ import paymentRouter from "./modules/payment/payment.controller.js";
 import reviewRouter from "./modules/review/review.controller.js";
 import uploadRouter from "./modules/upload/upload.controller.js";
 import favoriteRouter from "./modules/favorite/favorite.controller.js";
+import mentorshipRouter from "./modules/mentorship/mentorship.controller.js";
+import mentorshipAppRouter from "./modules/mentorshipApplication/mentorshipApplication.controller.js";
+import workshopRouter from "./modules/workshop/workshop.controller.js";
+import workshopRegRouter from "./modules/workshopRegistration/workshopRegistration.controller.js";
 
 export const bootstrap = () => {
   const app = express();
@@ -43,6 +47,10 @@ export const bootstrap = () => {
   app.use("/payments", paymentRouter);
   app.use("/reviews", reviewRouter);
   app.use("/favorites", favoriteRouter);
+  app.use("/mentorships", mentorshipRouter);
+  app.use("/mentorship-applications", mentorshipAppRouter);
+  app.use("/workshops", workshopRouter);
+  app.use("/workshop-registrations", workshopRegRouter);
 
   app.use((req, res) => {
     res.status(404).json({ ok: false, message: "Route not found" });
@@ -58,3 +66,4 @@ export const bootstrap = () => {
 
   return app;
 };
+

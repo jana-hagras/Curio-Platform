@@ -10,7 +10,9 @@ router.post("/", Payment.createPayment);
 router.get("/", Payment.getPaymentById);
 router.get("/order", Payment.getPaymentsByOrder);
 router.get("/request", Payment.getPaymentsByRequest);
+router.get("/mentorship", Payment.getPaymentsByMentorship);
 router.put("/", Payment.updatePayment);
 router.delete("/", Payment.deletePayment);
 
 export default router;
+

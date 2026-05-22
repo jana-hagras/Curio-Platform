@@ -6,6 +6,10 @@ class StorageKeys {
   static const String cartItems = 'cartItems';
   static const String orders = 'orders';
   static const String customOrders = 'customOrders';
+  static const String workshops = 'workshops';
+  static const String mentorships = 'mentorships';
+  static const String programEnrollments = 'programEnrollments';
   static const String chatMessages = 'chatMessages';
   static const String notifications = 'notifications';
+  static const String proposals = 'proposals';
 }

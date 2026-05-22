@@ -29,21 +29,7 @@ android {
         versionName = flutter.versionName
     }
 
-    // ── Flavor Dimensions ────────────────────────────────────────────
-    flavorDimensions += "app"
 
-    productFlavors {
-        create("user") {
-            dimension = "app"
-            applicationIdSuffix = ""
-            resValue("string", "app_name", "Curio")
-        }
-        create("admin") {
-            dimension = "app"
-            applicationIdSuffix = ".admin"
-            resValue("string", "app_name", "Curio Admin")
-        }
-    }
 
     buildTypes {
         release {

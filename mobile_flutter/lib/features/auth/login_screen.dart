@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
     // Hardcoded Admin Bypass
-    if (email == 'admin@mail.com' && password == 'curio123') {
+    if (email == 'admin@curio.com' && password == 'Admin123!') {
       auth.setAdminBypassUser();
       Navigator.pushReplacementNamed(context, '/admin/dashboard');
       return;

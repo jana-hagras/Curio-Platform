@@ -56,7 +56,8 @@ class _SearchScreenState extends State<SearchScreen> {
                   : null,
               filled: false,
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
           ),
         ),
@@ -73,7 +74,10 @@ class _SearchScreenState extends State<SearchScreen> {
             padding: const EdgeInsets.all(16),
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, childAspectRatio: 0.72, crossAxisSpacing: 14, mainAxisSpacing: 14,
+                crossAxisCount: 2,
+                childAspectRatio: 0.72,
+                crossAxisSpacing: 14,
+                mainAxisSpacing: 14,
               ),
               itemCount: 4,
               itemBuilder: (_, __) => const CardShimmer(borderRadius: 12),
@@ -85,11 +89,13 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.search_off, size: 64, color: AppColors.textSecondary),
+                Icon(Icons.search_off,
+                    size: 64, color: AppColors.textSecondary),
                 SizedBox(height: 16),
                 Text("No results found", style: TextStyle(fontSize: 18)),
                 SizedBox(height: 8),
-                Text("Try a different search term", style: TextStyle(color: AppColors.textSecondary)),
+                Text("Try a different search term",
+                    style: TextStyle(color: AppColors.textSecondary)),
               ],
             ),
           );
@@ -97,18 +103,23 @@ class _SearchScreenState extends State<SearchScreen> {
         return GridView.builder(
           padding: const EdgeInsets.all(16),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, childAspectRatio: 0.72, crossAxisSpacing: 14, mainAxisSpacing: 14,
+            crossAxisCount: 2,
+            childAspectRatio: 0.72,
+            crossAxisSpacing: 14,
+            mainAxisSpacing: 14,
           ),
           itemCount: market.items.length,
           itemBuilder: (_, i) {
             final item = market.items[i];
             return GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/product-details', arguments: item),
+              onTap: () => Navigator.pushNamed(context, '/product-details',
+                  arguments: item),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
+                  border: Border.all(
+                      color: AppColors.divider.withValues(alpha: 0.5)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,9 +128,12 @@ class _SearchScreenState extends State<SearchScreen> {
                       child: Container(
                         decoration: const BoxDecoration(
                           color: AppColors.background,
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                          borderRadius:
+                              BorderRadius.vertical(top: Radius.circular(12)),
                         ),
-                        child: const Center(child: Icon(Icons.image_outlined, size: 40, color: AppColors.textSecondary)),
+                        child: const Center(
+                            child: Icon(Icons.image_outlined,
+                                size: 40, color: AppColors.textSecondary)),
                       ),
                     ),
                     Padding(
@@ -127,9 +141,17 @@ class _SearchScreenState extends State<SearchScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(item.item, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(item.item,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600, fontSize: 14),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 4),
-                          Text("EGP ${item.price.toStringAsFixed(0)}", style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 14)),
+                          Text("\$ ${item.price.toStringAsFixed(0)}",
+                              style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14)),
                         ],
                       ),
                     ),
@@ -149,7 +171,8 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Categories", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const Text("Categories",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 16),
           GridView.count(
             shrinkWrap: true,
@@ -159,14 +182,19 @@ class _SearchScreenState extends State<SearchScreen> {
             crossAxisSpacing: 12,
             childAspectRatio: 1.6,
             children: [
-              _catCard(context, "Pottery", Icons.emoji_nature, AppColors.accentOrange),
-              _catCard(context, "Textiles", Icons.grid_goldenratio, AppColors.accentGreen),
-              _catCard(context, "Jewelry", Icons.diamond_outlined, AppColors.accentPurple),
-              _catCard(context, "Home Decor", Icons.chair_outlined, AppColors.accentBlue),
+              _catCard(context, "Pottery", Icons.emoji_nature,
+                  AppColors.accentOrange),
+              _catCard(context, "Textiles", Icons.grid_goldenratio,
+                  AppColors.accentGreen),
+              _catCard(context, "Jewelry", Icons.diamond_outlined,
+                  AppColors.accentPurple),
+              _catCard(context, "Home Decor", Icons.chair_outlined,
+                  AppColors.accentBlue),
             ],
           ),
           const SizedBox(height: 32),
-          const Text("Recent Searches", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const Text("Recent Searches",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           _recentItem("Ancient Egypt Decor"),
           _recentItem("Handmade Wool Carpet"),
@@ -176,7 +204,8 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _catCard(BuildContext context, String title, IconData icon, Color color) {
+  Widget _catCard(
+      BuildContext context, String title, IconData icon, Color color) {
     return GestureDetector(
       onTap: () {
         _searchCtrl.text = title;
@@ -199,7 +228,9 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(title,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
           ],
         ),
       ),
@@ -216,11 +247,15 @@ class _SearchScreenState extends State<SearchScreen> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            const Icon(Icons.schedule, size: 18, color: AppColors.textSecondary),
+            const Icon(Icons.schedule,
+                size: 18, color: AppColors.textSecondary),
             const SizedBox(width: 12),
-            Text(text, style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+            Text(text,
+                style: const TextStyle(
+                    color: AppColors.textSecondary, fontSize: 14)),
             const Spacer(),
-            const Icon(Icons.north_west, size: 14, color: AppColors.textSecondary),
+            const Icon(Icons.north_west,
+                size: 14, color: AppColors.textSecondary),
           ],
         ),
       ),

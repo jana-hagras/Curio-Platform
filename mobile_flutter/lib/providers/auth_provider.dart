@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../core/local_storage/local_storage_service.dart';
 import '../core/local_storage/storage_keys.dart';
-import '../core/api/api_service.dart';
+// No remote API – using local storage mock
 
 class AuthProvider extends ChangeNotifier {
   UserModel? _user;
@@ -14,64 +14,47 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _user != null;
   String? get error => _error;
 
-  /// Try to auto-login from saved session.
+  /// Try to auto‑login from saved session using the stored user id.
   Future<void> tryAutoLogin() async {
     final userId = LocalStorageService.loadInt(StorageKeys.currentUserId);
     if (userId == null) return;
-
-    try {
-      final res = await ApiService.get('/user/me/$userId');
-      if (res['ok'] == true && res['data']['user'] != null) {
-        _user = UserModel.fromJson(res['data']['user']);
-        notifyListeners();
-      } else {
-        await logout();
-      }
-    } catch (e) {
-      // If network fails on auto-login, we might want to just stay logged out
-      // or implement offline caching. For now, clear session if it fails hard.
+    // Load the saved users list and find the matching record.
+    final users = LocalStorageService.loadList('users');
+    final index = users.indexWhere((e) => (e['id'] as int) == userId);
+    if (index != -1) {
+      _user = UserModel.fromJson(users[index]);
+      notifyListeners();
+    } else {
       await logout();
     }
   }
 
+  /// Simulate login against locally stored users.
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
-    try {
-      final res = await ApiService.post('/user/login', body: {
-        'email': email,
-        'password': password,
-      });
-
-      if (res['ok'] == true && res['data']['user'] != null) {
-        final userData = res['data']['user'];
-        _user = UserModel.fromJson(userData);
-        await LocalStorageService.saveInt(StorageKeys.currentUserId, _user!.id);
-        
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      } else {
-        _error = res['message'] ?? 'Login failed';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-    } on ApiException catch (e) {
-      _error = e.message;
+    // Load users from local storage.
+    final users = LocalStorageService.loadList('users');
+    final index = users
+        .indexWhere((e) => e['email'] == email && e['password'] == password);
+    if (index != -1) {
+      _user = UserModel.fromJson(users[index]);
+      // Persist session.
+      await LocalStorageService.saveInt(StorageKeys.currentUserId, _user!.id);
       _isLoading = false;
       notifyListeners();
-      return false;
-    } catch (e) {
-      _error = 'An unexpected error occurred';
+      return true;
+    } else {
+      _error = 'Invalid email or password';
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
+  /// Simulate user registration using local storage.
   Future<bool> register({
     required String fName,
     required String lName,
@@ -83,35 +66,31 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
-    try {
-      final res = await ApiService.post('/user/register', body: {
-        'fName': fName,
-        'lName': lName,
-        'email': email,
-        'password': password,
-        'type': type,
-      });
-
-      if (res['ok'] == true) {
-        // Auto-login after successful registration
-        return await login(email, password);
-      } else {
-        _error = res['message'] ?? 'Registration failed';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-    } on ApiException catch (e) {
-      _error = e.message;
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _error = 'An unexpected error occurred';
+    // Ensure email is not already taken.
+    final users = LocalStorageService.loadList('users');
+    final exists = users.any((e) => e['email'] == email);
+    if (exists) {
+      _error = 'Email already in use';
       _isLoading = false;
       notifyListeners();
       return false;
     }
+
+    // Create new user map.
+    final newId = LocalStorageService.getNextId('users');
+    final newUser = {
+      'id': newId,
+      'firstName': fName,
+      'lastName': lName,
+      'email': email,
+      'password': password,
+      'type': type,
+      // optional fields can stay null / empty
+    };
+    users.add(newUser);
+    await LocalStorageService.saveList('users', users);
+    // Auto‑login the newly created user.
+    return await login(email, password);
   }
 
   Future<void> logout() async {
@@ -120,8 +99,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateUser(UserModel newUser) {
+  Future<void> updateUser(UserModel newUser) async {
     _user = newUser;
+    final users = LocalStorageService.loadList('users');
+    final index = users.indexWhere((e) => (e['id'] as int?) == newUser.id);
+    if (index != -1) {
+      users[index] = newUser.toJson();
+      await LocalStorageService.saveList('users', users);
+    }
     notifyListeners();
   }
 
@@ -130,7 +115,8 @@ class AuthProvider extends ChangeNotifier {
       id: 999,
       firstName: 'Admin',
       lastName: 'User',
-      email: 'admin@mail.com',
+      email: 'admin@curio.com',
+      password: 'Admin123!',
       type: 'Admin',
     );
     notifyListeners();

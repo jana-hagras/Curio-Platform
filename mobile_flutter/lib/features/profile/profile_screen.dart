@@ -22,7 +22,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user == null) return;
 
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final XFile? image =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
 
     if (image == null) return;
 
@@ -35,13 +36,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile picture updated!'), backgroundColor: AppColors.success),
+          const SnackBar(
+              content: Text('Profile picture updated!'),
+              backgroundColor: AppColors.success),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update image: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text('Failed to update image: $e'),
+              backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -57,6 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isGuest = user == null;
     final profileImage = user?.profileImage;
     final hasImage = profileImage != null && profileImage.isNotEmpty;
+    final imageProvider = _buildProfileImageProvider(profileImage);
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -64,9 +70,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text("Profile", style: TextStyle(fontFamily: 'Playfair')),
         actions: [
           IconButton(
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
-            icon: const Icon(Icons.settings_outlined, size: 22)
-          )
+              onPressed: () => Navigator.pushNamed(context, '/settings'),
+              icon: const Icon(Icons.settings_outlined, size: 22))
         ],
       ),
       body: SingleChildScrollView(
@@ -77,7 +82,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
+              decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Theme.of(context).dividerColor)),
               child: Column(
                 children: [
                   GestureDetector(
@@ -86,13 +94,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         CircleAvatar(
                           radius: 48,
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                          backgroundImage: hasImage ? FileImage(File(profileImage)) : null,
+                          backgroundColor:
+                              AppColors.primary.withValues(alpha: 0.15),
+                          backgroundImage: imageProvider,
                           child: _isUploading
-                            ? const CircularProgressIndicator()
-                            : !hasImage
-                                ? const Icon(Icons.person, size: 48, color: AppColors.primary)
-                                : null,
+                              ? const CircularProgressIndicator()
+                              : !hasImage
+                                  ? const Icon(Icons.person,
+                                      size: 48, color: AppColors.primary)
+                                  : null,
                         ),
                         if (!isGuest && !_isUploading)
                           Positioned(
@@ -103,9 +113,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                                border: Border.all(
+                                    color:
+                                        Theme.of(context).colorScheme.surface,
+                                    width: 2),
                               ),
-                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                              child: const Icon(Icons.camera_alt,
+                                  color: Colors.white, size: 16),
                             ),
                           ),
                       ],
@@ -113,49 +127,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 14),
                   Text(isGuest ? "Guest User" : user.fullName,
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(height: 4),
-                  Text(isGuest ? "Log in to view stats" : "Premium ${user.type}",
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 13)),
+                  Text(
+                      isGuest ? "Log in to view stats" : "Premium ${user.type}",
+                      style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
+                          fontSize: 13)),
                 ],
               ),
             ),
             const SizedBox(height: 16),
 
-
-
             // Menu items
             Container(
-              decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(16), border: Border.all(color: Theme.of(context).dividerColor)),
+              decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Theme.of(context).dividerColor)),
               child: Column(
                 children: [
                   if (user != null && user.isArtisan) ...[
-                    _menuItem(context, Icons.add_box_outlined, "Add Product", "List a new item", '/add-product'),
+                    _menuItem(context, Icons.add_box_outlined, "Add Product",
+                        "List a new item", '/add-product'),
                     const Divider(height: 1, indent: 56),
-                    _menuItem(context, Icons.storefront_outlined, "My Store", "Manage your products", '/my-store'),
+                    _menuItem(context, Icons.storefront_outlined, "My Store",
+                        "Manage your products", '/my-store'),
                     const Divider(height: 1, indent: 56),
                   ],
-                  _menuItem(context, Icons.shopping_bag_outlined, "My Orders", "Track your purchases", '/orders'),
+                  _menuItem(context, Icons.shopping_bag_outlined, "My Orders",
+                      "Track your purchases", '/orders'),
                   const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.favorite_outline, "Saved Items", "Items you love", '/favorites'),
+                  
+                  if (user != null && user.isArtisan) ...[
+                    _menuItem(context, Icons.forum_outlined, "Requests & Proposals",
+                        "Manage buyer requests", '/artisan-requests'),
+                    const Divider(height: 1, indent: 56),
+                  ] else ...[
+                    _menuItem(context, Icons.auto_awesome_outlined, "Custom Requests",
+                        "Track custom commissions", '/custom-orders-list'),
+                    const Divider(height: 1, indent: 56),
+                  ],
                   const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.star_outline, "My Reviews", "See your feedback", '/reviews'),
+                  if (user != null && !user.isArtisan) ...[
+                    _menuItem(
+                        context,
+                        Icons.request_quote_outlined,
+                        "Custom Proposals",
+                        "Accept or reject artisan offers",
+                        '/proposals'),
+                    const Divider(height: 1, indent: 56),
+                  ],
+                  _menuItem(context, Icons.favorite_outline, "Saved Items",
+                      "Items you love", '/favorites'),
                   const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.local_shipping_outlined, "Track Delivery", "Order #1024", '/logistics'),
+                  _menuItem(context, Icons.star_outline, "My Reviews",
+                      "See your feedback", '/reviews'),
                   const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.school_outlined, "Workshops", "Learn a new craft", '/workshops'),
+                  _menuItem(context, Icons.local_shipping_outlined,
+                      "Track Delivery", "Order #1024", '/logistics'),
                   const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.auto_stories_outlined, "Cultural Stories", "Explore heritage", '/cultural'),
+                  _menuItem(context, Icons.school_outlined, "Workshops",
+                      "Learn a new craft", '/workshops'),
                   const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.chat_bubble_outline, "Messages", "Chat with artisans", '/chat'),
+                  _menuItem(context, Icons.auto_stories_outlined,
+                      "Cultural Stories", "Explore heritage", '/cultural'),
                   const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.notifications_outlined, "Notifications", "Stay updated", '/notifications'),
+                  _menuItem(context, Icons.chat_bubble_outline, "Messages",
+                      "Chat with artisans", '/inbox'),
                   const Divider(height: 1, indent: 56),
-                  _menuItem(context, Icons.headset_mic_outlined, "Support", "Get help anytime", '/settings'),
+                  _menuItem(context, Icons.notifications_outlined,
+                      "Notifications", "Stay updated", '/notifications'),
                   const Divider(height: 1, indent: 56),
-                  _menuItemAction(context, Icons.logout, "Sign Out", "See you again", isRed: true, onTap: () {
+                  _menuItem(context, Icons.headset_mic_outlined, "Support",
+                      "Get help anytime", '/settings'),
+                  const Divider(height: 1, indent: 56),
+                  _menuItemAction(
+                      context, Icons.logout, "Sign Out", "See you again",
+                      isRed: true, onTap: () {
                     Provider.of<AuthProvider>(context, listen: false).logout();
-                    Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, '/login', (_) => false);
                   }),
                 ],
               ),
@@ -166,33 +224,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _menuItem(BuildContext context, IconData icon, String title, String sub, String route) {
+  ImageProvider? _buildProfileImageProvider(String? profileImage) {
+    if (profileImage == null || profileImage.isEmpty) {
+      return null;
+    }
+
+    if (profileImage.startsWith('http')) {
+      return NetworkImage(profileImage);
+    }
+
+    final file = File(profileImage);
+    if (file.existsSync()) {
+      return FileImage(file);
+    }
+
+    return null;
+  }
+
+  Widget _menuItem(BuildContext context, IconData icon, String title,
+      String sub, String route) {
     return ListTile(
       onTap: () => Navigator.pushNamed(context, route),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: AppColors.primary, size: 20),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(sub, style: const TextStyle(fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+      trailing: const Icon(Icons.chevron_right,
+          color: AppColors.textSecondary, size: 20),
     );
   }
 
-  Widget _menuItemAction(BuildContext context, IconData icon, String title, String sub, {bool isRed = false, required VoidCallback onTap}) {
+  Widget _menuItemAction(
+      BuildContext context, IconData icon, String title, String sub,
+      {bool isRed = false, required VoidCallback onTap}) {
     return ListTile(
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(color: (isRed ? AppColors.error : AppColors.primary).withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: isRed ? AppColors.error : AppColors.primary, size: 20),
+        decoration: BoxDecoration(
+            color: (isRed ? AppColors.error : AppColors.primary)
+                .withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon,
+            color: isRed ? AppColors.error : AppColors.primary, size: 20),
       ),
-      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: isRed ? AppColors.error : null)),
+      title: Text(title,
+          style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: isRed ? AppColors.error : null)),
       subtitle: Text(sub, style: const TextStyle(fontSize: 12)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+      trailing: const Icon(Icons.chevron_right,
+          color: AppColors.textSecondary, size: 20),
     );
   }
 }

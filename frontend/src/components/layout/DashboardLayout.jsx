@@ -2,7 +2,8 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
   FiGrid, FiShoppingBag, FiFileText, FiDollarSign, FiUser,
-  FiPackage, FiImage, FiSend, FiHeart, FiInbox, FiBriefcase
+  FiPackage, FiImage, FiSend, FiHeart, FiInbox, FiBriefcase,
+  FiBookOpen, FiCalendar
 } from 'react-icons/fi';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -16,6 +17,8 @@ export default function DashboardLayout() {
     { path: '/dashboard', label: 'Overview', icon: FiGrid, end: true },
     { path: '/dashboard/orders', label: 'My Orders', icon: FiShoppingBag },
     { path: '/dashboard/requests', label: 'My Requests', icon: FiFileText },
+    { path: '/dashboard/mentorships', label: 'My Mentorships', icon: FiBookOpen },
+    { path: '/dashboard/workshops', label: 'My Workshops', icon: FiCalendar },
     { path: '/dashboard/proposals', label: 'Proposals', icon: FiInbox },
     { path: '/dashboard/favorites', label: 'Favorites', icon: FiHeart },
     { path: '/dashboard/payments', label: 'Payments', icon: FiDollarSign },
@@ -27,6 +30,8 @@ export default function DashboardLayout() {
     { path: '/dashboard', label: 'Overview', icon: FiGrid, end: true },
     { path: '/dashboard/products', label: 'My Products', icon: FiPackage },
     { path: '/dashboard/applications', label: 'My Orders', icon: FiBriefcase },
+    { path: '/dashboard/mentorships', label: 'Mentorships', icon: FiBookOpen },
+    { path: '/dashboard/workshops', label: 'Workshops', icon: FiCalendar },
     { path: '/dashboard/portfolio', label: 'Portfolio', icon: FiImage },
     { path: '/dashboard/wallet', label: 'Wallet', icon: FiDollarSign },
 

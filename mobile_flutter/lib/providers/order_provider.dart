@@ -49,10 +49,14 @@ class OrderProvider extends ChangeNotifier {
       'id': newId,
       'orderId': orderId,
       'buyerId': buyerId,
-      'orderDate': '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
+      'orderDate':
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
       'deliveryAddress': deliveryAddress,
       'status': 'Processing',
       'buyerName': buyerName,
+      'artisanId':
+          cartItems.isNotEmpty ? cartItems.first.toJson()['artisanId'] : null,
+      'totalAmount': cartItems.fold<double>(0, (sum, item) => sum + item.total),
       'items': cartItems.map((c) => c.toJson()).toList(),
     };
 
@@ -73,6 +77,21 @@ class OrderProvider extends ChangeNotifier {
       data[idx]['status'] = newStatus;
       await LocalStorageService.saveList(StorageKeys.orders, data);
       await loadOrders();
+    }
+  }
+
+  Future<void> advanceOrder(int orderId) async {
+    final current = _orders.firstWhere((order) => order.id == orderId);
+    final nextStatus = switch (current.status) {
+      'Pending' => 'Processing',
+      'Processing' => 'Shipped',
+      'In Transit' => 'Delivered',
+      'Shipped' => 'Delivered',
+      _ => current.status,
+    };
+
+    if (nextStatus != current.status) {
+      await updateStatus(orderId, nextStatus);
     }
   }
 }

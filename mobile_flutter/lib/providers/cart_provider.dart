@@ -5,6 +5,7 @@ import '../core/local_storage/storage_keys.dart';
 
 class CartProvider extends ChangeNotifier {
   List<CartItemModel> _items = [];
+  int? _userId;
 
   List<CartItemModel> get items => _items;
   int get itemCount => _items.length;
@@ -12,19 +13,33 @@ class CartProvider extends ChangeNotifier {
   double get deliveryFee => _items.isEmpty ? 0 : 50.0;
   double get total => subtotal + deliveryFee;
 
-  CartProvider() {
-    _loadCart();
+  CartProvider();
+
+  void updateUser(int? userId) {
+    if (_userId != userId) {
+      _userId = userId;
+      if (_userId == null) {
+        _items = [];
+        notifyListeners();
+      } else {
+        _loadCart();
+      }
+    }
   }
 
+  String get _storageKey => '${StorageKeys.cartItems}_$_userId';
+
   Future<void> _loadCart() async {
-    final data = LocalStorageService.loadList(StorageKeys.cartItems);
+    if (_userId == null) return;
+    final data = LocalStorageService.loadList(_storageKey);
     _items = data.map((j) => CartItemModel.fromJson(j)).toList();
     notifyListeners();
   }
 
   Future<void> _saveCart() async {
+    if (_userId == null) return;
     final data = _items.map((i) => i.toJson()).toList();
-    await LocalStorageService.saveList(StorageKeys.cartItems, data);
+    await LocalStorageService.saveList(_storageKey, data);
   }
 
   Future<void> addToCart(CartItemModel item) async {

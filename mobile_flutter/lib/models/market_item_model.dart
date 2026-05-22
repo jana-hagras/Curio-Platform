@@ -27,32 +27,34 @@ class MarketItemModel {
 
   factory MarketItemModel.fromJson(Map<String, dynamic> json) {
     String? parsedImage;
-    if (json['image'] != null) {
-      if (json['image'] is List && (json['image'] as List).isNotEmpty) {
-        parsedImage = json['image'][0].toString();
-      } else if (json['image'] is String) {
-        final imgStr = json['image'] as String;
-        if (imgStr.startsWith('[')) {
+    final rawImage = json['image'] ?? json['images'];
+    if (rawImage != null) {
+      if (rawImage is List && rawImage.isNotEmpty) {
+        parsedImage = rawImage[0].toString();
+      } else if (rawImage is String) {
+        if (rawImage.startsWith('[')) {
           try {
-            final List<dynamic> decoded = jsonDecode(imgStr);
+            final List<dynamic> decoded = jsonDecode(rawImage);
             if (decoded.isNotEmpty) parsedImage = decoded[0].toString();
           } catch (_) {
-            parsedImage = imgStr;
+            parsedImage = rawImage;
           }
         } else {
-          parsedImage = imgStr;
+          parsedImage = rawImage;
         }
       }
     }
 
     return MarketItemModel(
       id: json['id'] ?? 0,
-      artisanId: json['artisan_id'] ?? 0,
+      artisanId: json['artisan_id'] ?? json['artisanId'] ?? 0,
       item: json['item'] ?? '',
       description: json['description'],
       image: parsedImage,
-      availQuantity: json['availQuantity'] ?? 0,
-      price: json['price'] != null ? double.tryParse(json['price'].toString()) ?? 0.0 : 0.0,
+      availQuantity: json['availQuantity'] ?? json['quantity'] ?? 0,
+      price: json['price'] != null
+          ? double.tryParse(json['price'].toString()) ?? 0.0
+          : 0.0,
       category: json['category'],
       dateAdded: json['dateAdded'],
       artisanName: json['artisanName'],
@@ -63,6 +65,7 @@ class MarketItemModel {
     return {
       'id': id,
       'artisan_id': artisanId,
+      'artisanId': artisanId,
       'item': item,
       'description': description,
       'image': image,

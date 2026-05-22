@@ -19,6 +19,10 @@ import ArtisansPage from './pages/public/ArtisansPage';
 import ArtisanProfilePage from './pages/public/ArtisanProfilePage';
 import RequestsPage from './pages/public/RequestsPage';
 import RequestDetailPage from './pages/public/RequestDetailPage';
+import MentorshipsPage from './pages/public/MentorshipsPage';
+import MentorshipDetailPage from './pages/public/MentorshipDetailPage';
+import WorkshopsPage from './pages/public/WorkshopsPage';
+import WorkshopDetailPage from './pages/public/WorkshopDetailPage';
 
 // Buyer Pages
 import CartPage from './pages/buyer/CartPage';
@@ -30,6 +34,8 @@ import CreateRequestPage from './pages/buyer/CreateRequestPage';
 import MyPaymentsPage from './pages/buyer/MyPaymentsPage';
 import FavoritesPage from './pages/buyer/FavoritesPage';
 import ProposalsPage from './pages/buyer/ProposalsPage';
+import BuyerMentorshipsPage from './pages/buyer/BuyerMentorshipsPage';
+import BuyerWorkshopsPage from './pages/buyer/BuyerWorkshopsPage';
 
 // Artisan Pages
 import ArtisanDashboard from './pages/artisan/ArtisanDashboard';
@@ -39,6 +45,8 @@ import EditProductPage from './pages/artisan/EditProductPage';
 import MyPortfolioPage from './pages/artisan/MyPortfolioPage';
 import MyApplicationsPage from './pages/artisan/MyApplicationsPage';
 import WalletPage from './pages/artisan/WalletPage';
+import ArtisanMentorshipsPage from './pages/artisan/ArtisanMentorshipsPage';
+import ArtisanWorkshopsPage from './pages/artisan/ArtisanWorkshopsPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -51,6 +59,8 @@ import AdminReviewsPage from './pages/admin/AdminReviewsPage';
 import AdminPaymentsPage from './pages/admin/AdminPaymentsPage';
 import AdminPortfoliosPage from './pages/admin/AdminPortfoliosPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import AdminMentorshipsPage from './pages/admin/AdminMentorshipsPage';
+import AdminWorkshopsPage from './pages/admin/AdminWorkshopsPage';
 
 // Shared
 import ProfilePage from './pages/shared/ProfilePage';
@@ -72,6 +82,8 @@ function DashboardRouter() {
         <Route path="/payments" element={<MyPaymentsPage />} />
         <Route path="/favorites" element={<FavoritesPage />} />
         <Route path="/proposals" element={<ProposalsPage />} />
+        <Route path="/mentorships" element={<BuyerMentorshipsPage />} />
+        <Route path="/workshops" element={<BuyerWorkshopsPage />} />
 
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
@@ -89,6 +101,8 @@ function DashboardRouter() {
         <Route path="/portfolio" element={<MyPortfolioPage />} />
         <Route path="/applications" element={<MyApplicationsPage />} />
         <Route path="/wallet" element={<WalletPage />} />
+        <Route path="/mentorships" element={<ArtisanMentorshipsPage />} />
+        <Route path="/workshops" element={<ArtisanWorkshopsPage />} />
 
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
@@ -126,6 +140,10 @@ export default function App() {
                 <Route path="/artisans/:id" element={<ArtisanProfilePage />} />
                 <Route path="/requests" element={<RequestsPage />} />
                 <Route path="/requests/:id" element={<RequestDetailPage />} />
+                <Route path="/mentorships" element={<MentorshipsPage />} />
+                <Route path="/mentorships/:id" element={<MentorshipDetailPage />} />
+                <Route path="/workshops" element={<WorkshopsPage />} />
+                <Route path="/workshops/:id" element={<WorkshopDetailPage />} />
                 <Route path="/cart" element={<ProtectedRoute requiredType="Buyer"><CartPage /></ProtectedRoute>} />
                 <Route path="/checkout" element={<ProtectedRoute requiredType="Buyer"><CheckoutPage /></ProtectedRoute>} />
               </Route>
@@ -145,6 +163,8 @@ export default function App() {
                 <Route path="reviews" element={<AdminReviewsPage />} />
                 <Route path="payments" element={<AdminPaymentsPage />} />
                 <Route path="portfolios" element={<AdminPortfoliosPage />} />
+                <Route path="mentorships" element={<AdminMentorshipsPage />} />
+                <Route path="workshops" element={<AdminWorkshopsPage />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>

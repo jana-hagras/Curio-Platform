@@ -7,6 +7,8 @@ const sanitizePayment = (row) => {
     order_id: row.Order_id,
     request_id: row.Request_id,
     artisan_id: row.Artisan_id,
+    mentorship_id: row.Mentorship_id || null,
+    workshop_id: row.Workshop_id || null,
     totalAmount: row.TotalAmount,
     paymentMethod: row.PaymentMethod,
     transactionDate: row.TransactionDate,
@@ -92,7 +94,7 @@ export const searchPayments = async (req, res, next) => {
 // =============================
 export const createPayment = async (req, res, next) => {
   try {
-    const { order_id, request_id, artisan_id, totalAmount, paymentMethod, status, paymentType } = req.body;
+    const { order_id, request_id, artisan_id, mentorship_id, workshop_id, totalAmount, paymentMethod, status, paymentType } = req.body;
 
     if (!totalAmount || !paymentMethod) {
       return res.status(400).json({
@@ -108,10 +110,10 @@ export const createPayment = async (req, res, next) => {
       });
     }
 
-    if (!order_id && !request_id) {
+    if (!order_id && !request_id && !mentorship_id && !workshop_id) {
       return res.status(400).json({
         ok: false,
-        message: "Either order_id or request_id is required."
+        message: "At least one of order_id, request_id, mentorship_id, or workshop_id is required."
       });
     }
 
@@ -127,9 +129,13 @@ export const createPayment = async (req, res, next) => {
 
     const finalStatus = status && ['Pending', 'Completed', 'Failed'].includes(status) ? status : 'Pending';
 
-    // Determine escrow fields based on payment type
-    const isEscrow = paymentType === 'escrow' || (request_id && !order_id);
-    const type = isEscrow ? 'escrow' : 'product';
+    // Determine payment type
+    let type = paymentType || 'product';
+    if (mentorship_id) type = 'mentorship';
+    else if (workshop_id) type = 'workshop';
+    else if (request_id && !order_id) type = 'escrow';
+
+    const isEscrow = type === 'escrow';
     const amount = Number(totalAmount);
 
     // For escrow: if payment is completed at creation, funds go to EscrowHeld
@@ -149,9 +155,9 @@ export const createPayment = async (req, res, next) => {
     }
 
     const [result] = await pool.query(
-      `INSERT INTO Payment (Order_id, Request_id, Artisan_id, TotalAmount, PaymentMethod, TransactionDate, Status, PaymentType, EscrowHeld, EscrowReleased, EscrowStatus) 
-       VALUES (?, ?, ?, ?, ?, CURRENT_DATE, ?, ?, ?, ?, ?)`,
-      [order_id || null, request_id || null, artisan_id || null, totalAmount, paymentMethod, finalStatus, type, escrowHeld, escrowReleased, escrowStatus]
+      `INSERT INTO Payment (Order_id, Request_id, Artisan_id, Mentorship_id, Workshop_id, TotalAmount, PaymentMethod, TransactionDate, Status, PaymentType, EscrowHeld, EscrowReleased, EscrowStatus) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_DATE, ?, ?, ?, ?, ?)`,
+      [order_id || null, request_id || null, artisan_id || null, mentorship_id || null, workshop_id || null, totalAmount, paymentMethod, finalStatus, type, escrowHeld, escrowReleased, escrowStatus]
     );
 
     const [rows] = await pool.query(
@@ -228,6 +234,19 @@ export const getPaymentsByRequest = async (req, res, next) => {
     if (!requestId) return res.status(400).json({ ok: false, message: "Query parameter 'request_id' is required." });
 
     const [rows] = await pool.query("SELECT * FROM Payment WHERE Request_id = ?", [requestId]);
+    return res.status(200).json({ ok: true, data: { payments: rows.map(sanitizePayment) } });
+  } catch (err) { next(err); }
+};
+
+// =============================
+// 📖 READ BY MENTORSHIP
+// =============================
+export const getPaymentsByMentorship = async (req, res, next) => {
+  try {
+    const mentorshipId = Number(req.query.mentorship_id);
+    if (!mentorshipId) return res.status(400).json({ ok: false, message: "Query parameter 'mentorship_id' is required." });
+
+    const [rows] = await pool.query("SELECT * FROM Payment WHERE Mentorship_id = ?", [mentorshipId]);
     return res.status(200).json({ ok: true, data: { payments: rows.map(sanitizePayment) } });
   } catch (err) { next(err); }
 };

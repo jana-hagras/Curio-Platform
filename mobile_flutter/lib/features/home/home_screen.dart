@@ -7,6 +7,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../shared/widgets/card_shimmer.dart';
 import '../../shared/widgets/product_card.dart';
+import '../../shared/widgets/app_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,17 +17,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _navIndex = 0;
-
-  final List<String> _categories = [
-    "All",
-    "Pottery",
-    "Textiles",
-    "Jewelry",
-    "Decor",
-    "Vases"
-  ];
-  int _selectedCat = 0;
 
   @override
   void initState() {
@@ -39,13 +29,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Image.asset('assets/icons/logo.png'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/icons/logo.png', height: 20),
+            const SizedBox(width: 8),
+            const Text("CURIO", style: TextStyle(letterSpacing: 3, fontSize: 16)),
+          ],
         ),
-        title: const Text("CURIO",
-            style: TextStyle(letterSpacing: 3)),
         actions: [
           IconButton(
             onPressed: () => Navigator.pushNamed(context, '/search'),
@@ -115,33 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (ctx, market, _) =>
             market.isLoading ? _buildShimmer() : _buildBody(market),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _navIndex,
-        onTap: (i) {
-          setState(() => _navIndex = i);
-          if (i == 1) Navigator.pushNamed(context, '/search');
-          if (i == 2) Navigator.pushNamed(context, '/favorites');
-          if (i == 3) Navigator.pushNamed(context, '/profile');
-        },
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.explore_outlined),
-              activeIcon: Icon(Icons.explore),
-              label: "Explore"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_outline),
-              activeIcon: Icon(Icons.favorite),
-              label: "Saved"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: "Profile"),
-        ],
-      ),
     );
   }
 
@@ -166,121 +132,54 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Hero Banner
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.dark,
-              borderRadius: BorderRadius.circular(16),
+          // Welcome Section
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: Text(
+              "Discover\nExceptional Craft",
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textPrimary,
+                height: 1.1,
+              ),
             ),
+          ),
+          
+          // Quick Access Grid
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "New\nCollection",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "Handmade with love",
-                        style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.6),
-                            fontSize: 13),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 40,
-                        width: 120,
-                        child: ElevatedButton(
-                          onPressed: () {},
-                          style:
-                              ElevatedButton.styleFrom(minimumSize: Size.zero),
-                          child: const Text("Shop Now",
-                              style: TextStyle(fontSize: 13)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Image.asset('assets/icons/logo.png',
-                    width: 80, height: 80, color: AppColors.primary),
+                _buildQuickAccess(context, Icons.auto_awesome, "Custom", "/custom-order", AppColors.primary),
+                _buildQuickAccess(context, Icons.handyman, "Workshops", "/workshops", Colors.orange),
+                _buildQuickAccess(context, Icons.school, "Mentors", "/workshops", Colors.teal),
+                _buildQuickAccess(context, Icons.request_quote, "Proposals", "/proposals", Colors.indigo),
               ],
             ),
           ),
 
-          const SizedBox(height: 24),
-
-          // Category chips
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _categories.length,
-              itemBuilder: (_, i) {
-                final selected = _selectedCat == i;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() => _selectedCat = i);
-                      Provider.of<MarketProvider>(context, listen: false)
-                          .filterByCategory(_categories[i]);
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      decoration: BoxDecoration(
-                        color:
-                            selected ? AppColors.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                            color: selected
-                                ? AppColors.primary
-                                : AppColors.divider),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        _categories[i],
-                        style: TextStyle(
-                          color:
-                              selected ? Colors.white : AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Workshops Banner
+          // Featured Action Banner
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/workshops'),
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(20),
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.dark, AppColors.surfaceLight],
+                gradient: const LinearGradient(
+                  colors: [AppColors.dark, AppColors.textPrimary],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  )
+                ],
               ),
               child: Row(
                 children: [
@@ -288,32 +187,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Learn from Masters",
-                          style: TextStyle(
-                            color: AppColors.gold,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.gold.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            "MASTERCLASSES",
+                            style: TextStyle(color: AppColors.gold, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Book workshops & mentorship sessions",
-                          style: TextStyle(
-                              color: AppColors.textPrimary.withValues(alpha: 0.7),
-                              fontSize: 12),
+                        const SizedBox(height: 12),
+                        const Text(
+                          "Learn from\nTop Artisans",
+                          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, height: 1.2),
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.gold, size: 16),
-                  ),
+                  const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.gold, size: 20),
                 ],
               ),
             ),
@@ -321,56 +214,72 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SizedBox(height: 24),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Featured Items",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                const Text("Curated for You", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/search'),
-                  child: const Text("See All", style: TextStyle(fontSize: 13)),
+                  child: const Text("See All", style: TextStyle(fontSize: 13, color: AppColors.gold)),
                 ),
               ],
             ),
           ),
 
-          // Product Grid — dynamic from local storage
+          // Product Grid
           Consumer<MarketProvider>(
             builder: (ctx, marketProvider, _) {
               final displayItems = marketProvider.items;
               if (displayItems.isEmpty) {
                 return const Padding(
                   padding: EdgeInsets.all(40),
-                  child: Center(
-                      child: Text("No items found",
-                          style: TextStyle(color: AppColors.textSecondary))),
+                  child: Center(child: Text("No items found", style: TextStyle(color: AppColors.textSecondary))),
                 );
               }
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: EdgeInsets.fromLTRB(20, 8, 20, MediaQuery.of(context).padding.bottom + 100),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.68,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
+                  childAspectRatio: 0.65, // Taller for more luxury feel
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
                 ),
                 itemCount: displayItems.length,
                 itemBuilder: (_, i) {
                   final item = displayItems[i];
                   return ProductCard(
                     item: item,
-                    onTap: () => Navigator.pushNamed(
-                        context, '/product-details',
-                        arguments: item),
+                    onTap: () => Navigator.pushNamed(context, '/product-details', arguments: item),
                   );
                 },
               );
             },
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAccess(BuildContext context, IconData icon, String label, String route, Color color) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, route),
+      child: Column(
+        children: [
+          Container(
+            height: 64,
+            width: 64,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
         ],
       ),
     );

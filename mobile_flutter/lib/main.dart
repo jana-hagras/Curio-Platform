@@ -11,12 +11,10 @@ import 'providers/cart_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/proposals_provider.dart';
 
-/// Default entry point — launches the **User** flavor.
-/// For admin, run `main_admin.dart` instead.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  AppConfig.flavor = AppFlavor.user;
   await LocalStorageService.init();
 
   runApp(
@@ -25,10 +23,14 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => MarketProvider()),
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, CartProvider>(
+          create: (_) => CartProvider(),
+          update: (_, auth, cart) => cart!..updateUser(auth.user?.id),
+        ),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ProposalsProvider()),
       ],
       child: const CurioApp(),
     ),

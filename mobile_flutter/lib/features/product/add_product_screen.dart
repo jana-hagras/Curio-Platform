@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/api/api_service.dart';
@@ -20,7 +22,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _priceController = TextEditingController();
   final _qtyController = TextEditingController();
   final _imageUrlController = TextEditingController();
-  
+  String? _pickedImagePath;
+
   String _selectedCategory = productCategories[0];
   bool _loading = false;
 
@@ -34,9 +37,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    if (picked == null) return;
+
+    setState(() {
+      _pickedImagePath = picked.path;
+      _imageUrlController.clear();
+    });
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _loading = true);
     try {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
@@ -49,16 +64,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
         'price': double.parse(_priceController.text),
         'availQuantity': int.parse(_qtyController.text),
         'category': _selectedCategory,
-        'images': _imageUrlController.text.isNotEmpty ? [_imageUrlController.text] : [],
+        'image': _pickedImagePath ?? _imageUrlController.text.trim(),
+        'images':
+            (_pickedImagePath ?? _imageUrlController.text.trim()).isNotEmpty
+                ? [_pickedImagePath ?? _imageUrlController.text.trim()]
+                : [],
       };
 
       final res = await ApiService.post('/market-items/', body: payload);
-      
+
       if (res['ok'] == true) {
         if (mounted) {
           Provider.of<MarketProvider>(context, listen: false).fetchItems();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Product listed successfully!"), backgroundColor: AppColors.success),
+            const SnackBar(
+                content: Text("Product listed successfully!"),
+                backgroundColor: AppColors.success),
           );
           Navigator.pop(context);
         }
@@ -68,7 +89,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
+          SnackBar(
+              content: Text(e.toString()), backgroundColor: AppColors.error),
         );
       }
     } finally {
@@ -80,7 +102,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("List New Product", style: TextStyle(fontFamily: 'Playfair')),
+        title: const Text("List New Product",
+            style: TextStyle(fontFamily: 'Playfair')),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -92,29 +115,30 @@ class _AddProductScreenState extends State<AddProductScreen> {
               _label("Product Name *"),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(hintText: "e.g. Hand-painted Ceramic Vase"),
+                decoration: const InputDecoration(
+                    hintText: "e.g. Hand-painted Ceramic Vase"),
                 validator: (v) => v == null || v.isEmpty ? "Required" : null,
               ),
               const SizedBox(height: 20),
-              
               _label("Category *"),
               DropdownButtonFormField<String>(
                 initialValue: _selectedCategory,
-                items: productCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                items: productCategories
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
                 onChanged: (v) => setState(() => _selectedCategory = v!),
                 decoration: const InputDecoration(),
               ),
               const SizedBox(height: 20),
-              
               _label("Description *"),
               TextFormField(
                 controller: _descController,
                 maxLines: 3,
-                decoration: const InputDecoration(hintText: "Describe your craft..."),
+                decoration:
+                    const InputDecoration(hintText: "Describe your craft..."),
                 validator: (v) => v == null || v.isEmpty ? "Required" : null,
               ),
               const SizedBox(height: 20),
-              
               Row(
                 children: [
                   Expanded(
@@ -126,7 +150,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           controller: _priceController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(hintText: "0.00"),
-                          validator: (v) => v == null || v.isEmpty ? "Required" : null,
+                          validator: (v) =>
+                              v == null || v.isEmpty ? "Required" : null,
                         ),
                       ],
                     ),
@@ -141,7 +166,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           controller: _qtyController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(hintText: "1"),
-                          validator: (v) => v == null || v.isEmpty ? "Required" : null,
+                          validator: (v) =>
+                              v == null || v.isEmpty ? "Required" : null,
                         ),
                       ],
                     ),
@@ -149,22 +175,54 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              
-              _label("Image URL (Unsplash or direct)"),
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(hintText: "https://..."),
+              _label("Product Image"),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickImage,
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: const Text('Pick from Gallery'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _imageUrlController,
+                      decoration:
+                          const InputDecoration(hintText: "Paste image URL"),
+                      onChanged: (value) {
+                        if (value.isNotEmpty) {
+                          setState(() => _pickedImagePath = null);
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 12),
+              if (_pickedImagePath != null ||
+                  _imageUrlController.text.trim().isNotEmpty)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    height: 160,
+                    width: double.infinity,
+                    child: _pickedImagePath != null
+                        ? Image.file(File(_pickedImagePath!), fit: BoxFit.cover)
+                        : Image.network(_imageUrlController.text.trim(),
+                            fit: BoxFit.cover),
+                  ),
+                ),
               const SizedBox(height: 40),
-              
               SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
-                  child: _loading 
-                    ? const CircularProgressIndicator(color: Colors.black)
-                    : const Text("List Product"),
+                  child: _loading
+                      ? const CircularProgressIndicator(color: Colors.black)
+                      : const Text("List Product"),
                 ),
               ),
             ],
@@ -177,7 +235,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget _label(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textSecondary)),
+      child: Text(text,
+          style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: AppColors.textSecondary)),
     );
   }
 }

@@ -16,7 +16,8 @@ class ProductDetailsScreen extends StatelessWidget {
 
     // Fallback if no arguments passed
     final title = item?.item ?? 'Handmade Clay Vase';
-    final price = item != null ? 'EGP ${item.price.toStringAsFixed(0)}' : 'EGP 450';
+    final price =
+        item != null ? '\$ ${item.price.toStringAsFixed(0)}' : '\$ 450';
     final description = item?.description ??
         'This exquisite handmade clay vase is a testament to traditional Egyptian craftsmanship.';
     final artisanName = item?.artisanName ?? 'Youssef El Sayed';
@@ -29,6 +30,10 @@ class ProductDetailsScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            ),
             expandedHeight: 380,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
@@ -39,9 +44,12 @@ class ProductDetailsScreen extends StatelessWidget {
                 builder: (ctx, favProvider, _) {
                   final isFav = favProvider.isFavorite(productId.toString());
                   return IconButton(
-                    onPressed: () => favProvider.toggleFavorite(productId.toString()),
-                    icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : null),
-                    style: IconButton.styleFrom(backgroundColor: Colors.white70),
+                    onPressed: () =>
+                        favProvider.toggleFavorite(productId.toString()),
+                    icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
+                        color: isFav ? Colors.red : null),
+                    style:
+                        IconButton.styleFrom(backgroundColor: Colors.white70),
                   );
                 },
               ),
@@ -61,12 +69,16 @@ class ProductDetailsScreen extends StatelessWidget {
                   // Title + Price
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                        fontSize: 24, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     price,
-                    style: const TextStyle(color: AppColors.primary, fontSize: 22, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 20),
 
@@ -81,27 +93,40 @@ class ProductDetailsScreen extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 22,
-                          backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                          child: const Icon(Icons.person, color: AppColors.primary, size: 22),
+                          backgroundColor:
+                              AppColors.primary.withValues(alpha: 0.15),
+                          child: const Icon(Icons.person,
+                              color: AppColors.primary, size: 22),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(artisanName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                              Text("Master Potter · Cairo", style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                              Text(artisanName,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600)),
+                              Text("Master Potter · Cairo",
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary)),
                             ],
                           ),
                         ),
                         OutlinedButton(
-                          onPressed: () => Navigator.pushNamed(context, '/chat'),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/chat', arguments: {
+                            'peerId': item?.artisanId ?? 0,
+                            'peerName': artisanName,
+                          }),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(80, 36),
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
                           ),
-                          child: const Text("Chat", style: TextStyle(fontSize: 13)),
+                          child: const Text("Chat",
+                              style: TextStyle(fontSize: 13)),
                         ),
                       ],
                     ),
@@ -109,11 +134,16 @@ class ProductDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Description
-                  const Text("About This Piece", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                  const Text("About This Piece",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 10),
                   Text(
                     description,
-                    style: const TextStyle(color: AppColors.textSecondary, height: 1.7, fontSize: 14),
+                    style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        height: 1.7,
+                        fontSize: 14),
                   ),
                   const SizedBox(height: 24),
 
@@ -121,16 +151,21 @@ class ProductDetailsScreen extends StatelessWidget {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: [category, "Ancient Egyptian", "Handmade", "Home Decor"]
-                        .map((t) => Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.background,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(t, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-                            ))
-                        .toList(),
+                    children:
+                        [category, "Ancient Egyptian", "Handmade", "Home Decor"]
+                            .map((t) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.background,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(t,
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500)),
+                                ))
+                            .toList(),
                   ),
                   const SizedBox(height: 100),
                 ],
@@ -143,7 +178,12 @@ class ProductDetailsScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, -4))],
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 12,
+                offset: const Offset(0, -4))
+          ],
         ),
         child: Row(
           children: [
@@ -172,11 +212,15 @@ class ProductDetailsScreen extends StatelessWidget {
                           image: item.image,
                         ));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Added to cart!"), backgroundColor: AppColors.success, duration: Duration(seconds: 1)),
+                          const SnackBar(
+                              content: Text("Added to cart!"),
+                              backgroundColor: AppColors.success,
+                              duration: Duration(seconds: 1)),
                         );
                       }
                     },
-                    style: ElevatedButton.styleFrom(minimumSize: const Size(0, 52)),
+                    style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(0, 52)),
                     child: Text(inCart ? "View Cart" : "Add to Cart"),
                   );
                 },

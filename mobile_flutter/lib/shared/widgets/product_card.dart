@@ -24,18 +24,19 @@ class ProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color ?? Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).cardTheme.color ??
+              Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Theme.of(context).dividerColor),
-          boxShadow: Theme.of(context).cardTheme.shadowColor != null 
-            ? [
-                BoxShadow(
-                  color: Theme.of(context).cardTheme.shadowColor!,
-                  blurRadius: 6,
-                  offset: const Offset(0, 4),
-                ),
-              ]
-            : null,
+          boxShadow: Theme.of(context).cardTheme.shadowColor != null
+              ? [
+                  BoxShadow(
+                    color: Theme.of(context).cardTheme.shadowColor!,
+                    blurRadius: 6,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,7 +57,8 @@ class ProductCard extends StatelessWidget {
                     top: 8,
                     right: 8,
                     child: GestureDetector(
-                      onTap: () => favProvider.toggleFavorite(item.id.toString()),
+                      onTap: () =>
+                          favProvider.toggleFavorite(item.id.toString()),
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
@@ -65,7 +67,8 @@ class ProductCard extends StatelessWidget {
                         ),
                         child: Icon(
                           isFav ? Icons.favorite : Icons.favorite_border,
-                          color: isFav ? AppColors.error : AppColors.textSecondary,
+                          color:
+                              isFav ? AppColors.error : AppColors.textSecondary,
                           size: 18,
                         ),
                       ),
@@ -95,7 +98,7 @@ class ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "EGP ${item.price.toStringAsFixed(0)}",
+                        "\$ ${item.price.toStringAsFixed(0)}",
                         style: const TextStyle(
                           color: AppColors.gold,
                           fontWeight: FontWeight.w700,
@@ -106,7 +109,8 @@ class ProductCard extends StatelessWidget {
                         Text(
                           item.category!,
                           style: TextStyle(
-                            color: AppColors.textSecondary.withValues(alpha: 0.6),
+                            color:
+                                AppColors.textSecondary.withValues(alpha: 0.6),
                             fontSize: 10,
                           ),
                         ),

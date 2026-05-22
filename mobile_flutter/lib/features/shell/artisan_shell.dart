@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../artisan/artisan_dashboard_screen.dart';
 import '../artisan/artisan_products_screen.dart';
+import '../chat/conversations_screen.dart';
 import '../profile/profile_screen.dart';
 
 /// A persistent navigation shell that wraps the main tabs for Artisans.
-/// Uses IndexedStack to keep each tab's state alive when switching.
 class ArtisanShell extends StatefulWidget {
   const ArtisanShell({super.key});
 
@@ -19,6 +19,7 @@ class _ArtisanShellState extends State<ArtisanShell> {
   final List<Widget> _screens = const [
     ArtisanDashboardScreen(),
     ArtisanProductsScreen(),
+    ConversationsScreen(),
     ProfileScreen(),
   ];
 
@@ -31,34 +32,47 @@ class _ArtisanShellState extends State<ArtisanShell> {
       ),
       extendBody: true,
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Theme.of(context).dividerColor),
+          borderRadius: BorderRadius.circular(32),
+          border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
-              color: AppColors.gold.withValues(alpha: 0.06),
-              blurRadius: 24,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(32),
           child: NavigationBar(
-            height: 68,
+            height: 64,
             backgroundColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
-            indicatorColor: AppColors.gold.withValues(alpha: 0.12),
+            indicatorColor: AppColors.gold.withValues(alpha: 0.15),
             selectedIndex: _currentIndex,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            animationDuration: const Duration(milliseconds: 400),
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysHide, // Cleaner look
+            animationDuration: const Duration(milliseconds: 300),
             onDestinationSelected: (i) => setState(() => _currentIndex = i),
             destinations: [
-              _buildDestination(icon: Icons.dashboard_outlined, activeIcon: Icons.dashboard_rounded, label: 'Dashboard'),
-              _buildDestination(icon: Icons.inventory_2_outlined, activeIcon: Icons.inventory_2_rounded, label: 'My Products'),
-              _buildDestination(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile'),
+              _buildDestination(
+                  icon: Icons.dashboard_outlined,
+                  activeIcon: Icons.dashboard_rounded,
+                  label: 'Dashboard'),
+              _buildDestination(
+                  icon: Icons.inventory_2_outlined,
+                  activeIcon: Icons.inventory_2_rounded,
+                  label: 'Products'),
+              _buildDestination(
+                  icon: Icons.chat_bubble_outline,
+                  activeIcon: Icons.chat_bubble_rounded,
+                  label: 'Chat'),
+              _buildDestination(
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  label: 'Profile'),
             ],
           ),
         ),
@@ -72,9 +86,10 @@ class _ArtisanShellState extends State<ArtisanShell> {
     required String label,
   }) {
     return NavigationDestination(
-      icon: Icon(icon, size: 24, color: AppColors.textMuted),
-      selectedIcon: Icon(activeIcon, size: 24, color: AppColors.gold),
+      icon: Icon(icon, size: 26, color: AppColors.textMuted),
+      selectedIcon: Icon(activeIcon, size: 26, color: AppColors.gold),
       label: label,
+      tooltip: label, // Show tooltip since labels are hidden
     );
   }
 }

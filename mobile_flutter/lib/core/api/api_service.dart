@@ -1,85 +1,179 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'api_config.dart';
+import '../local_storage/local_storage_service.dart';
 
-/// Thin REST wrapper — every call returns decoded JSON or throws [ApiException].
+/// Local mock API wrapper — replaces remote HTTP calls with LocalStorageService operations.
 class ApiService {
-  static final _client = http.Client();
-  static final _timeout = Duration(seconds: ApiConfig.timeoutSeconds);
+  // ── Helpers ─────────────────────────────────────────────────────────────────
 
-  // ── Helpers ───────────────────────────────────────────────────────
-
-  static Uri _uri(String path, [Map<String, String>? queryParams]) {
-    final base = Uri.parse(ApiConfig.baseUrl);
-    return base.replace(
-      path: '${base.path}$path',
-      queryParameters: queryParams,
-    );
-  }
-
-  static Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
-
-  static dynamic _handleResponse(http.Response res) {
-    final body = jsonDecode(res.body);
-    if (res.statusCode >= 200 && res.statusCode < 300) {
-      return body;
+  /// Extracts query parameters from a URL path string like `/items?id=1&foo=bar`.
+  /// Falls back to the explicit [query] map if provided.
+  static Map<String, String> _mergeQuery(
+      String path, Map<String, String>? query) {
+    final merged = <String, String>{...?query};
+    final qIndex = path.indexOf('?');
+    if (qIndex != -1 && qIndex < path.length - 1) {
+      final queryString = path.substring(qIndex + 1);
+      for (final part in queryString.split('&')) {
+        final eq = part.indexOf('=');
+        if (eq > 0) {
+          merged.putIfAbsent(
+            Uri.decodeComponent(part.substring(0, eq)),
+            () => Uri.decodeComponent(part.substring(eq + 1)),
+          );
+        }
+      }
     }
-    final message = body is Map ? (body['message'] ?? 'Unknown error') : 'Server error';
-    throw ApiException(message.toString(), res.statusCode);
+    return merged;
   }
 
-  // ── Public HTTP methods ───────────────────────────────────────────
+  /// Returns the path portion before any '?' query string.
+  static String _basePath(String path) {
+    final qIndex = path.indexOf('?');
+    return qIndex != -1 ? path.substring(0, qIndex) : path;
+  }
+
+  // ── Public HTTP methods (Mocked) ───────────────────────────────────────────
 
   static Future<dynamic> get(String path, {Map<String, String>? query}) async {
+    await Future.delayed(
+        const Duration(milliseconds: 400)); // Simulate network latency
+
     try {
-      final res = await _client.get(_uri(path, query), headers: _headers).timeout(_timeout);
-      return _handleResponse(res);
-    } on TimeoutException {
-      throw ApiException('Connection timed out. Check your internet.', 0);
-    } on SocketException {
-      throw ApiException('Cannot reach server. Is the backend running?', 0);
+      if (path.startsWith('/user/all')) {
+        final users = LocalStorageService.loadList('users');
+        return {
+          'ok': true,
+          'data': {'users': users}
+        };
+      }
+
+      if (path.startsWith('/market-items/all')) {
+        final items = LocalStorageService.loadList('marketItems');
+        return {
+          'ok': true,
+          'data': {'items': items}
+        };
+      }
+
+      if (path.startsWith('/market-items/search')) {
+        final items = LocalStorageService.loadList('marketItems');
+        final q = query?['value']?.toLowerCase() ?? '';
+        final filtered = items
+            .where((i) => i['item'].toString().toLowerCase().contains(q))
+            .toList();
+        return {
+          'ok': true,
+          'data': {'items': filtered}
+        };
+      }
+
+      if (path.startsWith('/orders/all')) {
+        final orders = LocalStorageService.loadList('orders');
+        return {
+          'ok': true,
+          'data': {'orders': orders}
+        };
+      }
+
+      if (path.startsWith('/orders/artisan')) {
+        final artisanId = query?['artisan_id'];
+        final orders = LocalStorageService.loadList('orders');
+        final filtered = orders
+            .where((o) => o['artisanId'].toString() == artisanId)
+            .toList();
+        return {
+          'ok': true,
+          'data': {'orders': filtered}
+        };
+      }
+
+      // Fallback
+      return {'ok': true, 'data': {}};
+    } catch (e) {
+      throw ApiException('Mock API GET Error: $e', 500);
     }
   }
 
-  static Future<dynamic> post(String path, {Map<String, dynamic>? body, Map<String, String>? query}) async {
+  static Future<dynamic> post(String path,
+      {Map<String, dynamic>? body, Map<String, String>? query}) async {
+    await Future.delayed(const Duration(milliseconds: 500));
     try {
-      final res = await _client
-          .post(_uri(path, query), headers: _headers, body: body != null ? jsonEncode(body) : null)
-          .timeout(_timeout);
-      return _handleResponse(res);
-    } on TimeoutException {
-      throw ApiException('Connection timed out.', 0);
-    } on SocketException {
-      throw ApiException('Cannot reach server.', 0);
+      if (path.startsWith('/market-items/')) {
+        final items = LocalStorageService.loadList('marketItems');
+        final newItem = {
+          'id': LocalStorageService.getNextId('marketItems'),
+          ...body ?? {},
+        };
+        items.add(newItem);
+        await LocalStorageService.saveList('marketItems', items);
+        return {'ok': true, 'data': newItem};
+      }
+      return {'ok': true, 'data': {}};
+    } catch (e) {
+      throw ApiException('Mock API POST Error: $e', 500);
     }
   }
 
-  static Future<dynamic> put(String path, {Map<String, dynamic>? body, Map<String, String>? query}) async {
+  static Future<dynamic> put(String path,
+      {Map<String, dynamic>? body, Map<String, String>? query}) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    final base = _basePath(path);
+    final q = _mergeQuery(path, query);
     try {
-      final res = await _client
-          .put(_uri(path, query), headers: _headers, body: body != null ? jsonEncode(body) : null)
-          .timeout(_timeout);
-      return _handleResponse(res);
-    } on TimeoutException {
-      throw ApiException('Connection timed out.', 0);
-    } on SocketException {
-      throw ApiException('Cannot reach server.', 0);
+      if (base.startsWith('/user')) {
+        final idStr = q['id'];
+        if (idStr == null) {
+          return {'ok': false, 'message': 'Missing user id'};
+        }
+        final id = int.tryParse(idStr);
+        final users = LocalStorageService.loadList('users');
+        final index = users.indexWhere((u) => u['id'] == id);
+        if (index != -1) {
+          users[index] = {...users[index], ...body ?? {}};
+          await LocalStorageService.saveList('users', users);
+          return {'ok': true, 'data': users[index]};
+        }
+      }
+      if (base.startsWith('/market-items')) {
+        final idStr = q['id'];
+        if (idStr == null) {
+          return {'ok': false, 'message': 'Missing market item id'};
+        }
+        final id = int.tryParse(idStr);
+        final items = LocalStorageService.loadList('marketItems');
+        final index = items.indexWhere((item) => item['id'] == id);
+        if (index != -1) {
+          items[index] = {...items[index], ...body ?? {}};
+          await LocalStorageService.saveList('marketItems', items);
+          return {'ok': true, 'data': items[index]};
+        }
+      }
+      return {'ok': true, 'data': {}};
+    } catch (e) {
+      throw ApiException('Mock API PUT Error: $e', 500);
     }
   }
 
-  static Future<dynamic> delete(String path, {Map<String, String>? query}) async {
+  static Future<dynamic> delete(String path,
+      {Map<String, String>? query}) async {
+    await Future.delayed(const Duration(milliseconds: 400));
+    final base = _basePath(path);
+    final q = _mergeQuery(path, query);
     try {
-      final res = await _client.delete(_uri(path, query), headers: _headers).timeout(_timeout);
-      return _handleResponse(res);
-    } on TimeoutException {
-      throw ApiException('Connection timed out.', 0);
-    } on SocketException {
-      throw ApiException('Cannot reach server.', 0);
+      if (base.startsWith('/market-items')) {
+        final idStr = q['id'];
+        if (idStr == null) {
+          return {'ok': false, 'message': 'Missing market item id'};
+        }
+        final id = int.tryParse(idStr);
+        final items = LocalStorageService.loadList('marketItems');
+        items.removeWhere((item) => item['id'] == id);
+        await LocalStorageService.saveList('marketItems', items);
+        return {'ok': true, 'data': {}};
+      }
+      return {'ok': true, 'data': {}};
+    } catch (e) {
+      throw ApiException('Mock API DELETE Error: $e', 500);
     }
   }
 }

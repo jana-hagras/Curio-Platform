@@ -53,6 +53,8 @@ export default function Navbar() {
         { path: "/marketplace", label: "Marketplace", icon: FiList },
         { path: "/artisans", label: "Artisans", icon: FiUser },
         { path: "/requests", label: "Requests", icon: FiFileText },
+        { path: "/mentorships", label: "Mentorships", icon: FiBriefcase },
+        { path: "/workshops", label: "Workshops", icon: FiInbox },
       ];
     }
 
@@ -60,8 +62,9 @@ export default function Navbar() {
       return [
         { path: "/", label: "Home", icon: FiHome },
         { path: "/marketplace", label: "Marketplace", icon: FiList },
+        { path: "/mentorships", label: "Mentorships", icon: FiBriefcase },
+        { path: "/workshops", label: "Workshops", icon: FiInbox },
         { path: "/dashboard/requests", label: "Requests", icon: FiFileText },
-        { path: "/dashboard/proposals", label: "Proposals", icon: FiInbox },
         { path: "/dashboard/favorites", label: "Favorites", icon: FiHeart },
 
       ];

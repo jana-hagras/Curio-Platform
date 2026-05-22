@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import '../../core/theme/app_colors.dart';
-import '../../core/config/app_config.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -99,11 +98,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     Timer(const Duration(milliseconds: 3800), () {
       if (!mounted) return;
-      if (AppConfig.isAdmin) {
-        Navigator.pushReplacementNamed(context, '/admin/dashboard');
-      } else {
-        Navigator.pushReplacementNamed(context, '/onboarding');
-      }
+      Navigator.pushReplacementNamed(context, '/onboarding');
     });
   }
 
@@ -234,7 +229,7 @@ class _SplashScreenState extends State<SplashScreen>
                     FadeTransition(
                       opacity: _textFadeAnimation,
                       child: Text(
-                        AppConfig.isAdmin ? 'CURIO ADMIN' : 'CURIO',
+                        'CURIO',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 44,
@@ -257,9 +252,7 @@ class _SplashScreenState extends State<SplashScreen>
                     FadeTransition(
                       opacity: _taglineFadeAnimation,
                       child: Text(
-                        AppConfig.isAdmin
-                            ? 'Management Console'
-                            : 'Handmade with Heritage',
+                        'Handmade with Heritage',
                         style: TextStyle(
                           color: AppColors.goldLight.withValues(alpha: 0.7),
                           fontSize: 14,

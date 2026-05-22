@@ -164,6 +164,71 @@ const createAllTables = async (conn) => {
             ReviewDate DATE DEFAULT (CURRENT_DATE),
             FOREIGN KEY (Buyer_id) REFERENCES Buyer(Buyer_id) ON DELETE CASCADE,
             FOREIGN KEY (Item_id) REFERENCES MarketItem(Item_id) ON DELETE CASCADE
+        )`,
+        // MENTORSHIP
+        `CREATE TABLE IF NOT EXISTS Mentorship (
+            Mentorship_id INT AUTO_INCREMENT PRIMARY KEY,
+            Artisan_id INT NOT NULL,
+            Category VARCHAR(50),
+            SessionPrice DECIMAL(10,2) NOT NULL,
+            Duration INT NOT NULL,
+            Description TEXT,
+            Status ENUM('Active','Inactive','Full') DEFAULT 'Active',
+            MaxStudents INT DEFAULT 10,
+            StartDate DATE,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (Artisan_id) REFERENCES Artisan(Artisan_id) ON DELETE CASCADE
+        )`,
+        // MENTORSHIP APPLICATION
+        `CREATE TABLE IF NOT EXISTS MentorshipApplication (
+            Application_id INT AUTO_INCREMENT PRIMARY KEY,
+            Mentorship_id INT NOT NULL,
+            Buyer_id INT NOT NULL,
+            ApplicationDate DATE DEFAULT (CURRENT_DATE),
+            Message TEXT,
+            Status ENUM('Pending','Accepted','Rejected','Completed') DEFAULT 'Pending',
+            FOREIGN KEY (Mentorship_id) REFERENCES Mentorship(Mentorship_id) ON DELETE CASCADE,
+            FOREIGN KEY (Buyer_id) REFERENCES Buyer(Buyer_id) ON DELETE CASCADE,
+            UNIQUE KEY unique_mentorship_app (Mentorship_id, Buyer_id)
+        )`,
+        // MENTORSHIP SESSION
+        `CREATE TABLE IF NOT EXISTS MentorshipSession (
+            Session_id INT AUTO_INCREMENT PRIMARY KEY,
+            Application_id INT NOT NULL,
+            ScheduledAt DATETIME,
+            Duration INT,
+            MeetingLink VARCHAR(500),
+            MeetingProvider ENUM('zoom','google_meet','teams','custom') DEFAULT 'custom',
+            Status ENUM('Scheduled','Completed','Cancelled','NoShow') DEFAULT 'Scheduled',
+            SessionNotes TEXT,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (Application_id) REFERENCES MentorshipApplication(Application_id) ON DELETE CASCADE
+        )`,
+        // WORKSHOP
+        `CREATE TABLE IF NOT EXISTS Workshop (
+            Workshop_id INT AUTO_INCREMENT PRIMARY KEY,
+            Artisan_id INT NOT NULL,
+            Title VARCHAR(100) NOT NULL,
+            Description TEXT,
+            WorkshopDate DATE,
+            Duration INT,
+            Price DECIMAL(10,2),
+            Category VARCHAR(50),
+            MaxParticipants INT DEFAULT 20,
+            Status ENUM('Upcoming','Ongoing','Completed','Cancelled') DEFAULT 'Upcoming',
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (Artisan_id) REFERENCES Artisan(Artisan_id) ON DELETE CASCADE
+        )`,
+        // WORKSHOP REGISTRATION
+        `CREATE TABLE IF NOT EXISTS WorkshopRegistration (
+            Registration_id INT AUTO_INCREMENT PRIMARY KEY,
+            Workshop_id INT NOT NULL,
+            Buyer_id INT NOT NULL,
+            RegistrationDate DATE DEFAULT (CURRENT_DATE),
+            Status ENUM('Registered','Confirmed','Cancelled') DEFAULT 'Registered',
+            FOREIGN KEY (Workshop_id) REFERENCES Workshop(Workshop_id) ON DELETE CASCADE,
+            FOREIGN KEY (Buyer_id) REFERENCES Buyer(Buyer_id) ON DELETE CASCADE,
+            UNIQUE KEY unique_workshop_reg (Workshop_id, Buyer_id)
         )`
     ];
 
@@ -268,6 +333,42 @@ const migrateReviewTable = async (conn) => {
     console.log("Review table migration complete ✅");
 };
 
+// ─── Payment table migration: add Mentorship_id + Workshop_id columns ───
+const migratePaymentForMentorshipWorkshop = async (conn) => {
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'Payment'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    // Expand PaymentType ENUM to include mentorship and workshop
+    try {
+        await conn.query(
+            "ALTER TABLE Payment MODIFY COLUMN PaymentType ENUM('product','escrow','mentorship','workshop') DEFAULT 'product'"
+        );
+        console.log("  ✅ Payment.PaymentType ENUM expanded");
+    } catch (e) {
+        if (!e.message.includes('Duplicate')) console.warn("  ⚠️ PaymentType ENUM expansion warning:", e.message);
+    }
+
+    const migrations = [
+        { column: 'Mentorship_id', sql: "ALTER TABLE Payment ADD COLUMN Mentorship_id INT, ADD FOREIGN KEY (fk_payment_mentorship) REFERENCES Mentorship(Mentorship_id) ON DELETE SET NULL" },
+        { column: 'Workshop_id', sql: "ALTER TABLE Payment ADD COLUMN Workshop_id INT, ADD FOREIGN KEY (fk_payment_workshop) REFERENCES Workshop(Workshop_id) ON DELETE SET NULL" },
+    ];
+
+    for (const m of migrations) {
+        if (!existing.has(m.column)) {
+            try {
+                // Use simpler ALTER for safer execution
+                await conn.query(`ALTER TABLE Payment ADD COLUMN ${m.column} INT DEFAULT NULL`);
+                console.log(`  ✅ Added Payment.${m.column}`);
+            } catch (e) {
+                if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ Payment migration warning for ${m.column}:`, e.message);
+            }
+        }
+    }
+    console.log("Payment mentorship/workshop migration complete ✅");
+};
+
 
 // Initialize database at startup
 export const initDatabase = async () => {
@@ -293,6 +394,7 @@ export const initDatabase = async () => {
         await migrateReviewTable(conn);
         await migrateOrderTable(conn);
         await migrateMilestoneTable(conn);
+        await migratePaymentForMentorshipWorkshop(conn);
 
     } finally {
         conn.release();
