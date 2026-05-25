@@ -683,6 +683,44 @@ class LocalStorageService {
         'timestamp': '2026-05-18T16:45:00.000',
         'isMe': true,
       },
+      // Help Line: Buyer → Admin
+      {
+        'id': 'chat-1007',
+        'senderId': 2,
+        'receiverId': 3,
+        'message':
+            'Hi, I need help tracking my order ORD-1003. It still shows Processing.',
+        'timestamp': '2026-05-19T09:10:00.000',
+        'isMe': false,
+      },
+      {
+        'id': 'chat-1008',
+        'senderId': 3,
+        'receiverId': 2,
+        'message':
+            'Of course! Let me check on that for you. The artisan has confirmed it\'s being packed today.',
+        'timestamp': '2026-05-19T09:14:00.000',
+        'isMe': true,
+      },
+      // Help Line: Artisan → Admin
+      {
+        'id': 'chat-1009',
+        'senderId': 1,
+        'receiverId': 3,
+        'message':
+            'Hello admin, I\'d like to update my store verification status.',
+        'timestamp': '2026-05-20T14:30:00.000',
+        'isMe': false,
+      },
+      {
+        'id': 'chat-1010',
+        'senderId': 3,
+        'receiverId': 1,
+        'message':
+            'Hi Jana! Your verification is already active. Let me know if you need anything else.',
+        'timestamp': '2026-05-20T14:35:00.000',
+        'isMe': true,
+      },
     ];
 
     final mergedMessages = _upsertManyByKey(messages, demoMessages, 'id');

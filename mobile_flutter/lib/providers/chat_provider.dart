@@ -153,6 +153,7 @@ class ChatProvider extends ChangeNotifier {
 
 class ConversationSummary {
   final int peerId;
+  final int? peerId2; // Used by admin to view a conversation between two specific users
   final String peerName;
   final String peerType;
   final ChatMessageModel lastMessage;
@@ -160,6 +161,7 @@ class ConversationSummary {
 
   const ConversationSummary({
     required this.peerId,
+    this.peerId2,
     required this.peerName,
     required this.peerType,
     required this.lastMessage,
