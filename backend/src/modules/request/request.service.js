@@ -43,7 +43,7 @@ const attachAIImages = async (requests) => {
 
   const requestIds = requests.map((r) => r.id);
   const [generations] = await pool.query(
-    "SELECT Request_id, Generation_id, GeneratedImageUrl, GenerationStatus, ErrorMessage, CreatedAt, CompletedAt, MeshyTaskId, VersionNumber, RefinementPrompt, EnhancedPrompt, IsPreferred FROM RequestAIGeneration WHERE Request_id IN (?) ORDER BY VersionNumber ASC, CreatedAt ASC",
+    "SELECT Request_id, Generation_id, GeneratedImageUrl, ModelGlbUrl, GenerationStatus, ErrorMessage, CreatedAt, CompletedAt, MeshyTaskId, VersionNumber, RefinementPrompt, EnhancedPrompt, IsPreferred FROM RequestAIGeneration WHERE Request_id IN (?) ORDER BY VersionNumber ASC, CreatedAt ASC",
     [requestIds]
   );
 
@@ -53,6 +53,7 @@ const attachAIImages = async (requests) => {
     genMap[gen.Request_id].push({
       id: gen.Generation_id,
       imageUrl: gen.GeneratedImageUrl,
+      modelGlbUrl: gen.ModelGlbUrl || null,
       status: gen.GenerationStatus,
       error: gen.ErrorMessage,
       createdAt: gen.CreatedAt,
@@ -69,16 +70,19 @@ const attachAIImages = async (requests) => {
     const gens = genMap[r.id] || [];
     const completedGens = gens.filter((g) => g.imageUrl && g.status === "Completed");
 
-    // Find the preferred image
+    // Find the preferred image and GLB model
     let preferredImage = null;
+    let preferredModelGlbUrl = null;
     if (r.imageSourceType === 'Upload') {
       preferredImage = r.uploadedImageUrl;
     } else if (r.finalGenerationId) {
       const finalGen = completedGens.find((g) => g.id === r.finalGenerationId);
       preferredImage = finalGen ? finalGen.imageUrl : null;
+      preferredModelGlbUrl = finalGen ? finalGen.modelGlbUrl : null;
     } else {
       const preferredGen = completedGens.find((g) => g.isPreferred);
       preferredImage = preferredGen?.imageUrl || null;
+      preferredModelGlbUrl = preferredGen?.modelGlbUrl || null;
     }
 
     // Count unique versions
@@ -90,6 +94,7 @@ const attachAIImages = async (requests) => {
       aiGenerations: gens,
       aiStatus: r.imageSourceType === 'Upload' ? 'None' : getOverallAIStatus(gens),
       preferredImage,
+      preferredModelGlbUrl,
       versionCount,
     };
   });
@@ -424,6 +429,7 @@ export const getVersionsByRequest = async (req, res, next) => {
           createdAt: row.CreatedAt,
           completedAt: row.CompletedAt,
           images: [],
+          modelGlbUrl: row.ModelGlbUrl || null,
           generations: [],
         };
       }
@@ -434,6 +440,7 @@ export const getVersionsByRequest = async (req, res, next) => {
       versionsMap[vn].generations.push({
         id: row.Generation_id,
         imageUrl: row.GeneratedImageUrl,
+        modelGlbUrl: row.ModelGlbUrl || null,
         status: row.GenerationStatus,
         error: row.ErrorMessage,
         meshyTaskId: row.MeshyTaskId,
@@ -441,6 +448,10 @@ export const getVersionsByRequest = async (req, res, next) => {
         completedAt: row.CompletedAt,
         isPreferred: !!row.IsPreferred,
       });
+
+      if (row.ModelGlbUrl && row.GenerationStatus === "Completed") {
+        versionsMap[vn].modelGlbUrl = row.ModelGlbUrl;
+      }
 
       if (row.GeneratedImageUrl && row.GenerationStatus === "Completed") {
         versionsMap[vn].images.push(row.GeneratedImageUrl);
@@ -562,3 +573,34 @@ export const selectFinalDesign = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * Proxy GLB files from Meshy CDN to bypass CORS policy blocks in the browser.
+ */
+export const proxy3DModel = async (req, res, next) => {
+  try {
+    const { url } = req.query;
+    if (!url) {
+      return res.status(400).json({ ok: false, message: "URL parameter is required." });
+    }
+
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      return res.status(400).json({ ok: false, message: "Invalid URL protocol." });
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      return res.status(response.status).send(`Failed to fetch 3D model: ${response.statusText}`);
+    }
+
+    res.setHeader("Content-Type", response.headers.get("Content-Type") || "model/gltf-binary");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    return res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+};
+

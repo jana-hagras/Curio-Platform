@@ -819,6 +819,7 @@ async function migrateRequestAIVersioning(conn) {
         { column: 'RefinementPrompt', sql: "ALTER TABLE RequestAIGeneration ADD COLUMN RefinementPrompt TEXT DEFAULT NULL" },
         { column: 'EnhancedPrompt', sql: "ALTER TABLE RequestAIGeneration ADD COLUMN EnhancedPrompt TEXT DEFAULT NULL" },
         { column: 'IsPreferred', sql: "ALTER TABLE RequestAIGeneration ADD COLUMN IsPreferred BOOLEAN DEFAULT FALSE" },
+        { column: 'ModelGlbUrl', sql: "ALTER TABLE RequestAIGeneration ADD COLUMN ModelGlbUrl TEXT DEFAULT NULL" },
     ];
 
     for (const m of migrations) {

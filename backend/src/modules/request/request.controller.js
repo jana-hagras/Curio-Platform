@@ -3,6 +3,7 @@ import * as Request from "./request.service.js";
 
 const router = Router();
 
+router.get("/proxy-3d", Request.proxy3DModel);
 router.get("/search", Request.searchRequests);
 router.post("/", Request.createRequest);
 router.get("/all", Request.getAllRequests);

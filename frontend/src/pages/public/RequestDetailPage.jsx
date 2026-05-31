@@ -12,6 +12,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { FiSend, FiArrowLeft, FiImage, FiZap, FiRefreshCw, FiX, FiChevronLeft, FiChevronRight, FiStar, FiLayers, FiEdit3 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import '@google/model-viewer';
 
 export default function RequestDetailPage() {
   const { id } = useParams();
@@ -111,6 +112,16 @@ export default function RequestDetailPage() {
     return `${apiBase}${path}`;
   };
 
+  const get3DModelUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
+      return `${apiBase}/requests/proxy-3d?url=${encodeURIComponent(path)}`;
+    }
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
+    return `${apiBase}${path}`;
+  };
+
   const handleSetPreferred = async (generationId) => {
     setSettingPreferred(true);
     try {
@@ -174,7 +185,21 @@ export default function RequestDetailPage() {
                 </span>
               </div>
               <div style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 500 }}>
-                <img src={getFullImageUrl(preferredImg)} alt="Preferred design" style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
+                {request.preferredModelGlbUrl ? (
+                  <div style={{ width: '100%', height: 400, borderRadius: 12, overflow: 'hidden', background: '#121212', border: '1px solid var(--surface-border)', position: 'relative' }}>
+                    <model-viewer
+                      src={get3DModelUrl(request.preferredModelGlbUrl)}
+                      poster={getFullImageUrl(preferredImg)}
+                      alt="3D design model"
+                      auto-rotate
+                      camera-controls
+                      shadow-intensity="1"
+                      style={{ width: '100%', height: '100%', display: 'block' }}
+                    />
+                  </div>
+                ) : (
+                  <img src={getFullImageUrl(preferredImg)} alt="Preferred design" style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
+                )}
               </div>
             </div>
           )}
@@ -238,9 +263,23 @@ export default function RequestDetailPage() {
                 {request.imageSourceType === 'Upload' ? 'REFERENCE' : request.finalGenerationId ? 'FINAL SELECTED DESIGN' : 'PREFERRED'}
               </span>
             </div>
-            <div style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 500 }}>
-              <img src={getFullImageUrl(preferredImg)} alt="Reference design" style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
-            </div>
+             <div style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 500 }}>
+                {request.preferredModelGlbUrl ? (
+                  <div style={{ width: '100%', height: 400, borderRadius: 12, overflow: 'hidden', background: '#121212', border: '1px solid var(--surface-border)', position: 'relative' }}>
+                    <model-viewer
+                      src={get3DModelUrl(request.preferredModelGlbUrl)}
+                      poster={getFullImageUrl(preferredImg)}
+                      alt="3D design model"
+                      auto-rotate
+                      camera-controls
+                      shadow-intensity="1"
+                      style={{ width: '100%', height: '100%', display: 'block' }}
+                    />
+                  </div>
+                ) : (
+                  <img src={getFullImageUrl(preferredImg)} alt="Reference design" style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
+                )}
+              </div>
           </div>
         )}
 
@@ -313,15 +352,30 @@ export default function RequestDetailPage() {
                     </div>
                   )}
 
-                  {/* Images grid */}
+                  {/* Images / 3D model grid */}
                   {v.images?.length > 0 && (
                     <div style={{ display: 'grid', gridTemplateColumns: v.images.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
                       {v.images.map((url, i) => {
                         const globalIdx = lightboxImages.indexOf(url);
+                        const hasModel = v.modelGlbUrl;
                         return (
-                          <div key={i} onClick={() => setLightboxIdx(globalIdx >= 0 ? globalIdx : 0)} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', aspectRatio: '1', border: '1px solid var(--surface-border)', transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }} onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                            <img src={url} alt={`V${v.versionNumber} Preview ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            <div style={{ position: 'absolute', bottom: 8, left: 8, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: 'rgba(0,0,0,0.6)', color: '#fff' }}>V{v.versionNumber} · {i + 1}</div>
+                          <div key={i} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', aspectRatio: '1', border: '1px solid var(--surface-border)', transition: 'all 0.2s', background: '#121212' }} onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }} onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                            {hasModel ? (
+                              <model-viewer
+                                src={get3DModelUrl(v.modelGlbUrl)}
+                                poster={url}
+                                alt={`V${v.versionNumber} 3D Model`}
+                                auto-rotate
+                                camera-controls
+                                shadow-intensity="1"
+                                style={{ width: '100%', height: '100%', display: 'block' }}
+                              />
+                            ) : (
+                              <img src={url} alt={`V${v.versionNumber} Preview ${i + 1}`} onClick={() => setLightboxIdx(globalIdx >= 0 ? globalIdx : 0)} style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }} />
+                            )}
+                            <div style={{ position: 'absolute', bottom: 8, left: 8, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: 'rgba(0,0,0,0.6)', color: '#fff', pointerEvents: 'none' }}>
+                              V{v.versionNumber} {hasModel ? '· 3D Model' : `· ${i + 1}`}
+                            </div>
                           </div>
                         );
                       })}
