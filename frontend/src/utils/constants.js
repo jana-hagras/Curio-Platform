@@ -29,7 +29,7 @@ export const APPLICATION_STATUSES = ['Pending', 'Approved', 'Rejected'];
 export const MILESTONE_STATUSES = ['Pending', 'Completed'];
 export const ARTISAN_STATUSES = ['Active', 'Inactive'];
 export const MENTORSHIP_STATUSES = ['Active', 'Inactive'];
-export const MENTORSHIP_APPLICATION_STATUSES = ['Pending', 'Accepted', 'Rejected', 'Completed'];
+export const MENTORSHIP_APPLICATION_STATUSES = ['Pending', 'AwaitingPayment', 'Accepted', 'Rejected', 'Completed'];
 export const WORKSHOP_STATUSES = ['Upcoming', 'Completed', 'Cancelled'];
 export const WORKSHOP_REGISTRATION_STATUSES = ['Pending', 'Confirmed', 'Cancelled'];
 
@@ -47,6 +47,7 @@ export const STATUS_COLORS = {
   Active: { bg: '#D1FAE5', text: '#065F46' },
   Inactive: { bg: '#F3F4F6', text: '#6B7280' },
   // Mentorship application statuses
+  AwaitingPayment: { bg: '#EFF6FF', text: '#1D4ED8' },
   Accepted: { bg: '#DBEAFE', text: '#1E40AF' },
   // Workshop statuses
   Upcoming: { bg: '#EDE9FE', text: '#5B21B6' },

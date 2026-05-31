@@ -92,7 +92,21 @@ const createAllTables = async (conn) => {
             Budget DECIMAL(10,2),
             \`3D_Model\` VARCHAR(255),
             Category VARCHAR(50),
+            EnhancedPrompt TEXT,
+            Status ENUM('Open','In Progress','Completed','Cancelled') DEFAULT 'Open',
             FOREIGN KEY (Buyer_id) REFERENCES Buyer(Buyer_id) ON DELETE CASCADE
+        )`,
+        // REQUEST AI GENERATION
+        `CREATE TABLE IF NOT EXISTS RequestAIGeneration (
+            Generation_id INT AUTO_INCREMENT PRIMARY KEY,
+            Request_id INT NOT NULL,
+            MeshyTaskId VARCHAR(100),
+            GeneratedImageUrl VARCHAR(500),
+            GenerationStatus ENUM('Pending','Processing','Completed','Failed') DEFAULT 'Pending',
+            ErrorMessage TEXT,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CompletedAt TIMESTAMP NULL,
+            FOREIGN KEY (Request_id) REFERENCES Request(Request_id) ON DELETE CASCADE
         )`,
         // MILESTONE
         `CREATE TABLE IF NOT EXISTS Milestone (
@@ -455,6 +469,7 @@ export const initDatabase = async () => {
         await migrateWorkshopPaymentStatus(conn);
         await migrateMentorshipAwaitingPayment(conn);
         await migrateUserCountry(conn);
+        await migrateRequestAI(conn);
 
     } finally {
         conn.release();
@@ -734,4 +749,50 @@ async function migrateUserCountry(conn) {
     }
 
     console.log("User Country migration complete ✅");
-}
+}
+
+// ─── Request AI: add EnhancedPrompt + Status columns, create RequestAIGeneration table ───
+async function migrateRequestAI(conn) {
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'Request'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    if (!existing.has('EnhancedPrompt')) {
+        try {
+            await conn.query("ALTER TABLE Request ADD COLUMN EnhancedPrompt TEXT DEFAULT NULL");
+            console.log("  ✅ Added Request.EnhancedPrompt");
+        } catch (e) {
+            if (!e.message.includes('Duplicate column')) console.warn("  ⚠️ Request EnhancedPrompt migration warning:", e.message);
+        }
+    }
+
+    if (!existing.has('Status')) {
+        try {
+            await conn.query("ALTER TABLE Request ADD COLUMN Status ENUM('Open','In Progress','Completed','Cancelled') DEFAULT 'Open'");
+            console.log("  ✅ Added Request.Status");
+        } catch (e) {
+            if (!e.message.includes('Duplicate column')) console.warn("  ⚠️ Request Status migration warning:", e.message);
+        }
+    }
+
+    // Create RequestAIGeneration table if it doesn't exist
+    try {
+        await conn.query(`CREATE TABLE IF NOT EXISTS RequestAIGeneration (
+            Generation_id INT AUTO_INCREMENT PRIMARY KEY,
+            Request_id INT NOT NULL,
+            MeshyTaskId VARCHAR(100),
+            GeneratedImageUrl VARCHAR(500),
+            GenerationStatus ENUM('Pending','Processing','Completed','Failed') DEFAULT 'Pending',
+            ErrorMessage TEXT,
+            CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CompletedAt TIMESTAMP NULL,
+            FOREIGN KEY (Request_id) REFERENCES Request(Request_id) ON DELETE CASCADE
+        )`);
+        console.log("  ✅ RequestAIGeneration table ready");
+    } catch (e) {
+        console.warn("  ⚠️ RequestAIGeneration table warning:", e.message);
+    }
+
+    console.log("Request AI migration complete ✅");
+}

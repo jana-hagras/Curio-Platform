@@ -10,7 +10,7 @@ import TextArea from '../../components/ui/TextArea';
 import Spinner from '../../components/ui/Spinner';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { FiSend, FiArrowLeft } from 'react-icons/fi';
+import { FiSend, FiArrowLeft, FiImage, FiZap, FiRefreshCw, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function RequestDetailPage() {
@@ -22,9 +22,11 @@ export default function RequestDetailPage() {
   const [loading, setLoading] = useState(true);
   const [proposal, setProposal] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { user, isArtisan } = useAuth();
+  const [regenerating, setRegenerating] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState(-1);
+  const { user, isArtisan, isBuyer } = useAuth();
 
-  useEffect(() => {
+  const fetchData = () => {
     setLoading(true);
     Promise.all([
       requestService.getById(id),
@@ -36,7 +38,29 @@ export default function RequestDetailPage() {
       setMilestones(mRes.data?.milestones || []);
     }).catch(() => toast.error('Failed to load'))
       .finally(() => setLoading(false));
-  }, [id]);
+  };
+
+  useEffect(() => { fetchData(); }, [id]);
+
+  // Poll for AI images if still processing
+  useEffect(() => {
+    if (!request || request.aiStatus === 'Completed' || request.aiStatus === 'Failed' || request.aiStatus === 'None') return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await requestService.getById(id);
+        const updated = res.data?.request;
+        if (updated) {
+          setRequest(updated);
+          if (updated.aiStatus === 'Completed' || updated.aiStatus === 'Failed') {
+            clearInterval(interval);
+          }
+        }
+      } catch {}
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [request?.aiStatus, id]);
 
   const handleApply = async (e) => {
     e.preventDefault();
@@ -50,10 +74,23 @@ export default function RequestDetailPage() {
     finally { setSubmitting(false); }
   };
 
+  const handleRegenerate = async () => {
+    setRegenerating(true);
+    try {
+      await requestService.regenerate(id);
+      toast.success('AI regeneration started! Images will appear shortly.');
+      // Start polling
+      setRequest(prev => ({ ...prev, aiStatus: 'Processing' }));
+    } catch { toast.error('Failed to start regeneration'); }
+    finally { setRegenerating(false); }
+  };
+
   if (loading) return <Spinner />;
   if (!request) return <div className="container" style={{ padding: 60, textAlign: 'center' }}><h2>Request not found</h2></div>;
 
   const alreadyApplied = isArtisan && apps.some(a => a.artisan_id === user?.id);
+  const aiImages = request.aiImages || [];
+  const isOwner = isBuyer && user?.id === request.buyer_id;
 
   return (
     <div style={{ padding: '40px 0' }}>
@@ -63,10 +100,150 @@ export default function RequestDetailPage() {
             <FiArrowLeft /> Back
           </button>
         </div>
+
+        {/* ── AI Generated Images Gallery ── */}
+        {(aiImages.length > 0 || request.aiStatus === 'Processing') && (
+          <div style={{
+            background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)',
+            padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24,
+            animation: 'fadeInUp 0.4s ease forwards',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: 8,
+                background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <FiImage size={16} />
+              </div>
+              <h3 style={{ fontSize: 18, margin: 0 }}>AI-Generated Previews</h3>
+              <span style={{
+                fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
+                background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)',
+              }}>AI GENERATED</span>
+            </div>
+
+            {request.aiStatus === 'Processing' && aiImages.length === 0 && (
+              <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12,
+              }}>
+                {[1, 2].map(i => (
+                  <div key={i} style={{
+                    height: 200, borderRadius: 12,
+                    background: 'linear-gradient(110deg, var(--surface-secondary) 30%, var(--surface-primary) 50%, var(--surface-secondary) 70%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'shimmer 1.5s ease-in-out infinite',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexDirection: 'column', gap: 8,
+                  }}>
+                    <FiZap style={{ color: 'var(--gold-primary)', animation: 'pulse 2s ease-in-out infinite' }} size={24} />
+                    <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Generating...</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {aiImages.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: aiImages.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
+                gap: 12,
+              }}>
+                {aiImages.map((url, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setLightboxIdx(i)}
+                    style={{
+                      position: 'relative', borderRadius: 12, overflow: 'hidden',
+                      cursor: 'pointer', aspectRatio: '1',
+                      border: '1px solid var(--surface-border)',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }}
+                    onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    <img src={url} alt={`AI Preview ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{
+                      position: 'absolute', bottom: 8, left: 8,
+                      fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
+                      background: 'rgba(0,0,0,0.6)', color: '#fff',
+                    }}>AI Preview {i + 1}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {request.aiStatus === 'Failed' && aiImages.length === 0 && (
+              <div style={{
+                padding: '24px', textAlign: 'center',
+                background: 'var(--surface-secondary)', borderRadius: 12,
+              }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 12 }}>
+                  AI preview generation encountered an issue.
+                </p>
+                {isOwner && (
+                  <Button size="sm" icon={FiRefreshCw} onClick={handleRegenerate} loading={regenerating}>
+                    Regenerate Previews
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Lightbox ── */}
+        {lightboxIdx >= 0 && aiImages.length > 0 && (
+          <div
+            onClick={() => setLightboxIdx(-1)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 9999,
+              background: 'rgba(0,0,0,0.9)', display: 'flex',
+              alignItems: 'center', justifyContent: 'center',
+              animation: 'fadeInUp 0.2s ease',
+            }}
+          >
+            <button onClick={e => { e.stopPropagation(); setLightboxIdx(-1); }} style={{
+              position: 'absolute', top: 20, right: 20,
+              background: 'rgba(255,255,255,0.1)', border: 'none',
+              color: '#fff', width: 40, height: 40, borderRadius: '50%',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 20,
+            }}><FiX /></button>
+            {aiImages.length > 1 && (
+              <>
+                <button onClick={e => { e.stopPropagation(); setLightboxIdx((lightboxIdx - 1 + aiImages.length) % aiImages.length); }} style={{
+                  position: 'absolute', left: 20, background: 'rgba(255,255,255,0.1)',
+                  border: 'none', color: '#fff', width: 44, height: 44, borderRadius: '50%',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+                }}><FiChevronLeft /></button>
+                <button onClick={e => { e.stopPropagation(); setLightboxIdx((lightboxIdx + 1) % aiImages.length); }} style={{
+                  position: 'absolute', right: 20, background: 'rgba(255,255,255,0.1)',
+                  border: 'none', color: '#fff', width: 44, height: 44, borderRadius: '50%',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+                }}><FiChevronRight /></button>
+              </>
+            )}
+            <img
+              onClick={e => e.stopPropagation()}
+              src={aiImages[lightboxIdx]}
+              alt="AI Preview"
+              style={{ maxWidth: '85vw', maxHeight: '85vh', borderRadius: 12, objectFit: 'contain' }}
+            />
+            <div style={{
+              position: 'absolute', bottom: 24,
+              color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 600,
+            }}>{lightboxIdx + 1} / {aiImages.length}</div>
+          </div>
+        )}
+
+        {/* ── Request Info ── */}
         <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 32, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
             <h1 style={{ fontSize: 28 }}>{request.title}</h1>
-            {request.category && <Badge status="Active">{request.category}</Badge>}
+            <div style={{ display: 'flex', gap: 8 }}>
+              {request.category && <Badge status="Active">{request.category}</Badge>}
+              <Badge status={request.status === 'Open' ? 'Pending' : request.status === 'Completed' ? 'Completed' : 'Active'}>{request.status}</Badge>
+            </div>
           </div>
           <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 20 }}>{request.description}</p>
           <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', fontSize: 15 }}>
@@ -111,6 +288,14 @@ export default function RequestDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* Shimmer animation CSS */}
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
     </div>
   );
 }
