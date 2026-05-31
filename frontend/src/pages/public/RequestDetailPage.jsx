@@ -8,10 +8,9 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import TextArea from '../../components/ui/TextArea';
 import Spinner from '../../components/ui/Spinner';
-import ModelViewer3D from '../../components/ui/ModelViewer3D';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { FiSend, FiArrowLeft, FiImage, FiZap, FiRefreshCw, FiX, FiChevronLeft, FiChevronRight, FiBox } from 'react-icons/fi';
+import { FiSend, FiArrowLeft, FiImage, FiZap, FiRefreshCw, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export default function RequestDetailPage() {
@@ -43,7 +42,7 @@ export default function RequestDetailPage() {
 
   useEffect(() => { fetchData(); }, [id]);
 
-  // Poll for AI results if still processing
+  // Poll for AI images if still processing
   useEffect(() => {
     if (!request || request.aiStatus === 'Completed' || request.aiStatus === 'Failed' || request.aiStatus === 'None') return;
 
@@ -79,7 +78,7 @@ export default function RequestDetailPage() {
     setRegenerating(true);
     try {
       await requestService.regenerate(id);
-      toast.success('AI regeneration started! 3D model will appear shortly.');
+      toast.success('AI regeneration started! Images will appear shortly.');
       // Start polling
       setRequest(prev => ({ ...prev, aiStatus: 'Processing' }));
     } catch { toast.error('Failed to start regeneration'); }
@@ -91,10 +90,7 @@ export default function RequestDetailPage() {
 
   const alreadyApplied = isArtisan && apps.some(a => a.artisan_id === user?.id);
   const aiImages = request.aiImages || [];
-  const aiModelUrl = request.aiModelUrl || null;
   const isOwner = isBuyer && user?.id === request.buyer_id;
-  const has3DModel = !!aiModelUrl;
-  const hasFallbackImages = aiImages.length > 0 && !has3DModel;
 
   return (
     <div style={{ padding: '40px 0' }}>
@@ -105,80 +101,8 @@ export default function RequestDetailPage() {
           </button>
         </div>
 
-        {/* ── 3D Model Viewer (primary) ── */}
-        {(has3DModel || request.aiStatus === 'Processing') && (
-          <div style={{
-            background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)',
-            padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24,
-            animation: 'fadeInUp 0.4s ease forwards',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: 8,
-                background: 'rgba(139,92,246,0.12)', color: '#8B5CF6',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <FiBox size={16} />
-              </div>
-              <h3 style={{ fontSize: 18, margin: 0 }}>3D Model Preview</h3>
-              <span style={{
-                fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6,
-                background: 'rgba(139,92,246,0.1)', color: '#8B5CF6',
-              }}>AI GENERATED</span>
-              {isOwner && request.aiStatus === 'Completed' && (
-                <Button size="sm" variant="outline" icon={FiRefreshCw} onClick={handleRegenerate} loading={regenerating} style={{ marginLeft: 'auto' }}>
-                  Regenerate
-                </Button>
-              )}
-            </div>
-
-            {/* Processing shimmer */}
-            {request.aiStatus === 'Processing' && !has3DModel && (
-              <div style={{
-                height: 400, borderRadius: 12,
-                background: 'linear-gradient(110deg, var(--surface-secondary) 30%, var(--surface-primary) 50%, var(--surface-secondary) 70%)',
-                backgroundSize: '200% 100%',
-                animation: 'shimmer 1.5s ease-in-out infinite',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexDirection: 'column', gap: 12,
-              }}>
-                <FiZap style={{ color: 'var(--gold-primary)', animation: 'pulse 2s ease-in-out infinite' }} size={32} />
-                <span style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 500 }}>Generating 3D model…</span>
-                <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>This may take a few minutes</span>
-              </div>
-            )}
-
-            {/* 3D Viewer */}
-            {has3DModel && (
-              <ModelViewer3D
-                src={aiModelUrl}
-                poster={aiImages.length > 0 ? aiImages[0] : undefined}
-                alt={`3D preview of ${request.title}`}
-                height={450}
-              />
-            )}
-
-            {/* Failed state */}
-            {request.aiStatus === 'Failed' && !has3DModel && (
-              <div style={{
-                padding: '32px', textAlign: 'center',
-                background: 'var(--surface-secondary)', borderRadius: 12,
-              }}>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 12 }}>
-                  3D model generation encountered an issue.
-                </p>
-                {isOwner && (
-                  <Button size="sm" icon={FiRefreshCw} onClick={handleRegenerate} loading={regenerating}>
-                    Regenerate 3D Model
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Fallback: 2D Image Gallery (for old requests without 3D) ── */}
-        {hasFallbackImages && (
+        {/* ── AI Generated Images Gallery ── */}
+        {(aiImages.length > 0 || request.aiStatus === 'Processing') && (
           <div style={{
             background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)',
             padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24,
@@ -199,37 +123,75 @@ export default function RequestDetailPage() {
               }}>AI GENERATED</span>
             </div>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: aiImages.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
-              gap: 12,
-            }}>
-              {aiImages.map((url, i) => (
-                <div
-                  key={i}
-                  onClick={() => setLightboxIdx(i)}
-                  style={{
-                    position: 'relative', borderRadius: 12, overflow: 'hidden',
-                    cursor: 'pointer', aspectRatio: '1',
-                    border: '1px solid var(--surface-border)',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }}
-                  onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
-                >
-                  <img src={url} alt={`AI Preview ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <div style={{
-                    position: 'absolute', bottom: 8, left: 8,
-                    fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
-                    background: 'rgba(0,0,0,0.6)', color: '#fff',
-                  }}>AI Preview {i + 1}</div>
-                </div>
-              ))}
-            </div>
+            {request.aiStatus === 'Processing' && aiImages.length === 0 && (
+              <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12,
+              }}>
+                {[1, 2].map(i => (
+                  <div key={i} style={{
+                    height: 200, borderRadius: 12,
+                    background: 'linear-gradient(110deg, var(--surface-secondary) 30%, var(--surface-primary) 50%, var(--surface-secondary) 70%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'shimmer 1.5s ease-in-out infinite',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexDirection: 'column', gap: 8,
+                  }}>
+                    <FiZap style={{ color: 'var(--gold-primary)', animation: 'pulse 2s ease-in-out infinite' }} size={24} />
+                    <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Generating...</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {aiImages.length > 0 && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: aiImages.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
+                gap: 12,
+              }}>
+                {aiImages.map((url, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setLightboxIdx(i)}
+                    style={{
+                      position: 'relative', borderRadius: 12, overflow: 'hidden',
+                      cursor: 'pointer', aspectRatio: '1',
+                      border: '1px solid var(--surface-border)',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }}
+                    onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    <img src={url} alt={`AI Preview ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{
+                      position: 'absolute', bottom: 8, left: 8,
+                      fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
+                      background: 'rgba(0,0,0,0.6)', color: '#fff',
+                    }}>AI Preview {i + 1}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {request.aiStatus === 'Failed' && aiImages.length === 0 && (
+              <div style={{
+                padding: '24px', textAlign: 'center',
+                background: 'var(--surface-secondary)', borderRadius: 12,
+              }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 12 }}>
+                  AI preview generation encountered an issue.
+                </p>
+                {isOwner && (
+                  <Button size="sm" icon={FiRefreshCw} onClick={handleRegenerate} loading={regenerating}>
+                    Regenerate Previews
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         )}
 
-        {/* ── Lightbox (for 2D images only) ── */}
+        {/* ── Lightbox ── */}
         {lightboxIdx >= 0 && aiImages.length > 0 && (
           <div
             onClick={() => setLightboxIdx(-1)}
@@ -332,10 +294,6 @@ export default function RequestDetailPage() {
         @keyframes shimmer {
           0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
         }
       `}</style>
     </div>

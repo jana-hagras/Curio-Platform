@@ -102,7 +102,6 @@ const createAllTables = async (conn) => {
             Request_id INT NOT NULL,
             MeshyTaskId VARCHAR(100),
             GeneratedImageUrl TEXT,
-            ModelGlbUrl TEXT,
             GenerationStatus ENUM('Pending','Processing','Completed','Failed') DEFAULT 'Pending',
             ErrorMessage TEXT,
             CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -784,7 +783,6 @@ async function migrateRequestAI(conn) {
             Request_id INT NOT NULL,
             MeshyTaskId VARCHAR(100),
             GeneratedImageUrl TEXT,
-            ModelGlbUrl TEXT,
             GenerationStatus ENUM('Pending','Processing','Completed','Failed') DEFAULT 'Pending',
             ErrorMessage TEXT,
             CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -798,14 +796,6 @@ async function migrateRequestAI(conn) {
             await conn.query("ALTER TABLE RequestAIGeneration MODIFY COLUMN GeneratedImageUrl TEXT");
         } catch (e) {
             // Ignore if already TEXT
-        }
-
-        // Add ModelGlbUrl column for 3D model URLs
-        try {
-            await conn.query("ALTER TABLE RequestAIGeneration ADD COLUMN ModelGlbUrl TEXT DEFAULT NULL");
-            console.log("  ✅ Added RequestAIGeneration.ModelGlbUrl");
-        } catch (e) {
-            // Ignore if column already exists
         }
     } catch (e) {
         console.warn("  ⚠️ RequestAIGeneration table warning:", e.message);

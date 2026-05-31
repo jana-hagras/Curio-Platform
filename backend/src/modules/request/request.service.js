@@ -35,13 +35,13 @@ const REQ_QUERY = `
   LEFT JOIN user u ON b.Buyer_id = u.User_id
 `;
 
-// Helper: Attach AI generation data (3D models + thumbnails) to requests
+// Helper: Attach AI generation images to requests
 const attachAIImages = async (requests) => {
   if (!requests.length) return requests;
 
   const requestIds = requests.map((r) => r.id);
   const [generations] = await pool.query(
-    "SELECT Request_id, Generation_id, GeneratedImageUrl, ModelGlbUrl, GenerationStatus, ErrorMessage, CreatedAt, CompletedAt, MeshyTaskId FROM RequestAIGeneration WHERE Request_id IN (?) ORDER BY CreatedAt DESC",
+    "SELECT Request_id, Generation_id, GeneratedImageUrl, GenerationStatus, ErrorMessage, CreatedAt, CompletedAt, MeshyTaskId FROM RequestAIGeneration WHERE Request_id IN (?) ORDER BY CreatedAt DESC",
     [requestIds]
   );
 
@@ -51,7 +51,6 @@ const attachAIImages = async (requests) => {
     genMap[gen.Request_id].push({
       id: gen.Generation_id,
       imageUrl: gen.GeneratedImageUrl,
-      glbUrl: gen.ModelGlbUrl,
       status: gen.GenerationStatus,
       error: gen.ErrorMessage,
       createdAt: gen.CreatedAt,
@@ -60,19 +59,13 @@ const attachAIImages = async (requests) => {
     });
   }
 
-  return requests.map((r) => {
-    const gens = genMap[r.id] || [];
-    const completedGens = gens.filter((g) => g.status === "Completed");
-    return {
-      ...r,
-      aiImages: completedGens.filter((g) => g.imageUrl).map((g) => g.imageUrl),
-      aiModelUrl: completedGens.find((g) => g.glbUrl)?.glbUrl || null,
-      aiGenerations: gens,
-      aiStatus: getOverallAIStatus(gens),
-    };
-  });
+  return requests.map((r) => ({
+    ...r,
+    aiImages: (genMap[r.id] || []).filter((g) => g.imageUrl && g.status === "Completed").map((g) => g.imageUrl),
+    aiGenerations: genMap[r.id] || [],
+    aiStatus: getOverallAIStatus(genMap[r.id] || []),
+  }));
 };
-
 
 // Derive overall AI status from generation records
 const getOverallAIStatus = (generations) => {
