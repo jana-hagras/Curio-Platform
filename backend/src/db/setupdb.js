@@ -470,6 +470,7 @@ export const initDatabase = async () => {
         await migrateMentorshipAwaitingPayment(conn);
         await migrateUserCountry(conn);
         await migrateRequestAI(conn);
+        await migrateRequestAIVersioning(conn);
 
     } finally {
         conn.release();
@@ -802,4 +803,39 @@ async function migrateRequestAI(conn) {
     }
 
     console.log("Request AI migration complete ✅");
+}
+
+// ─── RequestAIGeneration: add versioning columns (VersionNumber, RefinementPrompt, EnhancedPrompt, IsPreferred) ───
+async function migrateRequestAIVersioning(conn) {
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'RequestAIGeneration'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    const migrations = [
+        { column: 'VersionNumber', sql: "ALTER TABLE RequestAIGeneration ADD COLUMN VersionNumber INT DEFAULT 1" },
+        { column: 'RefinementPrompt', sql: "ALTER TABLE RequestAIGeneration ADD COLUMN RefinementPrompt TEXT DEFAULT NULL" },
+        { column: 'EnhancedPrompt', sql: "ALTER TABLE RequestAIGeneration ADD COLUMN EnhancedPrompt TEXT DEFAULT NULL" },
+        { column: 'IsPreferred', sql: "ALTER TABLE RequestAIGeneration ADD COLUMN IsPreferred BOOLEAN DEFAULT FALSE" },
+    ];
+
+    for (const m of migrations) {
+        if (!existing.has(m.column)) {
+            try {
+                await conn.query(m.sql);
+                console.log(`  ✅ Added RequestAIGeneration.${m.column}`);
+            } catch (e) {
+                if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ RequestAIGeneration versioning migration warning for ${m.column}:`, e.message);
+            }
+        }
+    }
+
+    // Backfill: set VersionNumber = 1 for existing records that have NULL
+    try {
+        await conn.query("UPDATE RequestAIGeneration SET VersionNumber = 1 WHERE VersionNumber IS NULL");
+    } catch (e) {
+        console.warn("  ⚠️ VersionNumber backfill warning:", e.message);
+    }
+
+    console.log("RequestAIGeneration versioning migration complete ✅");
 }

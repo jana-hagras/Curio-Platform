@@ -2,6 +2,7 @@ import pool from "../../db/connection.js";
 
 // ══════════════════════════════════════════════════════════════
 //  AI Generation Service — Gemini + Meshy AI Pipeline
+//  Supports versioned refinement for iterative design workflow
 // ══════════════════════════════════════════════════════════════
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
@@ -22,6 +23,33 @@ Given a buyer's custom craft request, enhance the description to be optimized fo
 Keep the enhanced prompt under 200 words.
 Output ONLY the enhanced prompt text, no explanations, no quotes, no prefixes.
 The output should read as a direct image generation prompt.`;
+
+const GEMINI_REFINEMENT_PROMPT = `You are an expert product designer and 3D visualization specialist for handmade Egyptian artisan crafts.
+
+A buyer previously requested a custom craft, and an AI-enhanced prompt was created for image generation. The buyer has now provided refinement instructions to modify the design.
+
+Your job:
+1. Take the PREVIOUS enhanced prompt as the baseline design
+2. Apply the buyer's REFINEMENT INSTRUCTIONS to modify it
+3. Maintain all unmentioned aspects of the previous design
+4. Output a new, complete image generation prompt that incorporates the changes
+
+Keep the enhanced prompt under 200 words.
+Output ONLY the enhanced prompt text, no explanations, no quotes, no prefixes.
+The output should read as a direct image generation prompt.`;
+
+// ─── HELPERS ───────────────────────────────────────────────────
+
+/**
+ * Get the next version number for a request.
+ */
+async function getNextVersionNumber(requestId) {
+  const [rows] = await pool.query(
+    "SELECT COALESCE(MAX(VersionNumber), 0) AS maxVer FROM RequestAIGeneration WHERE Request_id = ?",
+    [requestId]
+  );
+  return (rows[0]?.maxVer || 0) + 1;
+}
 
 // ─── GEMINI PROMPT ENHANCEMENT ─────────────────────────────────
 
@@ -78,6 +106,68 @@ export async function enhancePromptWithGemini(originalPrompt, category) {
     return text.trim();
   } catch (err) {
     console.error("[AI Pipeline] Gemini enhancement failed:", err.message);
+    return null;
+  }
+}
+
+/**
+ * Refine a previous enhanced prompt using Gemini with buyer's refinement instructions.
+ * @param {string} previousEnhancedPrompt - The previous Gemini-enhanced prompt
+ * @param {string} refinementInstructions - Buyer's refinement text
+ * @param {string} originalDescription - Original request description for context
+ * @param {string} category - Product category
+ * @returns {Promise<string|null>} New enhanced prompt or null on failure
+ */
+export async function refinePromptWithGemini(previousEnhancedPrompt, refinementInstructions, originalDescription, category) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.error("[AI Pipeline] GEMINI_API_KEY not configured");
+    return null;
+  }
+
+  try {
+    const userMessage = `Category: ${category || "Handcraft"}
+Original buyer request: ${originalDescription}
+Previous enhanced prompt: ${previousEnhancedPrompt}
+Buyer's refinement instructions: ${refinementInstructions}`;
+
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [
+              { text: GEMINI_REFINEMENT_PROMPT + "\n\n" + userMessage }
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 400,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error(`[AI Pipeline] Gemini refinement API error ${response.status}:`, errText);
+      return null;
+    }
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+      console.error("[AI Pipeline] Gemini returned empty refinement response");
+      return null;
+    }
+
+    console.log(`[AI Pipeline] ✅ Gemini refined prompt (${text.length} chars)`);
+    return text.trim();
+  } catch (err) {
+    console.error("[AI Pipeline] Gemini refinement failed:", err.message);
     return null;
   }
 }
@@ -198,10 +288,10 @@ export async function generateImagesWithMeshy(prompt) {
 // ─── ORCHESTRATION: FULL AI PIPELINE ───────────────────────────
 
 /**
- * Run the complete AI pipeline for a request:
+ * Run the complete AI pipeline for a request (Version 1):
  *   1. Enhance prompt with Gemini
  *   2. Generate images with Meshy
- *   3. Save results to database
+ *   3. Save results to database with VersionNumber = 1
  *
  * This runs ASYNCHRONOUSLY after the request is saved.
  * Failures are caught and logged — never crash the request.
@@ -213,12 +303,14 @@ export async function generateImagesWithMeshy(prompt) {
 export async function runAIPipeline(requestId, originalPrompt, category) {
   console.log(`\n[AI Pipeline] ═══ Starting for request #${requestId} ═══`);
 
-  // Create initial generation record
+  const versionNumber = await getNextVersionNumber(requestId);
+
+  // Create initial generation record with version number
   let generationId;
   try {
     const [genResult] = await pool.query(
-      "INSERT INTO RequestAIGeneration (Request_id, GenerationStatus) VALUES (?, 'Pending')",
-      [requestId]
+      "INSERT INTO RequestAIGeneration (Request_id, GenerationStatus, VersionNumber) VALUES (?, 'Pending', ?)",
+      [requestId, versionNumber]
     );
     generationId = genResult.insertId;
   } catch (err) {
@@ -231,10 +323,14 @@ export async function runAIPipeline(requestId, originalPrompt, category) {
     const enhancedPrompt = await enhancePromptWithGemini(originalPrompt, category);
 
     if (enhancedPrompt) {
-      // Save enhanced prompt to request (internal only)
+      // Save enhanced prompt to request (legacy field) AND generation record
       await pool.query(
         "UPDATE Request SET EnhancedPrompt = ? WHERE Request_id = ?",
         [enhancedPrompt, requestId]
+      );
+      await pool.query(
+        "UPDATE RequestAIGeneration SET EnhancedPrompt = ? WHERE Generation_id = ?",
+        [enhancedPrompt, generationId]
       );
     } else {
       console.warn(`[AI Pipeline] Gemini failed for request #${requestId}, using original prompt`);
@@ -283,15 +379,15 @@ export async function runAIPipeline(requestId, originalPrompt, category) {
       [meshyResult.imageUrls[0], generationId]
     );
 
-    // Insert additional images as separate records
+    // Insert additional images as separate records (same version)
     for (let i = 1; i < meshyResult.imageUrls.length; i++) {
       await pool.query(
-        "INSERT INTO RequestAIGeneration (Request_id, MeshyTaskId, GeneratedImageUrl, GenerationStatus, CompletedAt) VALUES (?, ?, ?, 'Completed', NOW())",
-        [requestId, meshyResult.taskId, meshyResult.imageUrls[i]]
+        "INSERT INTO RequestAIGeneration (Request_id, MeshyTaskId, GeneratedImageUrl, GenerationStatus, CompletedAt, VersionNumber, EnhancedPrompt) VALUES (?, ?, ?, 'Completed', NOW(), ?, ?)",
+        [requestId, meshyResult.taskId, meshyResult.imageUrls[i], versionNumber, enhancedPrompt || originalPrompt]
       );
     }
 
-    console.log(`[AI Pipeline] ═══ ✅ Complete for request #${requestId} — ${meshyResult.imageUrls.length} image(s) saved ═══\n`);
+    console.log(`[AI Pipeline] ═══ ✅ Complete for request #${requestId} — v${versionNumber}, ${meshyResult.imageUrls.length} image(s) saved ═══\n`);
   } catch (err) {
     console.error(`[AI Pipeline] ❌ Pipeline error for request #${requestId}:`, err.message);
 
@@ -312,6 +408,7 @@ export async function runAIPipeline(requestId, originalPrompt, category) {
 /**
  * Regenerate AI images for an existing request.
  * Uses stored EnhancedPrompt if available, otherwise re-enhances.
+ * Creates a new version.
  */
 export async function regenerateForRequest(requestId) {
   const [rows] = await pool.query(
@@ -324,14 +421,15 @@ export async function regenerateForRequest(requestId) {
   const request = rows[0];
   const description = request.Description;
   const category = request.Category;
+  const versionNumber = await getNextVersionNumber(requestId);
 
   // If we already have an enhanced prompt, reuse it for Meshy only
   if (request.EnhancedPrompt) {
-    console.log(`[AI Pipeline] Regenerating with existing enhanced prompt for request #${requestId}`);
+    console.log(`[AI Pipeline] Regenerating v${versionNumber} with existing enhanced prompt for request #${requestId}`);
 
     const [genResult] = await pool.query(
-      "INSERT INTO RequestAIGeneration (Request_id, GenerationStatus) VALUES (?, 'Processing')",
-      [requestId]
+      "INSERT INTO RequestAIGeneration (Request_id, GenerationStatus, VersionNumber, EnhancedPrompt) VALUES (?, 'Processing', ?, ?)",
+      [requestId, versionNumber, request.EnhancedPrompt]
     );
 
     const meshyResult = await generateImagesWithMeshy(request.EnhancedPrompt);
@@ -351,15 +449,137 @@ export async function regenerateForRequest(requestId) {
 
     for (let i = 1; i < meshyResult.imageUrls.length; i++) {
       await pool.query(
-        "INSERT INTO RequestAIGeneration (Request_id, MeshyTaskId, GeneratedImageUrl, GenerationStatus, CompletedAt) VALUES (?, ?, ?, 'Completed', NOW())",
-        [requestId, meshyResult.taskId, meshyResult.imageUrls[i]]
+        "INSERT INTO RequestAIGeneration (Request_id, MeshyTaskId, GeneratedImageUrl, GenerationStatus, CompletedAt, VersionNumber, EnhancedPrompt) VALUES (?, ?, ?, 'Completed', NOW(), ?, ?)",
+        [requestId, meshyResult.taskId, meshyResult.imageUrls[i], versionNumber, request.EnhancedPrompt]
       );
     }
 
-    return { success: true, imageCount: meshyResult.imageUrls.length };
+    return { success: true, imageCount: meshyResult.imageUrls.length, versionNumber };
   }
 
   // No enhanced prompt — run full pipeline
   await runAIPipeline(requestId, description, category);
-  return { success: true };
+  return { success: true, versionNumber };
+}
+
+/**
+ * Refine and regenerate: buyer provides refinement instructions,
+ * Gemini creates a new enhanced prompt combining previous + refinement,
+ * then Meshy generates new images. Creates a NEW version.
+ *
+ * Previous versions are NEVER deleted.
+ *
+ * @param {number} requestId
+ * @param {string} refinementPrompt - Buyer's refinement instructions
+ * @returns {Promise<{success: boolean, versionNumber?: number, error?: string}>}
+ */
+export async function refineAndRegenerate(requestId, refinementPrompt) {
+  console.log(`\n[AI Pipeline] ═══ Refinement for request #${requestId} ═══`);
+  console.log(`[AI Pipeline] Refinement: "${refinementPrompt}"`);
+
+  // Load request
+  const [reqRows] = await pool.query(
+    "SELECT Request_id, Title, Description, EnhancedPrompt, Category FROM Request WHERE Request_id = ?",
+    [requestId]
+  );
+  if (!reqRows.length) throw new Error("Request not found");
+
+  const request = reqRows[0];
+  const originalDescription = `${request.Title}. ${request.Description || ""}`;
+  const category = request.Category;
+
+  // Find the latest enhanced prompt from previous generations
+  const [prevGens] = await pool.query(
+    "SELECT EnhancedPrompt FROM RequestAIGeneration WHERE Request_id = ? AND EnhancedPrompt IS NOT NULL ORDER BY VersionNumber DESC, Generation_id DESC LIMIT 1",
+    [requestId]
+  );
+  const previousEnhancedPrompt = prevGens[0]?.EnhancedPrompt || request.EnhancedPrompt || originalDescription;
+
+  const versionNumber = await getNextVersionNumber(requestId);
+
+  // Create generation record
+  let generationId;
+  try {
+    const [genResult] = await pool.query(
+      "INSERT INTO RequestAIGeneration (Request_id, GenerationStatus, VersionNumber, RefinementPrompt) VALUES (?, 'Pending', ?, ?)",
+      [requestId, versionNumber, refinementPrompt]
+    );
+    generationId = genResult.insertId;
+  } catch (err) {
+    console.error("[AI Pipeline] Failed to create refinement generation record:", err.message);
+    throw err;
+  }
+
+  try {
+    // ── Step 1: Gemini Refinement ──
+    const newEnhancedPrompt = await refinePromptWithGemini(
+      previousEnhancedPrompt,
+      refinementPrompt,
+      originalDescription,
+      category
+    );
+
+    const finalPrompt = newEnhancedPrompt || previousEnhancedPrompt;
+
+    // Save enhanced prompt to generation record
+    await pool.query(
+      "UPDATE RequestAIGeneration SET EnhancedPrompt = ?, GenerationStatus = 'Processing' WHERE Generation_id = ?",
+      [finalPrompt, generationId]
+    );
+
+    // ── Step 2: Meshy Image Generation ──
+    const meshyResult = await generateImagesWithMeshy(finalPrompt);
+
+    if (!meshyResult) {
+      await pool.query(
+        "UPDATE RequestAIGeneration SET GenerationStatus = 'Failed', ErrorMessage = 'Meshy API call failed', CompletedAt = NOW() WHERE Generation_id = ?",
+        [generationId]
+      );
+      return { success: false, error: "Image generation failed", versionNumber };
+    }
+
+    await pool.query(
+      "UPDATE RequestAIGeneration SET MeshyTaskId = ? WHERE Generation_id = ?",
+      [meshyResult.taskId, generationId]
+    );
+
+    if (meshyResult.imageUrls.length === 0) {
+      await pool.query(
+        "UPDATE RequestAIGeneration SET GenerationStatus = 'Failed', ErrorMessage = ?, CompletedAt = NOW() WHERE Generation_id = ?",
+        [meshyResult.error || "No images generated", generationId]
+      );
+      return { success: false, error: meshyResult.error || "No images generated", versionNumber };
+    }
+
+    // ── Step 3: Save images ──
+    await pool.query(
+      "UPDATE RequestAIGeneration SET GeneratedImageUrl = ?, GenerationStatus = 'Completed', CompletedAt = NOW() WHERE Generation_id = ?",
+      [meshyResult.imageUrls[0], generationId]
+    );
+
+    for (let i = 1; i < meshyResult.imageUrls.length; i++) {
+      await pool.query(
+        "INSERT INTO RequestAIGeneration (Request_id, MeshyTaskId, GeneratedImageUrl, GenerationStatus, CompletedAt, VersionNumber, RefinementPrompt, EnhancedPrompt) VALUES (?, ?, ?, 'Completed', NOW(), ?, ?, ?)",
+        [requestId, meshyResult.taskId, meshyResult.imageUrls[i], versionNumber, refinementPrompt, finalPrompt]
+      );
+    }
+
+    console.log(`[AI Pipeline] ═══ ✅ Refinement complete for request #${requestId} — v${versionNumber}, ${meshyResult.imageUrls.length} image(s) ═══\n`);
+    return { success: true, versionNumber, imageCount: meshyResult.imageUrls.length };
+  } catch (err) {
+    console.error(`[AI Pipeline] ❌ Refinement error for request #${requestId}:`, err.message);
+
+    if (generationId) {
+      try {
+        await pool.query(
+          "UPDATE RequestAIGeneration SET GenerationStatus = 'Failed', ErrorMessage = ?, CompletedAt = NOW() WHERE Generation_id = ?",
+          [err.message, generationId]
+        );
+      } catch (dbErr) {
+        console.error("[AI Pipeline] Failed to update generation status:", dbErr.message);
+      }
+    }
+
+    return { success: false, error: err.message, versionNumber };
+  }
 }

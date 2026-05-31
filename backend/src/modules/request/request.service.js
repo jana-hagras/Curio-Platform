@@ -1,8 +1,8 @@
 import pool from "../../db/connection.js";
-import { runAIPipeline, regenerateForRequest } from "./aiGeneration.service.js";
+import { runAIPipeline, regenerateForRequest, refineAndRegenerate } from "./aiGeneration.service.js";
 
 // ══════════════════════════════════════════════════════════════
-//  Request Service — with AI Generation Pipeline
+//  Request Service — with AI Generation Pipeline + Versioning
 // ══════════════════════════════════════════════════════════════
 
 const sanitizeRequest = (row, { includeEnhancedPrompt = false } = {}) => {
@@ -35,13 +35,13 @@ const REQ_QUERY = `
   LEFT JOIN user u ON b.Buyer_id = u.User_id
 `;
 
-// Helper: Attach AI generation images to requests
+// Helper: Attach AI generation images to requests (with version info)
 const attachAIImages = async (requests) => {
   if (!requests.length) return requests;
 
   const requestIds = requests.map((r) => r.id);
   const [generations] = await pool.query(
-    "SELECT Request_id, Generation_id, GeneratedImageUrl, GenerationStatus, ErrorMessage, CreatedAt, CompletedAt, MeshyTaskId FROM RequestAIGeneration WHERE Request_id IN (?) ORDER BY CreatedAt DESC",
+    "SELECT Request_id, Generation_id, GeneratedImageUrl, GenerationStatus, ErrorMessage, CreatedAt, CompletedAt, MeshyTaskId, VersionNumber, RefinementPrompt, EnhancedPrompt, IsPreferred FROM RequestAIGeneration WHERE Request_id IN (?) ORDER BY VersionNumber ASC, CreatedAt ASC",
     [requestIds]
   );
 
@@ -56,15 +56,33 @@ const attachAIImages = async (requests) => {
       createdAt: gen.CreatedAt,
       completedAt: gen.CompletedAt,
       meshyTaskId: gen.MeshyTaskId,
+      versionNumber: gen.VersionNumber || 1,
+      refinementPrompt: gen.RefinementPrompt || null,
+      enhancedPrompt: gen.EnhancedPrompt || null,
+      isPreferred: !!gen.IsPreferred,
     });
   }
 
-  return requests.map((r) => ({
-    ...r,
-    aiImages: (genMap[r.id] || []).filter((g) => g.imageUrl && g.status === "Completed").map((g) => g.imageUrl),
-    aiGenerations: genMap[r.id] || [],
-    aiStatus: getOverallAIStatus(genMap[r.id] || []),
-  }));
+  return requests.map((r) => {
+    const gens = genMap[r.id] || [];
+    const completedGens = gens.filter((g) => g.imageUrl && g.status === "Completed");
+
+    // Find the preferred image
+    const preferredGen = completedGens.find((g) => g.isPreferred);
+    const preferredImage = preferredGen?.imageUrl || null;
+
+    // Count unique versions
+    const versionCount = new Set(gens.map((g) => g.versionNumber)).size;
+
+    return {
+      ...r,
+      aiImages: completedGens.map((g) => g.imageUrl),
+      aiGenerations: gens,
+      aiStatus: getOverallAIStatus(gens),
+      preferredImage,
+      versionCount,
+    };
+  });
 };
 
 // Derive overall AI status from generation records
@@ -159,7 +177,7 @@ export const createRequest = async (req, res, next) => {
 
     return res.status(201).json({
       ok: true,
-      data: { request: { ...request, aiImages: [], aiGenerations: [], aiStatus: description ? "Processing" : "None" } },
+      data: { request: { ...request, aiImages: [], aiGenerations: [], aiStatus: description ? "Processing" : "None", preferredImage: null, versionCount: 0 } },
     });
   } catch (err) {
     next(err);
@@ -273,7 +291,7 @@ export const getGenerationsByRequest = async (req, res, next) => {
     if (!requestId) return res.status(400).json({ ok: false, message: "Query parameter 'request_id' is required." });
 
     const [rows] = await pool.query(
-      "SELECT * FROM RequestAIGeneration WHERE Request_id = ? ORDER BY CreatedAt DESC",
+      "SELECT * FROM RequestAIGeneration WHERE Request_id = ? ORDER BY VersionNumber ASC, CreatedAt ASC",
       [requestId]
     );
 
@@ -289,6 +307,10 @@ export const getGenerationsByRequest = async (req, res, next) => {
           error: g.ErrorMessage,
           createdAt: g.CreatedAt,
           completedAt: g.CompletedAt,
+          versionNumber: g.VersionNumber || 1,
+          refinementPrompt: g.RefinementPrompt || null,
+          enhancedPrompt: g.EnhancedPrompt || null,
+          isPreferred: !!g.IsPreferred,
         })),
       },
     });
@@ -305,6 +327,137 @@ export const regenerateAI = async (req, res, next) => {
 
     const result = await regenerateForRequest(id);
     return res.status(200).json({ ok: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// =============================
+// 🎨 AI REFINEMENT ENDPOINTS
+// =============================
+
+// POST refine + regenerate for a request
+export const refineRequest = async (req, res, next) => {
+  try {
+    const id = Number(req.query.id);
+    if (!id) return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
+
+    const { refinementPrompt } = req.body;
+    if (!refinementPrompt || !refinementPrompt.trim()) {
+      return res.status(400).json({ ok: false, message: "refinementPrompt is required." });
+    }
+
+    // Fire refinement pipeline asynchronously
+    refineAndRegenerate(id, refinementPrompt.trim()).catch((err) => {
+      console.error(`[AI Pipeline] Background refinement error for request #${id}:`, err.message);
+    });
+
+    return res.status(200).json({
+      ok: true,
+      message: "Refinement started. New version will appear shortly.",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET all versions for a request (grouped by version number)
+export const getVersionsByRequest = async (req, res, next) => {
+  try {
+    const requestId = Number(req.query.request_id);
+    if (!requestId) return res.status(400).json({ ok: false, message: "Query parameter 'request_id' is required." });
+
+    const [rows] = await pool.query(
+      "SELECT * FROM RequestAIGeneration WHERE Request_id = ? ORDER BY VersionNumber ASC, Generation_id ASC",
+      [requestId]
+    );
+
+    // Group by version number
+    const versionsMap = {};
+    for (const row of rows) {
+      const vn = row.VersionNumber || 1;
+      if (!versionsMap[vn]) {
+        versionsMap[vn] = {
+          versionNumber: vn,
+          refinementPrompt: row.RefinementPrompt || null,
+          enhancedPrompt: row.EnhancedPrompt || null,
+          isPreferred: !!row.IsPreferred,
+          status: row.GenerationStatus,
+          createdAt: row.CreatedAt,
+          completedAt: row.CompletedAt,
+          images: [],
+          generations: [],
+        };
+      }
+
+      // If any generation in this version is preferred, mark the version
+      if (row.IsPreferred) versionsMap[vn].isPreferred = true;
+
+      versionsMap[vn].generations.push({
+        id: row.Generation_id,
+        imageUrl: row.GeneratedImageUrl,
+        status: row.GenerationStatus,
+        error: row.ErrorMessage,
+        meshyTaskId: row.MeshyTaskId,
+        createdAt: row.CreatedAt,
+        completedAt: row.CompletedAt,
+        isPreferred: !!row.IsPreferred,
+      });
+
+      if (row.GeneratedImageUrl && row.GenerationStatus === "Completed") {
+        versionsMap[vn].images.push(row.GeneratedImageUrl);
+      }
+
+      // Use the worst status in the version
+      if (row.GenerationStatus === "Failed") versionsMap[vn].status = "Failed";
+      else if (row.GenerationStatus === "Processing" && versionsMap[vn].status !== "Failed") versionsMap[vn].status = "Processing";
+      else if (row.GenerationStatus === "Pending" && versionsMap[vn].status !== "Failed" && versionsMap[vn].status !== "Processing") versionsMap[vn].status = "Pending";
+    }
+
+    const versions = Object.values(versionsMap);
+
+    return res.status(200).json({
+      ok: true,
+      data: { versions },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT set a version as preferred (unsets others for the same request)
+export const setPreferredVersion = async (req, res, next) => {
+  try {
+    const generationId = Number(req.query.generation_id);
+    if (!generationId) return res.status(400).json({ ok: false, message: "Query parameter 'generation_id' is required." });
+
+    // Find the request this generation belongs to
+    const [genRows] = await pool.query(
+      "SELECT Request_id, VersionNumber FROM RequestAIGeneration WHERE Generation_id = ?",
+      [generationId]
+    );
+    if (!genRows.length) return res.status(404).json({ ok: false, message: "Generation not found." });
+
+    const requestId = genRows[0].Request_id;
+    const versionNumber = genRows[0].VersionNumber;
+
+    // Unset all preferred flags for this request
+    await pool.query(
+      "UPDATE RequestAIGeneration SET IsPreferred = FALSE WHERE Request_id = ?",
+      [requestId]
+    );
+
+    // Set preferred for all generations in this version (since a version may have multiple images)
+    await pool.query(
+      "UPDATE RequestAIGeneration SET IsPreferred = TRUE WHERE Request_id = ? AND VersionNumber = ?",
+      [requestId, versionNumber]
+    );
+
+    return res.status(200).json({
+      ok: true,
+      message: `Version ${versionNumber} set as preferred.`,
+      data: { requestId, versionNumber },
+    });
   } catch (err) {
     next(err);
   }
