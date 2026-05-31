@@ -1,5 +1,7 @@
 import pool from "../../db/connection.js";
 
+const PLATFORM_COMMISSION_RATE = 0.10; // 10% platform commission
+
 const sanitizeApp = (row) => {
   if (!row) return null;
   return {
@@ -166,7 +168,7 @@ export const createApplication = async (req, res, next) => {
 };
 
 // =============================
-// ✏️ UPDATE (Accept/Reject + auto-session creation)
+// ✏️ UPDATE (Accept → AwaitingPayment, Reject, etc.)
 // =============================
 export const updateApplication = async (req, res, next) => {
   try {
@@ -179,30 +181,21 @@ export const updateApplication = async (req, res, next) => {
     if (!currentRows.length) return res.status(404).json({ ok: false, message: "Application not found." });
 
     const current = currentRows[0];
-    const wasAccepted = current.Status === 'Accepted';
+    const wasAccepted = current.Status === 'Accepted' || current.Status === 'AwaitingPayment';
     const isBeingAccepted = status === 'Accepted' && !wasAccepted;
+
+    // When artisan accepts: set to AwaitingPayment (buyer must pay before fully accepted)
+    let finalStatus = status;
+    if (isBeingAccepted) {
+      finalStatus = 'AwaitingPayment';
+    }
 
     await pool.query(
       "UPDATE MentorshipApplication SET Status=COALESCE(?,Status), Message=COALESCE(?,Message) WHERE Application_id=?",
-      [status, message, id]
+      [finalStatus, message, id]
     );
 
-    // On acceptance: create a session and optionally reject other pending apps
-    if (isBeingAccepted) {
-      const mentorshipId = current.Mentorship_id;
-      const mentorshipDuration = current.MentorshipDuration;
-
-      // Create session
-      await pool.query(
-        `INSERT INTO MentorshipSession (Application_id, ScheduledAt, Duration, MeetingLink, MeetingProvider, Status)
-         VALUES (?, ?, ?, ?, 'custom', 'Scheduled')`,
-        [id, scheduledAt || null, mentorshipDuration || 60, meetingLink || null]
-      );
-
-      console.log(`[Mentorship] Session created for application ${id}`);
-    }
-
-    // If artisan provides meeting link, update session
+    // If artisan provides meeting link, update session (if session already exists)
     if (meetingLink && current.Session_id) {
       await pool.query(
         "UPDATE MentorshipSession SET MeetingLink=?, ScheduledAt=COALESCE(?,ScheduledAt) WHERE Session_id=?",
@@ -212,6 +205,77 @@ export const updateApplication = async (req, res, next) => {
 
     const [rows] = await pool.query(`${APP_QUERY} WHERE ma.Application_id = ?`, [id]);
     return res.status(200).json({ ok: true, data: { application: sanitizeApp(rows[0]) } });
+  } catch (err) { next(err); }
+};
+
+// =============================
+// 💳 PAY FOR MENTORSHIP (buyer pays after acceptance)
+// =============================
+export const payForMentorship = async (req, res, next) => {
+  try {
+    const id = Number(req.query.id);
+    if (!id) return res.status(400).json({ ok: false, message: "Query parameter 'id' (application_id) is required." });
+
+    // Fetch application
+    const [appRows] = await pool.query(`${APP_QUERY} WHERE ma.Application_id = ?`, [id]);
+    if (!appRows.length) return res.status(404).json({ ok: false, message: "Application not found." });
+
+    const app = appRows[0];
+
+    // Must be in AwaitingPayment status
+    if (app.Status !== 'AwaitingPayment') {
+      return res.status(400).json({ ok: false, message: "This application is not awaiting payment." });
+    }
+
+    const mentorshipPrice = Number(app.MentorshipPrice || 0);
+    if (mentorshipPrice <= 0) {
+      return res.status(400).json({ ok: false, message: "Mentorship price is invalid." });
+    }
+
+    // Commission calculation (server-side)
+    const platformCommission = parseFloat((mentorshipPrice * PLATFORM_COMMISSION_RATE).toFixed(2));
+    const artisanAmount = parseFloat((mentorshipPrice - platformCommission).toFixed(2));
+
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      // 1. Create payment (Card only — enforced server-side)
+      await conn.query(
+        `INSERT INTO Payment (Mentorship_id, Artisan_id, Buyer_id, TotalAmount, PlatformCommissionAmount, ArtisanAmount, PaymentMethod, TransactionDate, Status, PaymentType, EscrowHeld, EscrowReleased, EscrowStatus)
+         VALUES (?, ?, ?, ?, ?, ?, 'Card', CURRENT_DATE, 'Completed', 'mentorship', 0, 0, 'none')`,
+        [app.Mentorship_id, app.Artisan_id, app.Buyer_id, mentorshipPrice, platformCommission, artisanAmount]
+      );
+
+      // 2. Update application status to Accepted (paid)
+      await conn.query(
+        "UPDATE MentorshipApplication SET Status = 'Accepted' WHERE Application_id = ?",
+        [id]
+      );
+
+      // 3. Create mentorship session
+      const { meetingLink, scheduledAt } = req.body;
+      await conn.query(
+        `INSERT INTO MentorshipSession (Application_id, ScheduledAt, Duration, MeetingLink, MeetingProvider, Status)
+         VALUES (?, ?, ?, ?, 'custom', 'Scheduled')`,
+        [id, scheduledAt || null, app.MentorshipDuration || 60, meetingLink || null]
+      );
+
+      await conn.commit();
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+
+    // Return updated application
+    const [rows] = await pool.query(`${APP_QUERY} WHERE ma.Application_id = ?`, [id]);
+    return res.status(200).json({ 
+      ok: true, 
+      message: "Payment successful. Mentorship access granted.",
+      data: { application: sanitizeApp(rows[0]) } 
+    });
   } catch (err) { next(err); }
 };
 

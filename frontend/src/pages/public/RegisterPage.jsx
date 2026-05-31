@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import Input from "../../components/ui/Input";
 import TextArea from "../../components/ui/TextArea";
+import CountrySelect from "../../components/ui/CountrySelect";
 import Button from "../../components/ui/Button";
 import { FiMail, FiLock, FiUser, FiCamera } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -63,6 +64,9 @@ export default function RegisterPage() {
     }
     if (form.password !== form.confirmPassword) {
       errs.confirmPassword = "Passwords do not match.";
+    }
+    if (userType === "Buyer" && !form.country) {
+      errs.country = "Country is required.";
     }
     if (Object.keys(errs).length) {
       setErrors(errs);
@@ -209,12 +213,12 @@ export default function RegisterPage() {
               onChange={handleChange}
             />
             {userType === "Buyer" && (
-              <Input
+              <CountrySelect
                 label="Country"
-                name="country"
-                placeholder="Your country"
                 value={form.country}
                 onChange={handleChange}
+                error={errors.country}
+                required
               />
             )}
             {userType === "Artisan" && (

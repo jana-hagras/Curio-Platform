@@ -451,6 +451,10 @@ export const initDatabase = async () => {
         await migrateMilestoneTable(conn);
         await migratePaymentForMentorshipWorkshop(conn);
         await migrateChatTables(conn);
+        await migratePaymentCommission(conn);
+        await migrateWorkshopPaymentStatus(conn);
+        await migrateMentorshipAwaitingPayment(conn);
+        await migrateUserCountry(conn);
 
     } finally {
         conn.release();
@@ -623,4 +627,111 @@ async function migrateChatTables(conn) {
         await conn.query(sql);
     }
     console.log("Chat system tables migration complete ✅");
+}
+
+// ─── Payment commission columns migration ───
+async function migratePaymentCommission(conn) {
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'Payment'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    const migrations = [
+        { column: 'PlatformCommissionAmount', sql: "ALTER TABLE Payment ADD COLUMN PlatformCommissionAmount DECIMAL(10,2) DEFAULT 0.00" },
+        { column: 'ArtisanAmount', sql: "ALTER TABLE Payment ADD COLUMN ArtisanAmount DECIMAL(10,2) DEFAULT 0.00" },
+        { column: 'Buyer_id', sql: "ALTER TABLE Payment ADD COLUMN Buyer_id INT DEFAULT NULL" },
+    ];
+
+    for (const m of migrations) {
+        if (!existing.has(m.column)) {
+            try {
+                await conn.query(m.sql);
+                console.log(`  ✅ Added Payment.${m.column}`);
+            } catch (e) {
+                if (!e.message.includes('Duplicate column')) console.warn(`  ⚠️ Payment commission migration warning for ${m.column}:`, e.message);
+            }
+        }
+    }
+
+    // Backfill existing payments: set commission = 10% of TotalAmount where not set
+    try {
+        await conn.query(`
+            UPDATE Payment 
+            SET PlatformCommissionAmount = ROUND(TotalAmount * 0.10, 2),
+                ArtisanAmount = ROUND(TotalAmount * 0.90, 2)
+            WHERE PlatformCommissionAmount = 0 AND ArtisanAmount = 0 AND TotalAmount > 0
+        `);
+        console.log("  ✅ Backfilled Payment commission values");
+    } catch (e) {
+        console.warn("  ⚠️ Payment commission backfill warning:", e.message);
+    }
+
+    console.log("Payment commission migration complete ✅");
+}
+
+// ─── WorkshopRegistration: add PaymentStatus column ───
+async function migrateWorkshopPaymentStatus(conn) {
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'WorkshopRegistration'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    if (!existing.has('PaymentStatus')) {
+        try {
+            await conn.query(
+                "ALTER TABLE WorkshopRegistration ADD COLUMN PaymentStatus ENUM('Pending','Completed','Failed') DEFAULT 'Pending'"
+            );
+            console.log("  ✅ Added WorkshopRegistration.PaymentStatus");
+        } catch (e) {
+            if (!e.message.includes('Duplicate column')) console.warn("  ⚠️ WorkshopRegistration PaymentStatus migration warning:", e.message);
+        }
+    }
+    console.log("WorkshopRegistration payment status migration complete ✅");
+}
+
+// ─── MentorshipApplication: expand Status ENUM to include AwaitingPayment ───
+async function migrateMentorshipAwaitingPayment(conn) {
+    try {
+        await conn.query(
+            "ALTER TABLE MentorshipApplication MODIFY COLUMN Status ENUM('Pending','Accepted','AwaitingPayment','Rejected','Completed') DEFAULT 'Pending'"
+        );
+        console.log("  ✅ MentorshipApplication.Status ENUM expanded with AwaitingPayment");
+    } catch (e) {
+        if (!e.message.includes('Duplicate')) console.warn("  ⚠️ MentorshipApplication Status migration warning:", e.message);
+    }
+    console.log("MentorshipApplication AwaitingPayment migration complete ✅");
+}
+
+// ─── User table: add Country column (for all users, primarily used by Buyers) ───
+async function migrateUserCountry(conn) {
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'user'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    if (!existing.has('Country')) {
+        try {
+            await conn.query("ALTER TABLE user ADD COLUMN Country VARCHAR(100) DEFAULT NULL");
+            console.log("  ✅ Added user.Country");
+        } catch (e) {
+            if (!e.message.includes('Duplicate column')) console.warn("  ⚠️ User Country migration warning:", e.message);
+        }
+    }
+
+    // Backfill: copy Buyer.Country to user.Country for existing buyers
+    try {
+        const [result] = await conn.query(`
+            UPDATE user u
+            INNER JOIN Buyer b ON u.User_id = b.Buyer_id
+            SET u.Country = b.Country
+            WHERE u.Country IS NULL AND b.Country IS NOT NULL
+        `);
+        if (result.affectedRows > 0) {
+            console.log(`  ✅ Backfilled user.Country for ${result.affectedRows} buyer(s)`);
+        }
+    } catch (e) {
+        console.warn("  ⚠️ User Country backfill warning:", e.message);
+    }
+
+    console.log("User Country migration complete ✅");
 }

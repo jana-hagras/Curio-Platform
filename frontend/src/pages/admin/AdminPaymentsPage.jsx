@@ -15,7 +15,7 @@ import './AdminTable.css';
 import './AdminPaymentsPage.css';
 
 /* ── Constants ───────────────────────────────────────── */
-const FEE_RATE = 0.10;
+// Commission is now server-side (10%) — no client-side FEE_RATE needed
 
 /* ── Business logic helpers ──────────────────────────── */
 function enrich(p, orderMap, requestMap) {
@@ -26,8 +26,9 @@ function enrich(p, orderMap, requestMap) {
 
   const type      = p.paymentType || (rid ? 'escrow' : 'product');
   const amount    = Number(p.totalAmount || 0);
-  const fee       = parseFloat((amount * FEE_RATE).toFixed(2));
-  const payout    = parseFloat((amount - fee).toFixed(2));
+  // Use DB-computed commission values (server is source of truth)
+  const fee       = Number(p.platformCommissionAmount || 0);
+  const payout    = Number(p.artisanAmount || 0);
   const isEscrow  = type === 'escrow';
 
   // Use real DB escrow fields
@@ -38,10 +39,10 @@ function enrich(p, orderMap, requestMap) {
   return {
     ...p,
     paymentType:     type,
-    buyerName:       order?.buyerName || request?.buyerName || '—',
-    buyerId:         order?.buyer_id  ?? request?.buyer_id  ?? null,
-    referenceName:   request?.title   || (order ? `Order #${oid}` : '—'),
-    referenceLabel:  order ? `Order #${oid}` : (request ? `Request #${rid}` : '—'),
+    buyerName:       p.buyerName || order?.buyerName || request?.buyerName || '—',
+    buyerId:         p.buyer_id  ?? order?.buyer_id  ?? request?.buyer_id  ?? null,
+    referenceName:   request?.title   || (order ? `Order #${oid}` : (p.workshop_id ? `Workshop #${p.workshop_id}` : (p.mentorship_id ? `Mentorship #${p.mentorship_id}` : '—'))),
+    referenceLabel:  order ? `Order #${oid}` : (request ? `Request #${rid}` : (p.workshop_id ? `Workshop #${p.workshop_id}` : (p.mentorship_id ? `Mentorship #${p.mentorship_id}` : '—'))),
     amount,
     platformFee:     fee,
     artisanEarnings: payout,
@@ -73,9 +74,11 @@ function applyFilters(rows, { query, type, status, method, escrow }) {
 
 /* ── Sub-components ──────────────────────────────────── */
 const TYPE_CONF = {
-  product: { label: 'Product Purchase', icon: FiShoppingBag, cls: 'type-product' },
-  escrow:  { label: 'Escrow Payment',   icon: FiLock,        cls: 'type-custom'  },
-  custom:  { label: 'Custom Request',   icon: FiFileText,    cls: 'type-custom'  },
+  product:    { label: 'Product Purchase', icon: FiShoppingBag, cls: 'type-product' },
+  escrow:     { label: 'Escrow Payment',   icon: FiLock,        cls: 'type-custom'  },
+  custom:     { label: 'Custom Request',   icon: FiFileText,    cls: 'type-custom'  },
+  workshop:   { label: 'Workshop',         icon: FiShoppingBag, cls: 'type-product' },
+  mentorship: { label: 'Mentorship',       icon: FiFileText,    cls: 'type-custom'  },
 };
 const STATUS_CONF = {
   completed: { label: 'Completed', cls: 'badge-green'  },
@@ -469,8 +472,10 @@ export default function AdminPaymentsPage() {
           <FilterSelect
             value={fType} onChange={setFType} placeholder="All Types"
             options={[
-              { value: 'product', label: '🛍 Product Purchase' },
-              { value: 'escrow',  label: '🔐 Escrow Payment'   },
+              { value: 'product',    label: '🛍 Product Purchase' },
+              { value: 'escrow',     label: '🔐 Escrow Payment'   },
+              { value: 'workshop',   label: '🎨 Workshop'         },
+              { value: 'mentorship', label: '📚 Mentorship'       },
             ]}
           />
           <FilterSelect

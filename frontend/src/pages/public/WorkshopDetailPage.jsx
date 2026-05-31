@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiClock, FiUsers, FiCalendar, FiDollarSign, FiArrowLeft, FiTag, FiCheckCircle } from 'react-icons/fi';
+import { FiClock, FiUsers, FiCalendar, FiDollarSign, FiArrowLeft, FiTag, FiCheckCircle, FiCreditCard } from 'react-icons/fi';
 import { workshopService } from '../../services/workshopService';
 import { workshopRegistrationService } from '../../services/workshopRegistrationService';
 import { useAuth } from '../../hooks/useAuth';
@@ -8,6 +8,8 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
+import Modal from '../../components/ui/Modal';
+import CardPaymentForm from '../../components/ui/CardPaymentForm';
 import toast from 'react-hot-toast';
 
 export default function WorkshopDetailPage() {
@@ -18,6 +20,7 @@ export default function WorkshopDetailPage() {
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
   const [hasRegistered, setHasRegistered] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     workshopService.getById(id)
@@ -37,7 +40,8 @@ export default function WorkshopDetailPage() {
     }
   }, [user, isBuyer, id]);
 
-  const handleRegister = async () => {
+  // Direct registration (for free workshops)
+  const handleFreeRegister = async () => {
     setRegistering(true);
     try {
       await workshopRegistrationService.create({
@@ -46,13 +50,42 @@ export default function WorkshopDetailPage() {
       });
       toast.success('Registered successfully!');
       setHasRegistered(true);
-      // Refresh workshop data for updated count
       const res = await workshopService.getById(id);
       setWorkshop(res.data?.workshop);
     } catch (err) {
       toast.error(err.message || 'Failed to register');
     } finally {
       setRegistering(false);
+    }
+  };
+
+  // Paid workshop registration (after card payment)
+  const handlePaidRegister = async () => {
+    setRegistering(true);
+    try {
+      await workshopRegistrationService.create({
+        workshop_id: Number(id),
+        buyer_id: user.id,
+      });
+      toast.success('Payment successful! You are registered for this workshop.');
+      setHasRegistered(true);
+      setShowPaymentModal(false);
+      const res = await workshopService.getById(id);
+      setWorkshop(res.data?.workshop);
+    } catch (err) {
+      toast.error(err.message || 'Failed to register');
+    } finally {
+      setRegistering(false);
+    }
+  };
+
+  // Register button click handler
+  const handleRegisterClick = () => {
+    const isFree = !workshop.price || Number(workshop.price) === 0;
+    if (isFree) {
+      handleFreeRegister();
+    } else {
+      setShowPaymentModal(true);
     }
   };
 
@@ -106,6 +139,11 @@ export default function WorkshopDetailPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
               {workshop.category && <span style={{ padding: '4px 12px', borderRadius: 'var(--radius-full)', background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', fontSize: 12, fontWeight: 600 }}>{workshop.category}</span>}
               <Badge status={workshop.status}>{workshop.status}</Badge>
+              {!isFree && (
+                <span style={{ padding: '4px 10px', borderRadius: 'var(--radius-full)', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <FiCreditCard size={11} /> Card Payment Required
+                </span>
+              )}
             </div>
             <h1 style={{ fontSize: 32, marginBottom: 16 }}>{workshop.title}</h1>
 
@@ -192,8 +230,8 @@ export default function WorkshopDetailPage() {
                     <FiCheckCircle style={{ marginRight: 6 }} /> Registered
                   </Button>
                 ) : (
-                  <Button onClick={handleRegister} loading={registering} disabled={!isAccepting || spotsLeft <= 0}>
-                    {spotsLeft <= 0 ? 'Workshop Full' : 'Register Now'}
+                  <Button onClick={handleRegisterClick} loading={registering} disabled={!isAccepting || spotsLeft <= 0}>
+                    {spotsLeft <= 0 ? 'Workshop Full' : isFree ? 'Register Now' : `Pay & Register — ${formatCurrency(workshop.price)}`}
                   </Button>
                 )
               ) : !isAuthenticated ? (
@@ -203,6 +241,48 @@ export default function WorkshopDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal for paid workshops */}
+      <Modal isOpen={showPaymentModal} onClose={() => setShowPaymentModal(false)} title="Workshop Payment">
+        <div style={{ padding: '8px 0' }}>
+          {/* Payment summary */}
+          <div style={{
+            padding: 20, marginBottom: 24,
+            background: 'var(--surface-secondary)',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--surface-border)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Workshop</span>
+              <span style={{ fontWeight: 600 }}>{workshop.title}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Amount</span>
+              <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--gold-primary)' }}>
+                {formatCurrency(workshop.price)}
+              </span>
+            </div>
+          </div>
+
+          {/* Card-only notice */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '10px 14px', marginBottom: 20,
+            background: 'rgba(59, 130, 246, 0.06)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: 12, color: '#3B82F6',
+          }}>
+            <FiCreditCard size={14} />
+            Workshop payments require Bank Card payment only.
+          </div>
+
+          <CardPaymentForm
+            onSubmit={handlePaidRegister}
+            loading={registering}
+            amount={workshop.price}
+          />
+        </div>
+      </Modal>
     </div>
   );
 }

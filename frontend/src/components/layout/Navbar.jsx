@@ -55,9 +55,6 @@ export default function Navbar() {
         { path: "/", label: "Home", icon: FiHome },
         { path: "/marketplace", label: "Marketplace", icon: FiList },
         { path: "/artisans", label: "Artisans", icon: FiUser },
-        { path: "/requests", label: "Requests", icon: FiFileText },
-        { path: "/mentorships", label: "Mentorships", icon: FiBriefcase },
-        { path: "/workshops", label: "Workshops", icon: FiInbox },
       ];
     }
 

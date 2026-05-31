@@ -1,5 +1,6 @@
 import pool from "../../db/connection.js";
 import bcrypt from "bcrypt";
+import { COUNTRIES, isValidCountry } from "../../utils/countries.js";
 
 const SALT_ROUNDS = 10;
 
@@ -71,8 +72,10 @@ const validateRegister = ({ fName, mName, lName, email, password, type, phone, a
 
   // ── Type-specific fields ──
   if (type === "Buyer") {
-    if (country !== undefined && country !== null && country.trim() !== "" && country.trim().length > 100)
-      errors.push("Country must not exceed 100 characters.");
+    if (!country || !country.trim())
+      errors.push("Country is required for Buyer accounts.");
+    else if (!isValidCountry(country.trim()))
+      errors.push("Please select a valid country from the list.");
   }
 
   if (type === "Artisan") {
@@ -157,7 +160,8 @@ const sanitizeUser = (row) => {
     type: row.Type,
     joinDate: row.JoinDate,
     profileImage: row.ProfileImage,
-    ...(row.Type === "Buyer" && { country: row.Country }),
+    country: row.Country || row.BuyerCountry || null,
+    ...(row.Type === "Buyer" && { }),
     ...(row.Type === "Artisan" && {
       bio: row.Bio,
       status: row.Status,
@@ -190,9 +194,9 @@ export const register = async (req, res, next) => {
 
       // Insert user
       const [userRes] = await conn.query(
-        `INSERT INTO user (FName, MName, LName, Email, Password, Phone, Address, Type, JoinDate)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)`,
-        [fName.trim(), mName?.trim() || null, lName.trim(), email, hashedPassword, phone?.trim() || null, address?.trim() || null, type]
+        `INSERT INTO user (FName, MName, LName, Email, Password, Phone, Address, Country, Type, JoinDate)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_DATE)`,
+        [fName.trim(), mName?.trim() || null, lName.trim(), email, hashedPassword, phone?.trim() || null, address?.trim() || null, type === 'Buyer' ? country?.trim() || null : null, type]
       );
       const userId = userRes.insertId;
 
@@ -230,7 +234,7 @@ export const login = async (req, res, next) => {
     email = normalizeEmail(email);
 
     const query = `
-      SELECT u.*, b.Country, a.Bio, a.Status, a.Verified
+      SELECT u.*, b.Country AS BuyerCountry, a.Bio, a.Status, a.Verified
       FROM user u
       LEFT JOIN Buyer b ON u.User_id = b.Buyer_id
       LEFT JOIN Artisan a ON u.User_id = a.Artisan_id
@@ -259,7 +263,7 @@ export const me = async (req, res, next) => {
     if (!userId) return res.status(400).json({ ok: false, message: "A valid user ID is required." });
 
     const query = `
-      SELECT u.*, b.Country, a.Bio, a.Status, a.Verified
+      SELECT u.*, b.Country AS BuyerCountry, a.Bio, a.Status, a.Verified
       FROM user u
       LEFT JOIN Buyer b ON u.User_id = b.Buyer_id
       LEFT JOIN Artisan a ON u.User_id = a.Artisan_id
@@ -283,7 +287,7 @@ export const searchUsers = async (req, res, next) => {
 
     const searchValue = `%${value.trim()}%`;
     const query = `
-      SELECT u.*, b.Country, a.Bio, a.Status, a.Verified
+      SELECT u.*, b.Country AS BuyerCountry, a.Bio, a.Status, a.Verified
       FROM user u
       LEFT JOIN Buyer b ON u.User_id = b.Buyer_id
       LEFT JOIN Artisan a ON u.User_id = a.Artisan_id
@@ -307,7 +311,7 @@ export const searchUsers = async (req, res, next) => {
 export const getAllUsers = async (req, res, next) => {
   try {
     const query = `
-      SELECT u.*, b.Country, a.Bio, a.Status, a.Verified
+      SELECT u.*, b.Country AS BuyerCountry, a.Bio, a.Status, a.Verified
       FROM user u
       LEFT JOIN Buyer b ON u.User_id = b.Buyer_id
       LEFT JOIN Artisan a ON u.User_id = a.Artisan_id
@@ -329,7 +333,7 @@ export const getUserById = async (req, res, next) => {
     if (!userId) return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
 
     const query = `
-      SELECT u.*, b.Country, a.Bio, a.Status, a.Verified
+      SELECT u.*, b.Country AS BuyerCountry, a.Bio, a.Status, a.Verified
       FROM user u
       LEFT JOIN Buyer b ON u.User_id = b.Buyer_id
       LEFT JOIN Artisan a ON u.User_id = a.Artisan_id
@@ -414,4 +418,11 @@ export const deleteUser = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+// ----------------------------
+// GET COUNTRIES LIST
+// ----------------------------
+export const getCountries = async (req, res) => {
+  return res.status(200).json({ ok: true, data: { countries: COUNTRIES } });
 };
