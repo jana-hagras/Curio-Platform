@@ -149,23 +149,37 @@ export const getApplicationById = async (req, res, next) => {
 };
 
 // UPDATE (with auto-milestone generation on approval)
+// ─── TRANSACTIONAL: approval + milestone generation are atomic ───
 export const updateApplication = async (req, res, next) => {
+  // Grab a dedicated connection so we can use BEGIN / COMMIT / ROLLBACK.
+  const conn = await pool.getConnection();
   try {
     const id = Number(req.query.id);
-    if (!id) return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
+    if (!id) {
+      conn.release();
+      return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
+    }
 
     const { proposal, status } = req.body;
 
     // Fetch current application before update
-    const [currentRows] = await pool.query(`${APP_QUERY} WHERE ap.Application_id = ?`, [id]);
-    if (!currentRows.length) return res.status(404).json({ ok: false, message: "Application not found." });
-    
+    const [currentRows] = await conn.query(`${APP_QUERY} WHERE ap.Application_id = ?`, [id]);
+    if (!currentRows.length) {
+      conn.release();
+      return res.status(404).json({ ok: false, message: "Application not found." });
+    }
+
     const current = currentRows[0];
     const wasApproved = current.Status === 'Approved';
     const isBeingApproved = status === 'Approved' && !wasApproved;
 
+    // ── START TRANSACTION ──────────────────────────────────────────
+    // Everything from here until COMMIT is atomic: if milestone
+    // generation fails, the approval itself rolls back too.
+    await conn.beginTransaction();
+
     // Update the application
-    await pool.query(
+    await conn.query(
       "UPDATE Application SET Proposal=COALESCE(?,Proposal), Status=COALESCE(?,Status) WHERE Application_id=?",
       [proposal, status, id]
     );
@@ -176,17 +190,17 @@ export const updateApplication = async (req, res, next) => {
       const artisanId = current.Artisan_id;
 
       // 1. Reject all other pending applications for this request
-      await pool.query(
+      await conn.query(
         "UPDATE Application SET Status = 'Rejected' WHERE Request_id = ? AND Application_id != ? AND Status = 'Pending'",
         [requestId, id]
       );
 
       // 2. Get request budget
-      const [reqRows] = await pool.query("SELECT Budget FROM Request WHERE Request_id = ?", [requestId]);
+      const [reqRows] = await conn.query("SELECT Budget FROM Request WHERE Request_id = ?", [requestId]);
       const budget = Number(reqRows[0]?.Budget || 0);
 
       // 3. Check if milestones already exist for this request
-      const [existingMilestones] = await pool.query(
+      const [existingMilestones] = await conn.query(
         "SELECT Milestone_id FROM Milestone WHERE Request_id = ?",
         [requestId]
       );
@@ -197,8 +211,10 @@ export const updateApplication = async (req, res, next) => {
         // Safety check: artisanId must be a valid integer.
         // current.Artisan_id comes from ap.* in APP_QUERY — this is the Application table's column.
         if (!artisanId) {
-          console.error(`[Milestone Auto-Gen] Cannot generate milestones: artisanId is ${artisanId} for application ${id}. Aborting.`);
-          return getApplicationById(req, res, next);
+          await conn.rollback();
+          conn.release();
+          console.error(`[Milestone Auto-Gen] ROLLBACK — artisanId is ${artisanId} for application ${id}.`);
+          return res.status(500).json({ ok: false, message: "Cannot generate milestones: artisan ID is missing on this application." });
         }
 
         console.log(`[Milestone Auto-Gen] Generating 5 milestones for request=${requestId}, artisan=${artisanId}, application=${id}`);
@@ -223,18 +239,42 @@ export const updateApplication = async (req, res, next) => {
             ? parseFloat((budget - milestoneShare * (milestoneTitles.length - 1)).toFixed(2))
             : milestoneShare;
 
-          await pool.query(
+          const [insertResult] = await conn.query(
             "INSERT INTO Milestone (Request_id, Artisan_id, Application_id, Title, Description, DueDate, EscrowAmount, Status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')",
             [requestId, artisanId, id, milestoneTitles[i].title, milestoneTitles[i].desc, due.toISOString().slice(0, 10), amount]
           );
+          console.log(`[Milestone Auto-Gen]   ✅ Milestone ${i + 1}/5 "${milestoneTitles[i].title}" inserted (id=${insertResult.insertId})`);
         }
 
-        console.log(`[Milestone Auto-Gen] ✅ 5 milestones created for request=${requestId}`);
+        // Verification: confirm all 5 rows actually exist before committing
+        const [verifyRows] = await conn.query(
+          "SELECT COUNT(*) AS cnt FROM Milestone WHERE Request_id = ? AND Application_id = ?",
+          [requestId, id]
+        );
+        const savedCount = verifyRows[0].cnt;
+        if (savedCount < 5) {
+          await conn.rollback();
+          conn.release();
+          console.error(`[Milestone Auto-Gen] ROLLBACK — only ${savedCount}/5 milestones found after INSERT for request=${requestId}`);
+          return res.status(500).json({ ok: false, message: `Milestone generation incomplete (${savedCount}/5). Approval rolled back.` });
+        }
+
+        console.log(`[Milestone Auto-Gen] ✅ All 5 milestones verified in DB for request=${requestId}`);
       }
     }
 
+    // ── COMMIT ─────────────────────────────────────────────────────
+    await conn.commit();
+    conn.release();
+
     return getApplicationById(req, res, next);
-  } catch (err) { next(err); }
+  } catch (err) {
+    // ── ROLLBACK on any error ──────────────────────────────────────
+    try { await conn.rollback(); } catch (_) { /* connection may already be dead */ }
+    conn.release();
+    console.error('[updateApplication] ❌ Transaction rolled back:', err.message, err.stack);
+    next(err);
+  }
 };
 
 // DELETE

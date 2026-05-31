@@ -7,10 +7,9 @@ import { FiCalendar, FiDollarSign, FiImage, FiCpu } from 'react-icons/fi';
 import './RequestCard.css';
 
 export default function RequestCard({ request }) {
-  // First completed AI image, if any
-  const thumbnailUrl = request.aiImages && request.aiImages.length > 0
-    ? request.aiImages[0]
-    : null;
+  // Preferred AI image first, then first completed AI image
+  const thumbnailUrl = request.preferredImage
+    || (request.aiImages && request.aiImages.length > 0 ? request.aiImages[0] : null);
 
   const aiStatus = request.aiStatus || 'None';
 
