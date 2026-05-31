@@ -114,7 +114,7 @@ npm install
 npm run dev
 ```
 
-Visit the web app at: [http://localhost:5173](http://localhost:5173)
+Visit the web app at: [http://localhost:6000](http://localhost:6000)
 
 ---
 
@@ -187,8 +187,8 @@ The system auto-creates the following architecture:
 <p align="center">
   <b>
     <a href="https://github.com/jana-hagras"><span style="color:#8A2BE2">Jana Hagras</span></a> •
-    <a href="https://github.com/Youssef-buss"><span style="color:#8A2BE2">Youssef Ahmed</span></a> •
     <a href="https://github.com/adhambfoda05-star"><span style="color:#8A2BE2">Adham Baher</span></a> •
+    <a href="https://github.com/Youssef-buss"><span style="color:#8A2BE2">Youssef Ahmed</span></a> •
     <a href="https://github.com/Anas-Khairy"><span style="color:#8A2BE2">Anas Mohammed</span></a> •
     <a href="https://github.com/Abdelrehim2001"><span style="color:#8A2BE2">Ahmed Abdelrehim</span></a>
   </b>

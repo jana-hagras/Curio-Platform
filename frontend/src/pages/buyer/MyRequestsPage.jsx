@@ -46,21 +46,25 @@ export default function MyRequestsPage() {
   };
 
   const aiThumbnail = (row) => {
-    if (row.aiImages && row.aiImages.length > 0) {
+    const thumb = row.preferredImage || (row.aiImages && row.aiImages.length > 0 ? row.aiImages[0] : null);
+    if (thumb) {
       return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <img
-            src={row.aiImages[0]}
+            src={thumb}
             alt="AI preview"
             style={{
               width: 36, height: 36, borderRadius: 6,
-              objectFit: 'cover', border: '1px solid var(--surface-border)',
+              objectFit: 'cover', border: row.preferredImage ? '2px solid var(--gold-primary)' : '1px solid var(--surface-border)',
             }}
             onError={e => { e.target.style.display = 'none'; }}
           />
-          {row.aiImages.length > 1 && (
-            <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>
-              +{row.aiImages.length - 1}
+          {row.versionCount > 1 && (
+            <span style={{
+              fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 999,
+              background: 'rgba(139,92,246,0.1)', color: '#8B5CF6', whiteSpace: 'nowrap',
+            }}>
+              v{row.versionCount}
             </span>
           )}
         </div>
