@@ -2,30 +2,82 @@ import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Badge from '../ui/Badge';
-import { FiCalendar, FiDollarSign, FiTag } from 'react-icons/fi';
+import Image from '../ui/Image';
+import { FiCalendar, FiDollarSign, FiImage, FiCpu } from 'react-icons/fi';
 import './RequestCard.css';
 
 export default function RequestCard({ request }) {
+  // First completed AI image, if any
+  const thumbnailUrl = request.aiImages && request.aiImages.length > 0
+    ? request.aiImages[0]
+    : null;
+
+  const aiStatus = request.aiStatus || 'None';
+
+  const aiBadgeClass =
+    aiStatus === 'Completed' ? 'ai-completed' :
+    aiStatus === 'Processing' ? 'ai-processing' :
+    aiStatus === 'Failed' ? 'ai-failed' : '';
+
   return (
     <Link to={`/requests/${request.id}`} className="request-card" id={`request-card-${request.id}`}>
-      <div className="request-card-header">
-        <h3 className="request-card-title">{request.title}</h3>
-        {request.category && <Badge status="Active">{request.category}</Badge>}
+      {/* ── Thumbnail ── */}
+      <div className="request-card-thumbnail">
+        {thumbnailUrl ? (
+          <Image
+            src={thumbnailUrl}
+            alt={request.title}
+            fallback=""
+          />
+        ) : (
+          <div className="request-card-thumbnail-fallback">
+            <FiImage className="request-card-thumbnail-fallback-icon" />
+            <span className="request-card-thumbnail-fallback-text">
+              {aiStatus === 'Processing' ? 'Generating preview…' : 'Custom Request'}
+            </span>
+          </div>
+        )}
+
+        {/* Category pill */}
+        {request.category && (
+          <span className="request-card-category">{request.category}</span>
+        )}
+
+        {/* AI status overlay */}
+        {aiStatus !== 'None' && aiBadgeClass && (
+          <span className={`request-card-ai-badge ${aiBadgeClass}`}>
+            <FiCpu size={11} />
+            {aiStatus === 'Processing' ? 'AI Generating' : `AI ${aiStatus}`}
+          </span>
+        )}
       </div>
-      <p className="request-card-desc">{request.description?.slice(0, 120)}{request.description?.length > 120 ? '...' : ''}</p>
-      <div className="request-card-meta">
-        <div className="request-card-meta-item">
-          <FiDollarSign />
-          <span>Budget: {formatCurrency(request.budget)}</span>
+
+      {/* ── Body ── */}
+      <div className="request-card-body">
+        <div className="request-card-header">
+          <h3 className="request-card-title">{request.title}</h3>
+          {request.status && <Badge status={request.status === 'Open' ? 'Active' : request.status}>{request.status}</Badge>}
         </div>
-        <div className="request-card-meta-item">
-          <FiCalendar />
-          <span>{formatDate(request.requestDate)}</span>
+
+        <p className="request-card-desc">
+          {request.description?.slice(0, 120)}{request.description?.length > 120 ? '…' : ''}
+        </p>
+
+        <div className="request-card-meta">
+          <div className="request-card-meta-item">
+            <FiDollarSign />
+            <span>{formatCurrency(request.budget)}</span>
+          </div>
+          <div className="request-card-meta-item">
+            <FiCalendar />
+            <span>{formatDate(request.requestDate)}</span>
+          </div>
         </div>
+
+        {request.buyerName && (
+          <div className="request-card-buyer">By {request.buyerName}</div>
+        )}
       </div>
-      {request.buyerName && (
-        <div className="request-card-buyer">By {request.buyerName}</div>
-      )}
     </Link>
   );
 }

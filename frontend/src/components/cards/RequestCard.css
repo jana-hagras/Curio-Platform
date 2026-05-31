@@ -1,11 +1,13 @@
 .request-card {
   background: var(--surface-primary);
   border-radius: var(--radius-lg);
-  padding: 24px;
-  border: 1px solid var(--surface-border);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
   transition: all var(--transition-base);
+  border: 1px solid var(--surface-border);
   text-decoration: none;
   display: block;
+  color: inherit;
 }
 
 .request-card:hover {
@@ -14,39 +16,194 @@
   border-color: var(--gold-primary);
 }
 
+/* ── Thumbnail area ── */
+.request-card-thumbnail {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: var(--surface-tertiary);
+}
+
+.request-card-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.request-card:hover .request-card-thumbnail img {
+  transform: scale(1.05);
+}
+
+/* Fallback gradient when no image is available */
+.request-card-thumbnail-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(135deg,
+    rgba(212, 168, 67, 0.15) 0%,
+    rgba(139, 92, 246, 0.12) 50%,
+    rgba(59, 130, 246, 0.10) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.request-card-thumbnail-fallback::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20px,
+    rgba(212, 168, 67, 0.04) 20px,
+    rgba(212, 168, 67, 0.04) 40px
+  );
+}
+
+.request-card-thumbnail-fallback-icon {
+  font-size: 32px;
+  color: var(--gold-primary);
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.request-card-thumbnail-fallback-text {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+/* AI status overlay pill */
+.request-card-ai-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.request-card-ai-badge.ai-completed {
+  background: rgba(16, 185, 129, 0.85);
+  color: #fff;
+}
+
+.request-card-ai-badge.ai-processing {
+  background: rgba(245, 158, 11, 0.85);
+  color: #fff;
+  animation: aiBadgePulse 2s ease-in-out infinite;
+}
+
+.request-card-ai-badge.ai-failed {
+  background: rgba(239, 68, 68, 0.85);
+  color: #fff;
+}
+
+@keyframes aiBadgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Category pill (top-left) */
+.request-card-category {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--black-deep);
+  color: var(--gold-primary);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ── Body ── */
+.request-card-body {
+  padding: 16px;
+}
+
 .request-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .request-card-title {
-  font-size: 18px;
+  font-family: var(--font-heading);
+  font-size: 17px;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .request-card-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.5;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
+.request-card-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.request-card-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.request-card-meta-item svg {
+  color: var(--gold-primary);
+  flex-shrink: 0;
+}
+
 .request-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface-border);
 }
 
 .request-card-budget {
+  font-size: 18px;
   font-weight: 700;
   color: var(--gold-primary);
+  font-family: var(--font-body);
+}
+
+.request-card-buyer {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
 }

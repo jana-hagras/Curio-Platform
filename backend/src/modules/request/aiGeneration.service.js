@@ -1,32 +1,31 @@
 import pool from "../../db/connection.js";
 
 // ══════════════════════════════════════════════════════════════
-//  AI Generation Service — Gemini + Meshy AI Pipeline
+//  AI Generation Service — Gemini + Meshy AI 3D Pipeline
 // ══════════════════════════════════════════════════════════════
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-const MESHY_API_URL = "https://api.meshy.ai/openapi/v1/text-to-image";
+const MESHY_3D_API_URL = "https://api.meshy.ai/openapi/v2/text-to-3d";
 
-const GEMINI_SYSTEM_PROMPT = `You are an expert product designer and 3D visualization specialist for handmade Egyptian artisan crafts.
+const GEMINI_SYSTEM_PROMPT = `You are an expert product designer and 3D modeling specialist for handmade Egyptian artisan crafts.
 
-Given a buyer's custom craft request, enhance the description to be optimized for AI image generation. You must:
+Given a buyer's custom craft request, enhance the description to be optimized for AI 3D model generation. You must:
 
 1. Add specific material details (wood type, metal finish, fabric texture, stone, clay type)
 2. Define a clear color palette with specific tones and finishes
 3. Describe shape, structure, proportions, and dimensions precisely
-4. Add lighting and presentation style (studio lighting, natural, ambient)
-5. Include Egyptian/artisan craft aesthetic elements where appropriate
-6. Specify the viewing angle (front view, 3/4 view, isometric)
-7. Add background context (clean white studio, marble surface, etc.)
+4. Include Egyptian/artisan craft aesthetic elements where appropriate
+5. Focus on geometry and surface detail that translates well to 3D
+6. Mention the object type clearly (vase, lamp, jewelry box, etc.)
 
-Keep the enhanced prompt under 200 words.
+Keep the enhanced prompt under 150 words.
 Output ONLY the enhanced prompt text, no explanations, no quotes, no prefixes.
-The output should read as a direct image generation prompt.`;
+The output should read as a direct 3D model generation prompt.`;
 
 // ─── GEMINI PROMPT ENHANCEMENT ─────────────────────────────────
 
 /**
- * Enhance a buyer's prompt using Google Gemini for better image generation.
+ * Enhance a buyer's prompt using Google Gemini for better 3D generation.
  * @param {string} originalPrompt - The buyer's original description
  * @param {string} category - Product category for context
  * @returns {Promise<string|null>} Enhanced prompt or null on failure
@@ -82,14 +81,16 @@ export async function enhancePromptWithGemini(originalPrompt, category) {
   }
 }
 
-// ─── MESHY AI IMAGE GENERATION ─────────────────────────────────
+// ─── MESHY AI 3D MODEL GENERATION ──────────────────────────────
 
 /**
- * Generate images using Meshy AI text-to-image API.
+ * Generate a 3D model using Meshy AI text-to-3d v2 API (preview mode).
+ * Returns the GLB model URL and a thumbnail image URL.
+ *
  * @param {string} prompt - The enhanced prompt
- * @returns {Promise<{taskId: string, imageUrls: string[]}|null>}
+ * @returns {Promise<{taskId: string, glbUrl: string|null, thumbnailUrl: string|null, error?: string}|null>}
  */
-export async function generateImagesWithMeshy(prompt) {
+export async function generate3DWithMeshy(prompt) {
   const apiKey = process.env.MESHY_API_KEY;
   if (!apiKey) {
     console.error("[AI Pipeline] MESHY_API_KEY not configured");
@@ -97,25 +98,24 @@ export async function generateImagesWithMeshy(prompt) {
   }
 
   try {
-    // Step 1: Create the generation task
-    console.log("[AI Pipeline] Submitting to Meshy AI...");
-    const createRes = await fetch(MESHY_API_URL, {
+    // Step 1: Create the 3D generation task (preview mode)
+    console.log("[AI Pipeline] Submitting to Meshy AI text-to-3d v2 (preview)...");
+    const createRes = await fetch(MESHY_3D_API_URL, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ai_model: "nano-banana",
+        mode: "preview",
         prompt: prompt,
-        aspect_ratio: "1:1",
-        generate_multi_view: false,
+        should_remesh: true,
       }),
     });
 
     if (!createRes.ok) {
       const errText = await createRes.text();
-      console.error(`[AI Pipeline] Meshy create error ${createRes.status}:`, errText);
+      console.error(`[AI Pipeline] Meshy 3D create error ${createRes.status}:`, errText);
       return null;
     }
 
@@ -123,74 +123,58 @@ export async function generateImagesWithMeshy(prompt) {
     const taskId = createData.result;
 
     if (!taskId) {
-      console.error("[AI Pipeline] Meshy returned no task ID:", createData);
+      console.error("[AI Pipeline] Meshy 3D returned no task ID:", createData);
       return null;
     }
 
-    console.log(`[AI Pipeline] Meshy task created: ${taskId}`);
+    console.log(`[AI Pipeline] Meshy 3D task created: ${taskId}`);
 
-    // Step 2: Poll for completion (5s intervals, max 2 minutes)
-    const maxAttempts = 24; // 24 * 5s = 120s = 2 minutes
-    const pollInterval = 5000;
+    // Step 2: Poll for completion (10s intervals, max 5 minutes — 3D takes longer)
+    const maxAttempts = 30; // 30 * 10s = 300s = 5 minutes
+    const pollInterval = 10000;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
 
-      const statusRes = await fetch(`${MESHY_API_URL}/${taskId}`, {
+      const statusRes = await fetch(`${MESHY_3D_API_URL}/${taskId}`, {
         headers: { "Authorization": `Bearer ${apiKey}` },
       });
 
       if (!statusRes.ok) {
-        console.warn(`[AI Pipeline] Meshy poll error (attempt ${attempt + 1}):`, statusRes.status);
+        console.warn(`[AI Pipeline] Meshy 3D poll error (attempt ${attempt + 1}):`, statusRes.status);
         continue;
       }
 
       const statusData = await statusRes.json();
       const status = statusData.status;
+      const progress = statusData.progress || 0;
 
-      console.log(`[AI Pipeline] Meshy poll ${attempt + 1}/${maxAttempts}: ${status}`);
+      console.log(`[AI Pipeline] Meshy 3D poll ${attempt + 1}/${maxAttempts}: ${status} (${progress}%)`);
 
       if (status === "SUCCEEDED" || status === "completed") {
-        // Extract image URLs from the response
-        const imageUrls = [];
+        // Extract 3D model URLs from the response
+        const glbUrl = statusData.model_urls?.glb || null;
+        const thumbnailUrl = statusData.thumbnail_url || null;
 
-        // Meshy can return images in different formats
-        if (statusData.output?.image_url) {
-          imageUrls.push(statusData.output.image_url);
-        }
-        if (statusData.output?.image_urls && Array.isArray(statusData.output.image_urls)) {
-          imageUrls.push(...statusData.output.image_urls);
-        }
-        // Some responses put it at top level
-        if (statusData.image_url) {
-          imageUrls.push(statusData.image_url);
-        }
-        if (statusData.image_urls && Array.isArray(statusData.image_urls)) {
-          imageUrls.push(...statusData.image_urls);
+        if (!glbUrl) {
+          console.warn("[AI Pipeline] Meshy 3D succeeded but no GLB URL found:", JSON.stringify(statusData).slice(0, 500));
+          return { taskId, glbUrl: null, thumbnailUrl, error: "No 3D model URL in response" };
         }
 
-        // Deduplicate
-        const uniqueUrls = [...new Set(imageUrls)];
-
-        if (uniqueUrls.length === 0) {
-          console.warn("[AI Pipeline] Meshy succeeded but no image URLs found:", JSON.stringify(statusData).slice(0, 500));
-          return { taskId, imageUrls: [] };
-        }
-
-        console.log(`[AI Pipeline] ✅ Meshy generated ${uniqueUrls.length} image(s)`);
-        return { taskId, imageUrls: uniqueUrls };
+        console.log(`[AI Pipeline] ✅ Meshy 3D model generated (GLB: ${glbUrl.length} chars, thumbnail: ${thumbnailUrl ? 'yes' : 'no'})`);
+        return { taskId, glbUrl, thumbnailUrl };
       }
 
       if (status === "FAILED" || status === "failed" || status === "EXPIRED") {
-        console.error(`[AI Pipeline] Meshy task failed: ${statusData.error || status}`);
-        return { taskId, imageUrls: [], error: statusData.error || "Generation failed" };
+        console.error(`[AI Pipeline] Meshy 3D task failed: ${statusData.task_error?.message || status}`);
+        return { taskId, glbUrl: null, thumbnailUrl: null, error: statusData.task_error?.message || "3D generation failed" };
       }
     }
 
-    console.error("[AI Pipeline] Meshy polling timed out after 2 minutes");
-    return { taskId, imageUrls: [], error: "Generation timed out" };
+    console.error("[AI Pipeline] Meshy 3D polling timed out after 5 minutes");
+    return { taskId, glbUrl: null, thumbnailUrl: null, error: "3D generation timed out" };
   } catch (err) {
-    console.error("[AI Pipeline] Meshy generation failed:", err.message);
+    console.error("[AI Pipeline] Meshy 3D generation failed:", err.message);
     return null;
   }
 }
@@ -200,7 +184,7 @@ export async function generateImagesWithMeshy(prompt) {
 /**
  * Run the complete AI pipeline for a request:
  *   1. Enhance prompt with Gemini
- *   2. Generate images with Meshy
+ *   2. Generate 3D model with Meshy (preview mode)
  *   3. Save results to database
  *
  * This runs ASYNCHRONOUSLY after the request is saved.
@@ -211,7 +195,7 @@ export async function generateImagesWithMeshy(prompt) {
  * @param {string} category
  */
 export async function runAIPipeline(requestId, originalPrompt, category) {
-  console.log(`\n[AI Pipeline] ═══ Starting for request #${requestId} ═══`);
+  console.log(`\n[AI Pipeline] ═══ Starting 3D pipeline for request #${requestId} ═══`);
 
   // Create initial generation record
   let generationId;
@@ -241,7 +225,7 @@ export async function runAIPipeline(requestId, originalPrompt, category) {
     }
 
     // Use enhanced prompt if available, otherwise fall back to original
-    const promptForImage = enhancedPrompt || originalPrompt;
+    const promptFor3D = enhancedPrompt || originalPrompt;
 
     // ── Step 2: Update generation status ──
     await pool.query(
@@ -249,15 +233,15 @@ export async function runAIPipeline(requestId, originalPrompt, category) {
       [generationId]
     );
 
-    // ── Step 3: Meshy Image Generation ──
-    const meshyResult = await generateImagesWithMeshy(promptForImage);
+    // ── Step 3: Meshy 3D Generation ──
+    const meshyResult = await generate3DWithMeshy(promptFor3D);
 
     if (!meshyResult) {
       await pool.query(
-        "UPDATE RequestAIGeneration SET GenerationStatus = 'Failed', ErrorMessage = 'Meshy API call failed', CompletedAt = NOW() WHERE Generation_id = ?",
+        "UPDATE RequestAIGeneration SET GenerationStatus = 'Failed', ErrorMessage = 'Meshy 3D API call failed', CompletedAt = NOW() WHERE Generation_id = ?",
         [generationId]
       );
-      console.error(`[AI Pipeline] ❌ Meshy failed for request #${requestId}`);
+      console.error(`[AI Pipeline] ❌ Meshy 3D failed for request #${requestId}`);
       return;
     }
 
@@ -267,31 +251,22 @@ export async function runAIPipeline(requestId, originalPrompt, category) {
       [meshyResult.taskId, generationId]
     );
 
-    if (meshyResult.imageUrls.length === 0) {
+    if (!meshyResult.glbUrl) {
       await pool.query(
         "UPDATE RequestAIGeneration SET GenerationStatus = 'Failed', ErrorMessage = ?, CompletedAt = NOW() WHERE Generation_id = ?",
-        [meshyResult.error || "No images generated", generationId]
+        [meshyResult.error || "No 3D model generated", generationId]
       );
-      console.error(`[AI Pipeline] ❌ No images for request #${requestId}`);
+      console.error(`[AI Pipeline] ❌ No 3D model for request #${requestId}`);
       return;
     }
 
-    // ── Step 4: Save images ──
-    // Update first record with first image
+    // ── Step 4: Save 3D model + thumbnail ──
     await pool.query(
-      "UPDATE RequestAIGeneration SET GeneratedImageUrl = ?, GenerationStatus = 'Completed', CompletedAt = NOW() WHERE Generation_id = ?",
-      [meshyResult.imageUrls[0], generationId]
+      "UPDATE RequestAIGeneration SET GeneratedImageUrl = ?, ModelGlbUrl = ?, GenerationStatus = 'Completed', CompletedAt = NOW() WHERE Generation_id = ?",
+      [meshyResult.thumbnailUrl || null, meshyResult.glbUrl, generationId]
     );
 
-    // Insert additional images as separate records
-    for (let i = 1; i < meshyResult.imageUrls.length; i++) {
-      await pool.query(
-        "INSERT INTO RequestAIGeneration (Request_id, MeshyTaskId, GeneratedImageUrl, GenerationStatus, CompletedAt) VALUES (?, ?, ?, 'Completed', NOW())",
-        [requestId, meshyResult.taskId, meshyResult.imageUrls[i]]
-      );
-    }
-
-    console.log(`[AI Pipeline] ═══ ✅ Complete for request #${requestId} — ${meshyResult.imageUrls.length} image(s) saved ═══\n`);
+    console.log(`[AI Pipeline] ═══ ✅ 3D model complete for request #${requestId} ═══\n`);
   } catch (err) {
     console.error(`[AI Pipeline] ❌ Pipeline error for request #${requestId}:`, err.message);
 
@@ -310,7 +285,7 @@ export async function runAIPipeline(requestId, originalPrompt, category) {
 }
 
 /**
- * Regenerate AI images for an existing request.
+ * Regenerate AI 3D model for an existing request.
  * Uses stored EnhancedPrompt if available, otherwise re-enhances.
  */
 export async function regenerateForRequest(requestId) {
@@ -327,36 +302,29 @@ export async function regenerateForRequest(requestId) {
 
   // If we already have an enhanced prompt, reuse it for Meshy only
   if (request.EnhancedPrompt) {
-    console.log(`[AI Pipeline] Regenerating with existing enhanced prompt for request #${requestId}`);
+    console.log(`[AI Pipeline] Regenerating 3D with existing enhanced prompt for request #${requestId}`);
 
     const [genResult] = await pool.query(
       "INSERT INTO RequestAIGeneration (Request_id, GenerationStatus) VALUES (?, 'Processing')",
       [requestId]
     );
 
-    const meshyResult = await generateImagesWithMeshy(request.EnhancedPrompt);
+    const meshyResult = await generate3DWithMeshy(request.EnhancedPrompt);
 
-    if (!meshyResult || meshyResult.imageUrls.length === 0) {
+    if (!meshyResult || !meshyResult.glbUrl) {
       await pool.query(
         "UPDATE RequestAIGeneration SET GenerationStatus = 'Failed', ErrorMessage = ?, CompletedAt = NOW() WHERE Generation_id = ?",
-        [meshyResult?.error || "No images generated", genResult.insertId]
+        [meshyResult?.error || "No 3D model generated", genResult.insertId]
       );
-      return { success: false, error: meshyResult?.error || "Generation failed" };
+      return { success: false, error: meshyResult?.error || "3D generation failed" };
     }
 
     await pool.query(
-      "UPDATE RequestAIGeneration SET GeneratedImageUrl = ?, GenerationStatus = 'Completed', MeshyTaskId = ?, CompletedAt = NOW() WHERE Generation_id = ?",
-      [meshyResult.imageUrls[0], meshyResult.taskId, genResult.insertId]
+      "UPDATE RequestAIGeneration SET GeneratedImageUrl = ?, ModelGlbUrl = ?, GenerationStatus = 'Completed', MeshyTaskId = ?, CompletedAt = NOW() WHERE Generation_id = ?",
+      [meshyResult.thumbnailUrl || null, meshyResult.glbUrl, meshyResult.taskId, genResult.insertId]
     );
 
-    for (let i = 1; i < meshyResult.imageUrls.length; i++) {
-      await pool.query(
-        "INSERT INTO RequestAIGeneration (Request_id, MeshyTaskId, GeneratedImageUrl, GenerationStatus, CompletedAt) VALUES (?, ?, ?, 'Completed', NOW())",
-        [requestId, meshyResult.taskId, meshyResult.imageUrls[i]]
-      );
-    }
-
-    return { success: true, imageCount: meshyResult.imageUrls.length };
+    return { success: true };
   }
 
   // No enhanced prompt — run full pipeline
