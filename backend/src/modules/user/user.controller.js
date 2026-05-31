@@ -12,6 +12,9 @@ router.post("/login", userService.login);
 // Fetches current session user data
 router.get("/me/:id", userService.me);
 
+// Countries list for registration dropdown
+router.get("/countries", userService.getCountries);
+
 router.get("/all", userService.getAllUsers);
 router.get("/", userService.getUserById);
 router.put("/", userService.updateUser);

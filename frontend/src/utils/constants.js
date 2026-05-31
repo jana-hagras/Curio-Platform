@@ -14,7 +14,14 @@ export const CATEGORIES = [
   'Other',
 ];
 
-export const PAYMENT_METHODS = ['Cash', 'Visa', 'MasterCard', 'PayPal'];
+export const PAYMENT_METHODS = ['COD', 'Card']; // For backwards compat
+
+export const PAYMENT_METHODS_MARKETPLACE = {
+  egypt: ['COD', 'Card'],
+  international: ['Card'],
+};
+export const PAYMENT_METHODS_SERVICES = ['Card']; // Workshops & Mentorships: Card only
+export const PLATFORM_COMMISSION_RATE = 0.10; // Display only — server is source of truth
 
 export const ORDER_STATUSES = ['Pending', 'Completed'];
 export const PAYMENT_STATUSES = ['Pending', 'Completed', 'Failed'];

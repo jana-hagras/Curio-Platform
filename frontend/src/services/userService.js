@@ -1,6 +1,7 @@
 import api from './api';
 
 export const userService = {
+  getCountries: () => api.get('/user/countries'),
   register: (data) => api.post('/user/register', data),
   login: (data) => api.post('/user/login', data),
   getMe: (id) => api.get(`/user/me/${id}`),

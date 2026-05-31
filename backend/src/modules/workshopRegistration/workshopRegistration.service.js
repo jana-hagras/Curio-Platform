@@ -1,6 +1,8 @@
 import pool from "../../db/connection.js";
 import { createWorkshopGroupChat, addMemberToWorkshopChat } from "../chat/chat.service.js";
 
+const PLATFORM_COMMISSION_RATE = 0.10; // 10% platform commission
+
 const sanitizeRegistration = (row) => {
   if (!row) return null;
   return {
@@ -9,6 +11,7 @@ const sanitizeRegistration = (row) => {
     buyer_id: row.Buyer_id,
     registrationDate: row.RegistrationDate,
     status: row.Status,
+    paymentStatus: row.PaymentStatus || 'Pending',
     buyerName: row.BuyerFName ? `${row.BuyerFName} ${row.BuyerLName}` : null,
     buyerProfileImage: row.BuyerProfileImage || null,
     workshopTitle: row.WorkshopTitle || null,
@@ -86,7 +89,7 @@ export const getByArtisan = async (req, res, next) => {
 };
 
 // =============================
-// ➕ CREATE REGISTRATION
+// ➕ CREATE REGISTRATION (with payment for paid workshops)
 // =============================
 export const createRegistration = async (req, res, next) => {
   try {
@@ -118,32 +121,68 @@ export const createRegistration = async (req, res, next) => {
     );
     if (existing.length) return res.status(400).json({ ok: false, message: "You are already registered for this workshop." });
 
-    const [result] = await pool.query(
-      "INSERT INTO WorkshopRegistration (Workshop_id, Buyer_id, RegistrationDate, Status) VALUES (?, ?, CURRENT_DATE, 'Registered')",
+    const workshopPrice = Number(workshop[0].Price || 0);
+    const isFree = workshopPrice === 0;
+    const artisanId = workshop[0].Artisan_id;
+
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      // Create registration
+      const paymentStatus = isFree ? 'Completed' : 'Completed'; // Card payment is immediate
+      const [regResult] = await conn.query(
+        "INSERT INTO WorkshopRegistration (Workshop_id, Buyer_id, RegistrationDate, Status, PaymentStatus) VALUES (?, ?, CURRENT_DATE, 'Registered', ?)",
+        [workshop_id, buyer_id, paymentStatus]
+      );
+
+      // Create payment record for paid workshops (Card only — enforced server-side)
+      if (!isFree) {
+        const platformCommission = parseFloat((workshopPrice * PLATFORM_COMMISSION_RATE).toFixed(2));
+        const artisanAmount = parseFloat((workshopPrice - platformCommission).toFixed(2));
+
+        await conn.query(
+          `INSERT INTO Payment (Workshop_id, Artisan_id, Buyer_id, TotalAmount, PlatformCommissionAmount, ArtisanAmount, PaymentMethod, TransactionDate, Status, PaymentType, EscrowHeld, EscrowReleased, EscrowStatus)
+           VALUES (?, ?, ?, ?, ?, ?, 'Card', CURRENT_DATE, 'Completed', 'workshop', 0, 0, 'none')`,
+          [workshop_id, artisanId, buyer_id, workshopPrice, platformCommission, artisanAmount]
+        );
+      }
+
+      await conn.commit();
+
+      // ─── Auto group chat: create or join workshop chat ───
+      try {
+        const chatConn = await pool.getConnection();
+        try {
+          await createWorkshopGroupChat(chatConn, workshop_id, artisanId);
+          const [buyerUser] = await chatConn.query('SELECT FName FROM user WHERE User_id = ?', [buyer_id]);
+          const buyerName = buyerUser[0]?.FName || 'A buyer';
+          await addMemberToWorkshopChat(chatConn, workshop_id, buyer_id, buyerName);
+        } finally {
+          chatConn.release();
+        }
+      } catch (chatErr) {
+        console.warn('Workshop chat auto-sync warning:', chatErr.message);
+      }
+
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+
+    const [rows] = await pool.query(`${REG_QUERY} WHERE wr.Registration_id = ?`, [
+      (await pool.query("SELECT LAST_INSERT_ID() as id"))[0][0].id
+    ]);
+    
+    // Get the actual registration
+    const [regRows] = await pool.query(
+      `${REG_QUERY} WHERE wr.Workshop_id = ? AND wr.Buyer_id = ? ORDER BY wr.Registration_id DESC LIMIT 1`,
       [workshop_id, buyer_id]
     );
 
-    // ─── Auto group chat: create or join workshop chat ───
-    try {
-      const conn = await pool.getConnection();
-      try {
-        // Ensure chat exists (creates if first registration)
-        await createWorkshopGroupChat(conn, workshop_id, workshop[0].Artisan_id);
-        // Get buyer name for system message
-        const [buyerUser] = await conn.query('SELECT FName FROM user WHERE User_id = ?', [buyer_id]);
-        const buyerName = buyerUser[0]?.FName || 'A buyer';
-        // Add buyer to chat + system message
-        await addMemberToWorkshopChat(conn, workshop_id, buyer_id, buyerName);
-      } finally {
-        conn.release();
-      }
-    } catch (chatErr) {
-      console.warn('Workshop chat auto-sync warning:', chatErr.message);
-      // Non-blocking: registration still succeeds even if chat fails
-    }
-
-    const [rows] = await pool.query(`${REG_QUERY} WHERE wr.Registration_id = ?`, [result.insertId]);
-    return res.status(201).json({ ok: true, data: { registration: sanitizeRegistration(rows[0]) } });
+    return res.status(201).json({ ok: true, data: { registration: sanitizeRegistration(regRows[0]) } });
   } catch (err) { next(err); }
 };
 

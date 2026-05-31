@@ -9,5 +9,6 @@ export const mentorshipApplicationService = {
   getById: (id) => api.get(`/mentorship-applications/?id=${id}`),
   create: (data) => api.post('/mentorship-applications/', data),
   update: (id, data) => api.put(`/mentorship-applications/?id=${id}`, data),
+  pay: (id, data) => api.post(`/mentorship-applications/pay?id=${id}`, data || {}),
   delete: (id) => api.delete(`/mentorship-applications/?id=${id}`),
 };

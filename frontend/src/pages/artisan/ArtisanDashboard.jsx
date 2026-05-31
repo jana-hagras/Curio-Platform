@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { applicationService } from '../../services/applicationService';
 import { marketItemService } from '../../services/marketItemService';
 import { orderService } from '../../services/orderService';
+import { paymentService } from '../../services/paymentService';
 import { reviewService } from '../../services/reviewService';
 import { milestoneService } from '../../services/milestoneService';
 import {
@@ -29,29 +30,23 @@ export default function ArtisanDashboard() {
       marketItemService.getByArtisan(user.id).catch(() => ({ data: { items: [] } })),
       applicationService.getByArtisan(user.id).catch(() => ({ data: { applications: [] } })),
       orderService.getByArtisan(user.id).catch(() => ({ data: { orders: [] } })),
-    ]).then(async ([pRes, aRes, oRes]) => {
+      paymentService.getByArtisan(user.id).catch(() => ({ data: { payments: [] } })),
+    ]).then(async ([pRes, aRes, oRes, payRes]) => {
       const prods = pRes.data?.items || [];
       const apps = aRes.data?.applications || [];
       const artisanOrders = oRes.data?.orders || [];
-      
-      // Aggregate earnings from completed orders
-      let earnings = artisanOrders
-        .filter(o => o.status === 'Completed')
-        .reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+      const artisanPayments = payRes.data?.payments || [];
 
-      const approvedApps = apps.filter(a => a.status === 'Approved');
-      
-      for (const app of approvedApps) {
-        try {
-          const mRes = await milestoneService.getByRequest(app.request_id);
-          const milestones = mRes.data?.milestones || [];
-          milestones.forEach(m => {
-            if (m.status === 'Released' || m.status === 'Completed') {
-              earnings += Number(m.escrowAmount || 0);
-            }
-          });
-        } catch (err) {}
-      }
+      // Use DB-computed artisan amounts (after 10% commission)
+      const totalGross = artisanPayments
+        .filter(p => p.status === 'Completed')
+        .reduce((sum, p) => sum + Number(p.totalAmount || 0), 0);
+      const totalNet = artisanPayments
+        .filter(p => p.status === 'Completed')
+        .reduce((sum, p) => sum + Number(p.artisanAmount || 0), 0);
+      const totalCommission = artisanPayments
+        .filter(p => p.status === 'Completed')
+        .reduce((sum, p) => sum + Number(p.platformCommissionAmount || 0), 0);
 
       const accepted = apps.filter(a => a.status === 'Approved').length;
       const inProgress = apps.filter(a => a.status === 'Approved' || a.status === 'Pending').length;
@@ -63,7 +58,9 @@ export default function ArtisanDashboard() {
         applications: apps.length,
         accepted,
         inProgress,
-        earnings,
+        earnings: totalNet,
+        grossEarnings: totalGross,
+        commission: totalCommission,
         reviews: 0,
       });
       setLoading(false);
@@ -77,7 +74,7 @@ export default function ArtisanDashboard() {
     { label: 'Sent Proposals', value: stats.applications, icon: FiSend, color: '#3B82F6' },
     { label: 'Accepted', value: stats.accepted, icon: FiCheckCircle, color: '#10B981' },
     { label: 'In Progress', value: stats.inProgress, icon: FiClock, color: '#F59E0B' },
-    { label: 'Total Profit', value: formatCurrency(stats.earnings - (stats.earnings * 0.20)), icon: FiDollarSign, color: '#8B5CF6', hasTooltip: true },
+    { label: 'Net Earnings', value: formatCurrency(stats.earnings), icon: FiDollarSign, color: '#8B5CF6', hasTooltip: true },
   ];
 
   return (
@@ -124,12 +121,12 @@ export default function ArtisanDashboard() {
             <div>
               <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
                 {card.label}
-                {card.hasTooltip && (
-                  <span style={{ position: 'relative', display: 'inline-flex', cursor: 'help' }} className="earnings-tooltip-wrapper">
-                    <FiInfo size={14} style={{ color: 'var(--text-tertiary)' }} />
-                    <span className="earnings-tooltip">profit after the cut</span>
-                  </span>
-                )}
+                    {card.hasTooltip && (
+                      <span style={{ position: 'relative', display: 'inline-flex', cursor: 'help' }} className="earnings-tooltip-wrapper">
+                        <FiInfo size={14} style={{ color: 'var(--text-tertiary)' }} />
+                        <span className="earnings-tooltip">Net after 10% platform commission</span>
+                      </span>
+                    )}
               </p>
               <h3 style={{ fontSize: 24, fontFamily: 'var(--font-body)', fontWeight: 700 }}>{card.value}</h3>
             </div>

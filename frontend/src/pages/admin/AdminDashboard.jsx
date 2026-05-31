@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { userService } from '../../services/userService';
+import { paymentService } from '../../services/paymentService';
+import { formatCurrency } from '../../utils/formatCurrency';
 import {
   FiUsers, FiShoppingBag, FiTrendingUp, FiActivity,
-  FiArrowUpRight, FiArrowDownRight, FiClock
+  FiArrowUpRight, FiArrowDownRight, FiClock, FiDollarSign,
+  FiPercent, FiBookOpen, FiGrid
 } from 'react-icons/fi';
 import './AdminDashboard.css';
 
@@ -14,20 +17,28 @@ export default function AdminDashboard() {
     totalBuyers: 0,
     totalArtisans: 0,
   });
+  const [analytics, setAnalytics] = useState(null);
   const [recentUsers, setRecentUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await userService.getAll();
-        const users = res.data?.users || [];
+        const [userRes, analyticsRes] = await Promise.all([
+          userService.getAll(),
+          paymentService.getAnalytics().catch(() => null),
+        ]);
+        const users = userRes.data?.users || [];
 
         setStats({
           totalUsers: users.length,
           totalBuyers: users.filter(u => u.type === 'Buyer').length,
           totalArtisans: users.filter(u => u.type === 'Artisan').length,
         });
+
+        if (analyticsRes?.data?.analytics) {
+          setAnalytics(analyticsRes.data.analytics);
+        }
 
         // Sort by joinDate descending and take 5
         const sorted = [...users]
@@ -128,6 +139,50 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      {/* Revenue Analytics */}
+      {analytics && (
+        <div style={{ marginBottom: 24 }}>
+          <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 16, color: 'var(--text-primary)' }}>Revenue Analytics</h3>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 16,
+          }}>
+            {[
+              { label: 'Total Revenue', value: formatCurrency(analytics.totalRevenue), icon: FiDollarSign, color: '#D4A843' },
+              { label: 'Platform Commission (10%)', value: formatCurrency(analytics.totalPlatformCommission), icon: FiPercent, color: '#F59E0B' },
+              { label: 'Artisan Payouts', value: formatCurrency(analytics.totalArtisanPayouts), icon: FiDollarSign, color: '#10B981' },
+              { label: 'Product Revenue', value: formatCurrency(analytics.productRevenue), icon: FiShoppingBag, color: '#3B82F6' },
+              { label: 'Workshop Revenue', value: formatCurrency(analytics.workshopRevenue), icon: FiGrid, color: '#8B5CF6' },
+              { label: 'Mentorship Revenue', value: formatCurrency(analytics.mentorshipRevenue), icon: FiBookOpen, color: '#EC4899' },
+            ].map((card, i) => (
+              <div key={i} style={{
+                background: 'var(--surface-primary)',
+                padding: '18px 20px',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--surface-border)',
+                display: 'flex', alignItems: 'center', gap: 14,
+                animation: `fadeInUp 0.4s ease ${i * 0.06}s forwards`,
+                opacity: 0,
+              }}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: 10,
+                  background: `${card.color}15`, color: card.color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 18,
+                }}>
+                  <card.icon />
+                </div>
+                <div>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 12, marginBottom: 2 }}>{card.label}</p>
+                  <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 700 }}>{card.value}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Content Grid */}
       <div className="admin-content-grid">
         {/* Recent Users */}
@@ -189,6 +244,13 @@ export default function AdminDashboard() {
               <span className="admin-overview-value">
                 {stats.totalArtisans > 0 ? (stats.totalBuyers / stats.totalArtisans).toFixed(1) : '—'}
               </span>
+            </div>
+            <div className="admin-overview-item">
+              <div className="admin-overview-label">
+                <span className="admin-overview-dot" style={{ background: '#F59E0B' }} />
+                Commission Rate
+              </div>
+              <span className="admin-overview-value">10%</span>
             </div>
             <div className="admin-overview-item">
               <div className="admin-overview-label">

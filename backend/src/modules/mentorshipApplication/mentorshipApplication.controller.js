@@ -11,6 +11,7 @@ router.get("/artisan", MA.getByArtisan);
 router.post("/", MA.createApplication);
 router.get("/", MA.getById);
 router.put("/", MA.updateApplication);
+router.post("/pay", MA.payForMentorship);
 router.delete("/", MA.deleteApplication);
 
 export default router;
