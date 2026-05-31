@@ -471,6 +471,7 @@ export const initDatabase = async () => {
         await migrateUserCountry(conn);
         await migrateRequestAI(conn);
         await migrateRequestAIVersioning(conn);
+        await migrateRequestImageAndSelection(conn);
 
     } finally {
         conn.release();
@@ -838,4 +839,44 @@ async function migrateRequestAIVersioning(conn) {
     }
 
     console.log("RequestAIGeneration versioning migration complete ✅");
+}
+
+// ─── Request table: add ImageSourceType, UploadedImageUrl, FinalGeneration_id columns ───
+async function migrateRequestImageAndSelection(conn) {
+    const [columns] = await conn.query(
+        "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = 'CURIO' AND TABLE_NAME = 'Request'"
+    );
+    const existing = new Set(columns.map(c => c.COLUMN_NAME));
+
+    if (!existing.has('ImageSourceType')) {
+        try {
+            await conn.query("ALTER TABLE Request ADD COLUMN ImageSourceType ENUM('Upload', 'AI') DEFAULT 'AI'");
+            console.log("  ✅ Added Request.ImageSourceType");
+        } catch (e) {
+            if (!e.message.includes('Duplicate column')) console.warn("  ⚠️ Request ImageSourceType migration warning:", e.message);
+        }
+    }
+
+    if (!existing.has('UploadedImageUrl')) {
+        try {
+            await conn.query("ALTER TABLE Request ADD COLUMN UploadedImageUrl TEXT DEFAULT NULL");
+            console.log("  ✅ Added Request.UploadedImageUrl");
+        } catch (e) {
+            if (!e.message.includes('Duplicate column')) console.warn("  ⚠️ Request UploadedImageUrl migration warning:", e.message);
+        }
+    }
+
+    if (!existing.has('FinalGeneration_id')) {
+        try {
+            await conn.query("ALTER TABLE Request ADD COLUMN FinalGeneration_id INT DEFAULT NULL");
+            await conn.query("ALTER TABLE Request ADD CONSTRAINT fk_request_final_generation FOREIGN KEY (FinalGeneration_id) REFERENCES RequestAIGeneration(Generation_id) ON DELETE SET NULL");
+            console.log("  ✅ Added Request.FinalGeneration_id with foreign key");
+        } catch (e) {
+            if (!e.message.includes('Duplicate column') && !e.message.includes('Duplicate key')) {
+                console.warn("  ⚠️ Request FinalGeneration_id migration warning:", e.message);
+            }
+        }
+    }
+
+    console.log("Request image source and selection migration complete ✅");
 }

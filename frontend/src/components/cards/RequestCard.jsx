@@ -11,6 +11,17 @@ export default function RequestCard({ request }) {
   const thumbnailUrl = request.preferredImage
     || (request.aiImages && request.aiImages.length > 0 ? request.aiImages[0] : null);
 
+  const getFullImageUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+      return path;
+    }
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
+    return `${apiBase}${path}`;
+  };
+
+  const resolvedThumbnailUrl = thumbnailUrl ? getFullImageUrl(thumbnailUrl) : null;
+
   const aiStatus = request.aiStatus || 'None';
 
   const aiBadgeClass =
@@ -22,9 +33,9 @@ export default function RequestCard({ request }) {
     <Link to={`/requests/${request.id}`} className="request-card" id={`request-card-${request.id}`}>
       {/* ── Thumbnail ── */}
       <div className="request-card-thumbnail">
-        {thumbnailUrl ? (
+        {resolvedThumbnailUrl ? (
           <Image
-            src={thumbnailUrl}
+            src={resolvedThumbnailUrl}
             alt={request.title}
             fallback=""
           />

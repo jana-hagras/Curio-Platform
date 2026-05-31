@@ -16,5 +16,6 @@ router.delete("/", Request.deleteRequest);
 router.post("/regenerate", Request.regenerateAI);
 router.post("/refine", Request.refineRequest);
 router.put("/prefer-version", Request.setPreferredVersion);
+router.put("/select-final", Request.selectFinalDesign);
 
 export default router;

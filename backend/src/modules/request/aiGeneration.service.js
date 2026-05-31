@@ -241,34 +241,25 @@ export async function generateImagesWithMeshy(prompt) {
       console.log(`[AI Pipeline] Meshy poll ${attempt + 1}/${maxAttempts}: ${status}`);
 
       if (status === "SUCCEEDED" || status === "completed") {
-        // Extract image URLs from the response
-        const imageUrls = [];
-
-        // Meshy can return images in different formats
+        // Extract exactly ONE image URL from the response to prevent duplication/excess token display
+        let imageUrl = null;
         if (statusData.output?.image_url) {
-          imageUrls.push(statusData.output.image_url);
-        }
-        if (statusData.output?.image_urls && Array.isArray(statusData.output.image_urls)) {
-          imageUrls.push(...statusData.output.image_urls);
-        }
-        // Some responses put it at top level
-        if (statusData.image_url) {
-          imageUrls.push(statusData.image_url);
-        }
-        if (statusData.image_urls && Array.isArray(statusData.image_urls)) {
-          imageUrls.push(...statusData.image_urls);
+          imageUrl = statusData.output.image_url;
+        } else if (statusData.image_url) {
+          imageUrl = statusData.image_url;
+        } else if (statusData.output?.image_urls && Array.isArray(statusData.output.image_urls) && statusData.output.image_urls.length > 0) {
+          imageUrl = statusData.output.image_urls[0];
+        } else if (statusData.image_urls && Array.isArray(statusData.image_urls) && statusData.image_urls.length > 0) {
+          imageUrl = statusData.image_urls[0];
         }
 
-        // Deduplicate
-        const uniqueUrls = [...new Set(imageUrls)];
-
-        if (uniqueUrls.length === 0) {
-          console.warn("[AI Pipeline] Meshy succeeded but no image URLs found:", JSON.stringify(statusData).slice(0, 500));
+        if (!imageUrl) {
+          console.warn("[AI Pipeline] Meshy succeeded but no image URL found:", JSON.stringify(statusData).slice(0, 500));
           return { taskId, imageUrls: [] };
         }
 
-        console.log(`[AI Pipeline] ✅ Meshy generated ${uniqueUrls.length} image(s)`);
-        return { taskId, imageUrls: uniqueUrls };
+        console.log(`[AI Pipeline] ✅ Meshy generated image: ${imageUrl}`);
+        return { taskId, imageUrls: [imageUrl] };
       }
 
       if (status === "FAILED" || status === "failed" || status === "EXPIRED") {

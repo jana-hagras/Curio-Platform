@@ -15,4 +15,5 @@ export const requestService = {
   refine: (id, refinementPrompt) => api.post(`/requests/refine?id=${id}`, { refinementPrompt }),
   getVersions: (requestId) => api.get(`/requests/versions?request_id=${requestId}`),
   setPreferred: (generationId) => api.put(`/requests/prefer-version?generation_id=${generationId}`),
+  selectFinal: (generationId) => api.put(`/requests/select-final?generation_id=${generationId}`),
 };

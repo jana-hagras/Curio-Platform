@@ -102,6 +102,15 @@ export default function RequestDetailPage() {
     finally { setRefining(false); }
   };
 
+  const getFullImageUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+      return path;
+    }
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
+    return `${apiBase}${path}`;
+  };
+
   const handleSetPreferred = async (generationId) => {
     setSettingPreferred(true);
     try {
@@ -112,6 +121,21 @@ export default function RequestDetailPage() {
       setVersions(vRes.data?.versions || []);
     } catch { toast.error('Failed to set preferred'); }
     finally { setSettingPreferred(false); }
+  };
+
+  const [settingFinal, setSettingFinal] = useState(false);
+
+  const handleSelectFinal = async (generationId) => {
+    if (!window.confirm("Are you sure you want to select this design as the final design? This will disable further refinements and regenerations.")) return;
+    setSettingFinal(true);
+    try {
+      await requestService.selectFinal(generationId);
+      toast.success('Final design selected!');
+      const [rRes, vRes] = await Promise.all([requestService.getById(id), requestService.getVersions(id)]);
+      setRequest(rRes.data?.request);
+      setVersions(vRes.data?.versions || []);
+    } catch { toast.error('Failed to select final design'); }
+    finally { setSettingFinal(false); }
   };
 
   if (loading) return <Spinner />;
@@ -140,13 +164,17 @@ export default function RequestDetailPage() {
             <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <FiStar size={16} />
+                  {request.finalGenerationId ? '🏆' : <FiStar size={16} />}
                 </div>
-                <h3 style={{ fontSize: 18, margin: 0 }}>Reference Design</h3>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)' }}>PREFERRED</span>
+                <h3 style={{ fontSize: 18, margin: 0 }}>
+                  {request.imageSourceType === 'Upload' ? 'Uploaded Reference Image' : request.finalGenerationId ? 'Final Selected Design' : 'Reference Design'}
+                </h3>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', border: request.finalGenerationId ? '1px solid var(--gold-primary)' : 'none' }}>
+                  {request.imageSourceType === 'Upload' ? 'REFERENCE' : request.finalGenerationId ? 'FINAL SELECTED DESIGN' : 'PREFERRED'}
+                </span>
               </div>
               <div style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 500 }}>
-                <img src={preferredImg} alt="Preferred design" style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
+                <img src={getFullImageUrl(preferredImg)} alt="Preferred design" style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
               </div>
             </div>
           )}
@@ -196,8 +224,28 @@ export default function RequestDetailPage() {
           </button>
         </div>
 
+        {/* Preferred / Primary Design */}
+        {preferredImg && (
+          <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {request.finalGenerationId ? '🏆' : <FiStar size={16} />}
+              </div>
+              <h3 style={{ fontSize: 18, margin: 0 }}>
+                {request.imageSourceType === 'Upload' ? 'Uploaded Reference Image' : request.finalGenerationId ? 'Final Selected Design' : 'Reference Design'}
+              </h3>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', border: request.finalGenerationId ? '1px solid var(--gold-primary)' : 'none' }}>
+                {request.imageSourceType === 'Upload' ? 'REFERENCE' : request.finalGenerationId ? 'FINAL SELECTED DESIGN' : 'PREFERRED'}
+              </span>
+            </div>
+            <div style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 500 }}>
+              <img src={getFullImageUrl(preferredImg)} alt="Reference design" style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
+            </div>
+          </div>
+        )}
+
         {/* ── Version Gallery ── */}
-        {(versions.length > 0 || hasProcessing) && (
+        {request.imageSourceType === 'AI' && (versions.length > 0 || hasProcessing) && (
           <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24, animation: 'fadeInUp 0.4s ease forwards' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
               <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -222,62 +270,77 @@ export default function RequestDetailPage() {
             )}
 
             {/* Version cards */}
-            {versions.filter(v => v.images?.length > 0 || v.status === 'Failed').map(v => (
-              <div key={v.versionNumber} style={{ marginBottom: 16, padding: 16, borderRadius: 'var(--radius-md)', border: v.isPreferred ? '2px solid var(--gold-primary)' : '1px solid var(--surface-border)', background: v.isPreferred ? 'rgba(212,168,67,0.03)' : 'transparent', transition: 'all 0.2s' }}>
-                {/* Version header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                  <FiLayers size={14} style={{ color: 'var(--text-tertiary)' }} />
-                  <span style={{ fontSize: 14, fontWeight: 700 }}>Version {v.versionNumber}</span>
-                  {v.isPreferred && (
-                    <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <FiStar size={10} /> Preferred
-                    </span>
+            {versions.filter(v => v.images?.length > 0 || v.status === 'Failed').map(v => {
+              const hasFinalInVersion = request.finalGenerationId && v.generations?.some(g => g.id === request.finalGenerationId);
+              return (
+                <div key={v.versionNumber} style={{ marginBottom: 16, padding: 16, borderRadius: 'var(--radius-md)', border: hasFinalInVersion ? '2px solid var(--gold-primary)' : v.isPreferred ? '2px solid var(--gold-primary)' : '1px solid var(--surface-border)', background: hasFinalInVersion ? 'rgba(212,168,67,0.04)' : v.isPreferred ? 'rgba(212,168,67,0.02)' : 'transparent', transition: 'all 0.2s' }}>
+                  {/* Version header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+                    <FiLayers size={14} style={{ color: 'var(--text-tertiary)' }} />
+                    <span style={{ fontSize: 14, fontWeight: 700 }}>Version {v.versionNumber}</span>
+                    {hasFinalInVersion ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'inline-flex', alignItems: 'center', gap: 3, border: '1px solid var(--gold-primary)' }}>
+                        🏆 Final Selected Design
+                      </span>
+                    ) : v.isPreferred ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                        <FiStar size={10} /> Preferred
+                      </span>
+                    ) : null}
+                    {v.status === 'Failed' && <Badge status="Failed">Failed</Badge>}
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>{formatDate(v.createdAt)}</span>
+                    
+                    {/* Buyer actions: Set Preferred / Select Final */}
+                    {isOwner && !request.finalGenerationId && v.images?.length > 0 && (
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {!v.isPreferred && (
+                          <button onClick={() => handleSetPreferred(v.generations[0]?.id)} disabled={settingPreferred || settingFinal} style={{ background: 'none', border: '1px solid var(--surface-border)', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.15s' }}>
+                            <FiStar size={11} /> Set Preferred
+                          </button>
+                        )}
+                        <button onClick={() => handleSelectFinal(v.generations[0]?.id)} disabled={settingPreferred || settingFinal} style={{ background: 'var(--gold-primary)', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 11, fontWeight: 700, color: '#000', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.15s', boxShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>
+                          🏆 Select as Final
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Refinement instruction */}
+                  {v.refinementPrompt && (
+                    <div style={{ marginBottom: 10, padding: '8px 12px', background: 'rgba(139,92,246,0.06)', borderRadius: 8, borderLeft: '3px solid #8B5CF6' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#8B5CF6', textTransform: 'uppercase' }}>Refinement</span>
+                      <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '2px 0 0' }}>{v.refinementPrompt}</p>
+                    </div>
                   )}
-                  {v.status === 'Failed' && <Badge status="Failed">Failed</Badge>}
-                  <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 'auto' }}>{formatDate(v.createdAt)}</span>
-                  {/* Set preferred button */}
-                  {isOwner && !v.isPreferred && v.images?.length > 0 && (
-                    <button onClick={() => handleSetPreferred(v.generations[0]?.id)} disabled={settingPreferred} style={{ background: 'none', border: '1px solid var(--surface-border)', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.15s' }} onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--gold-primary)'; e.currentTarget.style.color = 'var(--gold-primary)'; }} onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--surface-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}>
-                      <FiStar size={11} /> Set Preferred
-                    </button>
+
+                  {/* Images grid */}
+                  {v.images?.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: v.images.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
+                      {v.images.map((url, i) => {
+                        const globalIdx = lightboxImages.indexOf(url);
+                        return (
+                          <div key={i} onClick={() => setLightboxIdx(globalIdx >= 0 ? globalIdx : 0)} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', aspectRatio: '1', border: '1px solid var(--surface-border)', transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }} onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
+                            <img src={url} alt={`V${v.versionNumber} Preview ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <div style={{ position: 'absolute', bottom: 8, left: 8, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: 'rgba(0,0,0,0.6)', color: '#fff' }}>V{v.versionNumber} · {i + 1}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
-
-                {/* Refinement instruction */}
-                {v.refinementPrompt && (
-                  <div style={{ marginBottom: 10, padding: '8px 12px', background: 'rgba(139,92,246,0.06)', borderRadius: 8, borderLeft: '3px solid #8B5CF6' }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: '#8B5CF6', textTransform: 'uppercase' }}>Refinement</span>
-                    <p style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '2px 0 0' }}>{v.refinementPrompt}</p>
-                  </div>
-                )}
-
-                {/* Images grid */}
-                {v.images?.length > 0 && (
-                  <div style={{ display: 'grid', gridTemplateColumns: v.images.length === 1 ? '1fr' : 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-                    {v.images.map((url, i) => {
-                      const globalIdx = lightboxImages.indexOf(url);
-                      return (
-                        <div key={i} onClick={() => setLightboxIdx(globalIdx >= 0 ? globalIdx : 0)} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', cursor: 'pointer', aspectRatio: '1', border: '1px solid var(--surface-border)', transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }} onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                          <img src={url} alt={`V${v.versionNumber} Preview ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          <div style={{ position: 'absolute', bottom: 8, left: 8, fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: 'rgba(0,0,0,0.6)', color: '#fff' }}>V{v.versionNumber} · {i + 1}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
 
             {/* Failed state */}
             {request.aiStatus === 'Failed' && versions.length === 0 && (
               <div style={{ padding: 24, textAlign: 'center', background: 'var(--surface-secondary)', borderRadius: 12 }}>
                 <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 12 }}>AI preview generation encountered an issue.</p>
-                {isOwner && <Button size="sm" icon={FiRefreshCw} onClick={handleRegenerate} loading={regenerating}>Regenerate Previews</Button>}
+                {isOwner && !request.finalGenerationId && <Button size="sm" icon={FiRefreshCw} onClick={handleRegenerate} loading={regenerating}>Regenerate Previews</Button>}
               </div>
             )}
 
             {/* ── Refinement Panel (owner only) ── */}
-            {isOwner && versions.some(v => v.images?.length > 0) && (
+            {isOwner && !request.finalGenerationId && versions.some(v => v.images?.length > 0) && (
               <div style={{ marginTop: 20, padding: 20, borderRadius: 'var(--radius-md)', background: 'var(--surface-secondary)', border: '1px solid var(--surface-border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <FiEdit3 size={15} style={{ color: 'var(--gold-primary)' }} />

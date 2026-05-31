@@ -14,10 +14,12 @@ const sanitizeRequest = (row, { includeEnhancedPrompt = false } = {}) => {
     description: row.Description,
     requestDate: row.Request_Date,
     budget: row.Budget,
-    model3D: row["3D_Model"],
     category: row.Category,
     status: row.Status || "Open",
     buyerName: row.FName ? `${row.FName} ${row.LName}` : null,
+    imageSourceType: row.ImageSourceType || "AI",
+    uploadedImageUrl: row.UploadedImageUrl || null,
+    finalGenerationId: row.FinalGeneration_id || null,
   };
 
   // EnhancedPrompt is internal — only include for admin
@@ -68,8 +70,16 @@ const attachAIImages = async (requests) => {
     const completedGens = gens.filter((g) => g.imageUrl && g.status === "Completed");
 
     // Find the preferred image
-    const preferredGen = completedGens.find((g) => g.isPreferred);
-    const preferredImage = preferredGen?.imageUrl || null;
+    let preferredImage = null;
+    if (r.imageSourceType === 'Upload') {
+      preferredImage = r.uploadedImageUrl;
+    } else if (r.finalGenerationId) {
+      const finalGen = completedGens.find((g) => g.id === r.finalGenerationId);
+      preferredImage = finalGen ? finalGen.imageUrl : null;
+    } else {
+      const preferredGen = completedGens.find((g) => g.isPreferred);
+      preferredImage = preferredGen?.imageUrl || null;
+    }
 
     // Count unique versions
     const versionCount = new Set(gens.map((g) => g.versionNumber)).size;
@@ -78,7 +88,7 @@ const attachAIImages = async (requests) => {
       ...r,
       aiImages: completedGens.map((g) => g.imageUrl),
       aiGenerations: gens,
-      aiStatus: getOverallAIStatus(gens),
+      aiStatus: r.imageSourceType === 'Upload' ? 'None' : getOverallAIStatus(gens),
       preferredImage,
       versionCount,
     };
@@ -148,7 +158,7 @@ export const searchRequests = async (req, res, next) => {
 // CREATE — with async AI pipeline
 export const createRequest = async (req, res, next) => {
   try {
-    const { buyer_id, title, description, budget, model3D, category } = req.body;
+    const { buyer_id, title, description, budget, category, imageSourceType, uploadedImageUrl } = req.body;
     if (!buyer_id || !title) {
       return res.status(400).json({ ok: false, message: "buyer_id and title are required." });
     }
@@ -158,8 +168,8 @@ export const createRequest = async (req, res, next) => {
 
     // Save request FIRST — never lose the request due to AI failures
     const [result] = await pool.query(
-      "INSERT INTO Request (Buyer_id, Title, Description, Request_Date, Budget, `3D_Model`, Category, Status) VALUES (?, ?, ?, CURRENT_DATE, ?, ?, ?, 'Open')",
-      [buyer_id, title, description || null, budget || null, model3D || null, category || null]
+      "INSERT INTO Request (Buyer_id, Title, Description, Request_Date, Budget, Category, Status, ImageSourceType, UploadedImageUrl) VALUES (?, ?, ?, CURRENT_DATE, ?, ?, 'Open', ?, ?)",
+      [buyer_id, title, description || null, budget || null, category || null, imageSourceType || 'AI', uploadedImageUrl || null]
     );
 
     const requestId = result.insertId;
@@ -167,9 +177,9 @@ export const createRequest = async (req, res, next) => {
     const [rows] = await pool.query(`${REQ_QUERY} WHERE r.Request_id = ?`, [requestId]);
     const request = sanitizeRequest(rows[0]);
 
-    // 🚀 Fire AI pipeline ASYNCHRONOUSLY — do NOT await
-    // The request is already saved, AI runs in background
-    if (description && description.trim().length > 0) {
+    // 🚀 Fire AI pipeline ASYNCHRONOUSLY — only if ImageSourceType is 'AI'
+    const shouldRunAI = (imageSourceType || 'AI') === 'AI';
+    if (shouldRunAI && description && description.trim().length > 0) {
       runAIPipeline(requestId, `${title}. ${description}`, category).catch((err) => {
         console.error(`[AI Pipeline] Background error for request #${requestId}:`, err.message);
       });
@@ -177,7 +187,7 @@ export const createRequest = async (req, res, next) => {
 
     return res.status(201).json({
       ok: true,
-      data: { request: { ...request, aiImages: [], aiGenerations: [], aiStatus: description ? "Processing" : "None", preferredImage: null, versionCount: 0 } },
+      data: { request: { ...request, aiImages: [], aiGenerations: [], aiStatus: shouldRunAI && description ? "Processing" : "None", preferredImage: (imageSourceType === 'Upload') ? uploadedImageUrl : null, versionCount: 0 } },
     });
   } catch (err) {
     next(err);
@@ -325,6 +335,20 @@ export const regenerateAI = async (req, res, next) => {
     const id = Number(req.query.id);
     if (!id) return res.status(400).json({ ok: false, message: "Query parameter 'id' is required." });
 
+    const [reqRows] = await pool.query(
+      "SELECT FinalGeneration_id, ImageSourceType FROM Request WHERE Request_id = ?",
+      [id]
+    );
+    if (!reqRows.length) return res.status(404).json({ ok: false, message: "Request not found." });
+
+    const request = reqRows[0];
+    if (request.ImageSourceType === 'Upload') {
+      return res.status(400).json({ ok: false, message: "AI generation is disabled for reference image uploads." });
+    }
+    if (request.FinalGeneration_id) {
+      return res.status(400).json({ ok: false, message: "Further regenerations or refinements are disabled once a final design is selected." });
+    }
+
     const result = await regenerateForRequest(id);
     return res.status(200).json({ ok: true, data: result });
   } catch (err) {
@@ -345,6 +369,20 @@ export const refineRequest = async (req, res, next) => {
     const { refinementPrompt } = req.body;
     if (!refinementPrompt || !refinementPrompt.trim()) {
       return res.status(400).json({ ok: false, message: "refinementPrompt is required." });
+    }
+
+    const [reqRows] = await pool.query(
+      "SELECT FinalGeneration_id, ImageSourceType FROM Request WHERE Request_id = ?",
+      [id]
+    );
+    if (!reqRows.length) return res.status(404).json({ ok: false, message: "Request not found." });
+
+    const request = reqRows[0];
+    if (request.ImageSourceType === 'Upload') {
+      return res.status(400).json({ ok: false, message: "AI generation is disabled for reference image uploads." });
+    }
+    if (request.FinalGeneration_id) {
+      return res.status(400).json({ ok: false, message: "Further regenerations or refinements are disabled once a final design is selected." });
     }
 
     // Fire refinement pipeline asynchronously
@@ -441,6 +479,15 @@ export const setPreferredVersion = async (req, res, next) => {
     const requestId = genRows[0].Request_id;
     const versionNumber = genRows[0].VersionNumber;
 
+    // Check if final design is selected
+    const [reqRows] = await pool.query(
+      "SELECT FinalGeneration_id FROM Request WHERE Request_id = ?",
+      [requestId]
+    );
+    if (reqRows[0]?.FinalGeneration_id) {
+      return res.status(400).json({ ok: false, message: "Cannot change preferred version after a final design has been selected." });
+    }
+
     // Unset all preferred flags for this request
     await pool.query(
       "UPDATE RequestAIGeneration SET IsPreferred = FALSE WHERE Request_id = ?",
@@ -457,6 +504,59 @@ export const setPreferredVersion = async (req, res, next) => {
       ok: true,
       message: `Version ${versionNumber} set as preferred.`,
       data: { requestId, versionNumber },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT select a version as final design
+export const selectFinalDesign = async (req, res, next) => {
+  try {
+    const generationId = Number(req.query.generation_id);
+    if (!generationId) return res.status(400).json({ ok: false, message: "Query parameter 'generation_id' is required." });
+
+    // Find the generation record
+    const [genRows] = await pool.query(
+      "SELECT Request_id, VersionNumber FROM RequestAIGeneration WHERE Generation_id = ?",
+      [generationId]
+    );
+    if (!genRows.length) return res.status(404).json({ ok: false, message: "Generation not found." });
+
+    const requestId = genRows[0].Request_id;
+    const versionNumber = genRows[0].VersionNumber;
+
+    // Verify request exists and does not already have a final design
+    const [reqRows] = await pool.query(
+      "SELECT FinalGeneration_id FROM Request WHERE Request_id = ?",
+      [requestId]
+    );
+    if (!reqRows.length) return res.status(404).json({ ok: false, message: "Request not found." });
+
+    if (reqRows[0].FinalGeneration_id) {
+      return res.status(400).json({ ok: false, message: "A final design has already been selected for this request." });
+    }
+
+    // Set FinalGeneration_id on the Request
+    await pool.query(
+      "UPDATE Request SET FinalGeneration_id = ? WHERE Request_id = ?",
+      [generationId, requestId]
+    );
+
+    // Set IsPreferred = TRUE for the selected version's generations, and FALSE for all others
+    await pool.query(
+      "UPDATE RequestAIGeneration SET IsPreferred = FALSE WHERE Request_id = ?",
+      [requestId]
+    );
+    await pool.query(
+      "UPDATE RequestAIGeneration SET IsPreferred = TRUE WHERE Request_id = ? AND VersionNumber = ?",
+      [requestId, versionNumber]
+    );
+
+    return res.status(200).json({
+      ok: true,
+      message: `Version ${versionNumber} selected as the final design.`,
+      data: { requestId, generationId, versionNumber },
     });
   } catch (err) {
     next(err);
