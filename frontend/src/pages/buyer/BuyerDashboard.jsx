@@ -3,11 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { orderService } from "../../services/orderService";
 import { requestService } from "../../services/requestService";
-import { applicationService } from "../../services/applicationService";
+import { useTranslation } from "react-i18next";
 import {
   FiShoppingBag,
   FiFileText,
-  FiCalendar,
   FiTrendingUp,
   FiArrowRight,
   FiPlus,
@@ -20,10 +19,12 @@ import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { formatDate } from "../../utils/formatDate";
+import "../shared/Dashboard.css";
 
 export default function BuyerDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(["dashboard", "request", "common", "order"]);
   const [stats, setStats] = useState({
     orders: 0,
     requests: 0,
@@ -33,6 +34,8 @@ export default function BuyerDashboard() {
   const [orders, setOrders] = useState([]);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const isRtl = i18n.language === 'ar';
 
   useEffect(() => {
     setLoading(true);
@@ -71,25 +74,25 @@ export default function BuyerDashboard() {
 
   const statCards = [
     {
-      label: "Total Orders",
+      label: t("dashboard:buyer.totalOrders", "Total Orders"),
       value: stats.orders,
       icon: FiShoppingBag,
       color: "#D4A843",
     },
     {
-      label: "Custom Requests",
+      label: t("request:title", "Custom Requests"),
       value: stats.requests,
       icon: FiFileText,
       color: "#3B82F6",
     },
     {
-      label: "Total Spent",
+      label: t("dashboard:buyer.totalSpent", "Total Spent"),
       value: formatCurrency(stats.totalSpent),
       icon: FiTrendingUp,
       color: "#10B981",
     },
     {
-      label: "Active Requests",
+      label: t("dashboard:buyer.activeRequests", "Active Requests"),
       value: stats.activeRequests,
       icon: FiClock,
       color: "#F59E0B",
@@ -98,217 +101,104 @@ export default function BuyerDashboard() {
 
   const suggestedWorkshops = [
     {
-      title: "Pottery Making",
-      desc: "Learn traditional Egyptian pottery",
+      title: t("dashboard:buyer.potteryMaking", "Pottery Making"),
+      desc: t("dashboard:buyer.potteryDesc", "Learn traditional Egyptian pottery"),
       icon: "🏺",
     },
     {
-      title: "Jewelry Craft",
-      desc: "Create stunning handmade jewelry",
+      title: t("dashboard:buyer.jewelryCraft", "Jewelry Craft"),
+      desc: t("dashboard:buyer.jewelryDesc", "Create stunning handmade jewelry"),
       icon: "💍",
     },
-    { title: "Textile Weaving", desc: "Master the art of weaving", icon: "🧶" },
+    {
+      title: t("dashboard:buyer.textileWeaving", "Textile Weaving"),
+      desc: t("dashboard:buyer.textileDesc", "Master the art of weaving"),
+      icon: "🧶",
+    },
   ];
 
   return (
-    <div style={{ animation: "fadeInUp 0.4s ease forwards" }}>
+    <div className="dashboard-container">
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 32,
-        }}
-      >
-        <div>
-          <h1 style={{ fontSize: 28, marginBottom: 4 }}>
-            Welcome back, {user.firstName}!
-          </h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: 15 }}>
-            Discover artisan craftsmanship
-          </p>
+      <div className="dashboard-header">
+        <div className="dashboard-header-text">
+          <h1>{t("dashboard:buyer.welcome", { name: user.firstName })}</h1>
+          <p>{t("dashboard:buyer.overview", "Discover artisan craftsmanship")}</p>
         </div>
         <Button
           icon={FiPlus}
           onClick={() => navigate("/dashboard/requests/new")}
         >
-          New Request
+          {t("request:create", "New Request")}
         </Button>
       </div>
 
       {/* Stats Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 20,
-          marginBottom: 32,
-        }}
-      >
+      <div className="dashboard-stats-grid">
         {statCards.map((card, i) => (
           <div
             key={i}
-            style={{
-              background: "var(--surface-primary)",
-              padding: 24,
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--surface-border)",
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              animation: `fadeInUp 0.4s ease ${i * 0.1}s forwards`,
-              opacity: 0,
-            }}
+            className="dashboard-stat-card"
+            style={{ animationDelay: `${i * 0.1}s`, opacity: 1 }}
           >
             <div
+              className="dashboard-stat-icon-wrapper"
               style={{
-                width: 48,
-                height: 48,
-                borderRadius: 12,
                 background: `${card.color}15`,
                 color: card.color,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 22,
               }}
             >
               <card.icon />
             </div>
-            <div>
-              <p
-                style={{
-                  color: "var(--text-secondary)",
-                  fontSize: 13,
-                  marginBottom: 2,
-                }}
-              >
-                {card.label}
-              </p>
-              <h3
-                style={{
-                  fontSize: 24,
-                  fontFamily: "var(--font-body)",
-                  fontWeight: 700,
-                }}
-              >
-                {card.value}
-              </h3>
+            <div className="dashboard-stat-info">
+              <p>{card.label}</p>
+              <h3>{card.value}</h3>
             </div>
           </div>
         ))}
       </div>
 
       {/* Main Content — Full Width */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className="dashboard-content-grid">
         {/* Recent Orders */}
-        <div
-          style={{
-            background: "var(--surface-primary)",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--surface-border)",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "20px 24px",
-              borderBottom: "1px solid var(--surface-border)",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: 18,
-                fontFamily: "var(--font-body)",
-                fontWeight: 600,
-              }}
-            >
-              Recent Orders
-            </h3>
+        <div className="dashboard-card">
+          <div className="dashboard-card-header">
+            <h3>{t("dashboard:buyer.recentOrders", "Recent Orders")}</h3>
             <button
               onClick={() => navigate("/dashboard/orders")}
-              style={{
-                color: "var(--gold-primary)",
-                fontSize: 13,
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-              }}
+              className="dashboard-card-action"
             >
-              View All <FiArrowRight size={14} />
+              {t("common:actions.viewAll", "View All")}{" "}
+              <FiArrowRight size={14} className={isRtl ? "rtl-flip" : ""} />
             </button>
           </div>
-          <div style={{ padding: "8px 0" }}>
+          <div className="dashboard-card-body">
             {orders.length === 0 ? (
-              <p
-                style={{
-                  padding: "32px 24px",
-                  color: "var(--text-secondary)",
-                  textAlign: "center",
-                  fontSize: 14,
-                }}
-              >
-                No orders yet. Explore the marketplace!
+              <p className="dashboard-empty-text">
+                {t("dashboard:buyer.noOrdersDesc", "No orders yet. Explore the marketplace!")}
               </p>
             ) : (
-              orders.slice(0, 4).map((order, i) => (
+              orders.slice(0, 4).map((order) => (
                 <div
                   key={order.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "14px 24px",
-                    borderBottom:
-                      i < Math.min(orders.length, 4) - 1
-                        ? "1px solid var(--surface-border)"
-                        : "none",
-                  }}
+                  className="dashboard-row-item"
+                  onClick={() => navigate(`/dashboard/orders`)}
                 >
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 12 }}
-                  >
-                    <div
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 10,
-                        background: "rgba(212, 168, 67, 0.1)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "var(--gold-primary)",
-                        fontSize: 18,
-                      }}
-                    >
+                  <div className="dashboard-item-meta">
+                    <div className="dashboard-item-icon">
                       <FiShoppingBag />
                     </div>
-                    <div>
-                      <p style={{ fontWeight: 600, fontSize: 14 }}>
-                        Order #{order.id}
+                    <div className="dashboard-item-details">
+                      <p className="dashboard-item-title">
+                        {t("order:order", "Order")} #{order.id}
                       </p>
-                      <p
-                        style={{ fontSize: 12, color: "var(--text-secondary)" }}
-                      >
+                      <p className="dashboard-item-subtitle">
                         {formatDate(order.orderDate)}
                       </p>
                     </div>
                   </div>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 16 }}
-                  >
-                    <span
-                      style={{
-                        fontWeight: 600,
-                        fontSize: 14,
-                        color: "var(--gold-primary)",
-                      }}
-                    >
+                  <div className="dashboard-item-value-badge">
+                    <span className="dashboard-item-price">
                       {formatCurrency(order.totalAmount)}
                     </span>
                     <Badge status={order.status} />
@@ -320,84 +210,39 @@ export default function BuyerDashboard() {
         </div>
 
         {/* My Requests — Full Width */}
-        <div
-          style={{
-            background: "var(--surface-primary)",
-            borderRadius: "var(--radius-lg)",
-            border: "1px solid var(--surface-border)",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "20px 24px",
-              borderBottom: "1px solid var(--surface-border)",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: 18,
-                fontFamily: "var(--font-body)",
-                fontWeight: 600,
-              }}
-            >
-              Active Requests
-            </h3>
+        <div className="dashboard-card">
+          <div className="dashboard-card-header">
+            <h3>{t("dashboard:buyer.activeRequests", "Active Requests")}</h3>
             <button
               onClick={() => navigate("/dashboard/requests")}
-              style={{
-                color: "var(--gold-primary)",
-                fontSize: 13,
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-              }}
+              className="dashboard-card-action"
             >
-              View All <FiArrowRight size={14} />
+              {t("common:actions.viewAll", "View All")}{" "}
+              <FiArrowRight size={14} className={isRtl ? "rtl-flip" : ""} />
             </button>
           </div>
-          <div style={{ padding: "8px 0" }}>
+          <div className="dashboard-card-body">
             {requests.length === 0 ? (
-              <p
-                style={{
-                  padding: "32px 24px",
-                  color: "var(--text-secondary)",
-                  textAlign: "center",
-                  fontSize: 14,
-                }}
-              >
-                No custom requests. Create one to find artisans!
+              <p className="dashboard-empty-text">
+                {t("request:noRequestsDesc", "No custom requests. Create one to find artisans!")}
               </p>
             ) : (
-              requests.slice(0, 4).map((req, i) => (
+              requests.slice(0, 4).map((req) => (
                 <div
                   key={req.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "14px 24px",
-                    borderBottom:
-                      i < Math.min(requests.length, 4) - 1
-                        ? "1px solid var(--surface-border)"
-                        : "none",
-                    cursor: "pointer",
-                  }}
+                  className="dashboard-row-item"
                   onClick={() => navigate(`/requests/${req.id}`)}
                 >
-                  <div>
-                    <p
-                      style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}
-                    >
-                      {req.title}
-                    </p>
-                    <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                      {req.category} · {formatCurrency(req.budget)}
-                    </p>
+                  <div className="dashboard-item-meta">
+                    <div className="dashboard-item-icon">
+                      <FiFileText />
+                    </div>
+                    <div className="dashboard-item-details">
+                      <p className="dashboard-item-title">{req.title}</p>
+                      <p className="dashboard-item-subtitle">
+                        {t("common:categories." + req.category, req.category)} · {formatCurrency(req.budget)}
+                      </p>
+                    </div>
                   </div>
                   <Badge status={req.status || "Pending"} />
                 </div>
@@ -407,65 +252,25 @@ export default function BuyerDashboard() {
         </div>
 
         {/* Secondary Row — Explore & Quick Actions side by side */}
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}
-        >
+        <div className="dashboard-content-grid two-cols">
           {/* Workshop Suggestions */}
-          <div
-            style={{
-              background: "var(--surface-primary)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--surface-border)",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                padding: "20px 24px",
-                borderBottom: "1px solid var(--surface-border)",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: 18,
-                  fontFamily: "var(--font-body)",
-                  fontWeight: 600,
-                }}
-              >
-                Explore Crafts
-              </h3>
+          <div className="dashboard-card">
+            <div className="dashboard-card-header">
+              <h3>{t("dashboard:buyer.exploreCrafts", "Explore Crafts")}</h3>
             </div>
-            <div style={{ padding: "8px 0" }}>
+            <div className="dashboard-card-body">
               {suggestedWorkshops.map((ws, i) => (
                 <div
                   key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    padding: "14px 24px",
-                    borderBottom:
-                      i < suggestedWorkshops.length - 1
-                        ? "1px solid var(--surface-border)"
-                        : "none",
-                    cursor: "pointer",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.background =
-                      "var(--surface-secondary)")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
+                  className="dashboard-row-item"
                   onClick={() => navigate("/marketplace")}
                 >
-                  <span style={{ fontSize: 28 }}>{ws.icon}</span>
-                  <div>
-                    <p style={{ fontWeight: 600, fontSize: 14 }}>{ws.title}</p>
-                    <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                      {ws.desc}
-                    </p>
+                  <div className="dashboard-item-meta">
+                    <span style={{ fontSize: 28, flexShrink: 0 }}>{ws.icon}</span>
+                    <div className="dashboard-item-details">
+                      <p className="dashboard-item-title">{ws.title}</p>
+                      <p className="dashboard-item-subtitle">{ws.desc}</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -473,66 +278,35 @@ export default function BuyerDashboard() {
           </div>
 
           {/* Quick Links */}
-          <div
-            style={{
-              background: "var(--surface-primary)",
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--surface-border)",
-              padding: 24,
-            }}
-          >
-            <h3
-              style={{
-                fontSize: 18,
-                fontFamily: "var(--font-body)",
-                fontWeight: 600,
-                marginBottom: 16,
-              }}
-            >
-              Quick Actions
+          <div className="dashboard-card" style={{ padding: 24 }}>
+            <h3 style={{ fontSize: 18, fontFamily: "var(--font-body)", fontWeight: 600, marginBottom: 16 }}>
+              {t("dashboard:buyer.quickActions", "Quick Actions")}
             </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="dashboard-quick-actions">
               {[
                 {
-                  label: "Browse Marketplace",
+                  label: t("dashboard:buyer.browseMarketplace", "Browse Marketplace"),
                   icon: FiShoppingBag,
                   path: "/marketplace",
                 },
                 {
-                  label: "View Favorites",
+                  label: t("dashboard:buyer.favorites", "View Favorites"),
                   icon: FiHeart,
                   path: "/dashboard/favorites",
                 },
-                { label: "Find Artisans", icon: FiStar, path: "/artisans" },
+                {
+                  label: t("dashboard:buyer.findArtisans", "Find Artisans"),
+                  icon: FiStar,
+                  path: "/artisans",
+                },
               ].map((link, i) => (
                 <button
                   key={i}
                   onClick={() => navigate(link.path)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "12px 16px",
-                    borderRadius: "var(--radius-md)",
-                    transition: "all 0.15s",
-                    width: "100%",
-                    textAlign: "left",
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: "var(--text-primary)",
-                  }}
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.background =
-                      "var(--surface-secondary)")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
+                  className="dashboard-quick-action-btn"
                 >
-                  <link.icon
-                    style={{ color: "var(--gold-primary)", fontSize: 18 }}
-                  />
-                  {link.label}
+                  <link.icon />
+                  <span>{link.label}</span>
                 </button>
               ))}
             </div>

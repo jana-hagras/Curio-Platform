@@ -1,3 +1,4 @@
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiClock, FiUsers, FiCalendar, FiDollarSign, FiArrowLeft, FiTag, FiCheckCircle, FiCreditCard } from 'react-icons/fi';
@@ -6,11 +7,13 @@ import { workshopRegistrationService } from '../../services/workshopRegistration
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
+import { useTranslation } from 'react-i18next';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
 import CardPaymentForm from '../../components/ui/CardPaymentForm';
 import toast from 'react-hot-toast';
+import './MentorshipsPage.css';
 
 export default function WorkshopDetailPage() {
   const { id } = useParams();
@@ -21,11 +24,12 @@ export default function WorkshopDetailPage() {
   const [registering, setRegistering] = useState(false);
   const [hasRegistered, setHasRegistered] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const { t } = useTranslation(['workshop', 'common']);
 
   useEffect(() => {
     workshopService.getById(id)
       .then(res => setWorkshop(res.data?.workshop))
-      .catch(() => toast.error('Workshop not found'))
+      .catch(() => toast.error(t('workshop:noWorkshops')))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -48,7 +52,7 @@ export default function WorkshopDetailPage() {
         workshop_id: Number(id),
         buyer_id: user.id,
       });
-      toast.success('Registered successfully!');
+      toast.success(t('workshop:registerSuccess'));
       setHasRegistered(true);
       const res = await workshopService.getById(id);
       setWorkshop(res.data?.workshop);
@@ -67,7 +71,7 @@ export default function WorkshopDetailPage() {
         workshop_id: Number(id),
         buyer_id: user.id,
       });
-      toast.success('Payment successful! You are registered for this workshop.');
+      toast.success(t('workshop:registerSuccess'));
       setHasRegistered(true);
       setShowPaymentModal(false);
       const res = await workshopService.getById(id);
@@ -103,14 +107,14 @@ export default function WorkshopDetailPage() {
   if (!workshop) {
     return (
       <div className="container" style={{ padding: '80px 0', textAlign: 'center' }}>
-        <h2>Workshop not found</h2>
-        <Button onClick={() => navigate('/workshops')} style={{ marginTop: 24 }}>Browse Workshops</Button>
+        <h2>{t('workshop:noWorkshops')}</h2>
+        <Button onClick={() => navigate('/workshops')} style={{ marginTop: 24 }}>{t('workshop:backToWorkshops')}</Button>
       </div>
     );
   }
 
   const avatarSrc = workshop.artisanProfileImage
-    ? workshop.artisanProfileImage.startsWith('/') ? `http://localhost:3000${workshop.artisanProfileImage}` : workshop.artisanProfileImage
+    ? workshop.artisanProfileImage.startsWith('/') ? `${API_BASE}${workshop.artisanProfileImage}` : workshop.artisanProfileImage
     : null;
 
   const spotsLeft = (workshop.maxParticipants || 20) - (workshop.registrationCount || 0);
@@ -119,123 +123,108 @@ export default function WorkshopDetailPage() {
   const isAccepting = workshop.status === 'Upcoming' || workshop.status === 'Ongoing';
 
   return (
-    <div style={{ padding: 'var(--space-2xl) 0 var(--space-4xl)', animation: 'fadeInUp 0.4s ease forwards' }}>
-      <div className="container" style={{ maxWidth: 900, margin: '0 auto' }}>
-        <button onClick={() => navigate('/workshops')} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 14, marginBottom: 24, fontWeight: 500 }}>
-          <FiArrowLeft size={16} /> Back to Workshops
+    <div className="mentorships-page">
+      <div className="mentorship-detail-container">
+        <button onClick={() => navigate('/workshops')} className="mentorship-detail-back-btn">
+          <FiArrowLeft size={16} className="rtl-flip" /> {t('workshop:backToWorkshops')}
         </button>
 
-        <div style={{
-          background: 'var(--surface-primary)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--surface-border)',
-          overflow: 'hidden',
-        }}>
+        <div className="mentorship-detail-card">
           {/* Gold banner */}
-          <div style={{ height: 8, background: 'var(--gold-gradient)' }} />
+          <div className="workshop-detail-banner" />
 
           {/* Header */}
-          <div style={{ padding: '32px 40px', borderBottom: '1px solid var(--surface-border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              {workshop.category && <span style={{ padding: '4px 12px', borderRadius: 'var(--radius-full)', background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', fontSize: 12, fontWeight: 600 }}>{workshop.category}</span>}
-              <Badge status={workshop.status}>{workshop.status}</Badge>
+          <div className="mentorship-detail-header" style={{ paddingBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+              {workshop.category && <span className="workshop-detail-category-badge">{t('common:categories.' + workshop.category, workshop.category)}</span>}
+              <Badge status={workshop.status}>{t('common:status.' + workshop.status.charAt(0).toLowerCase() + workshop.status.slice(1), workshop.status)}</Badge>
               {!isFree && (
-                <span style={{ padding: '4px 10px', borderRadius: 'var(--radius-full)', background: 'rgba(59, 130, 246, 0.1)', color: '#3B82F6', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <FiCreditCard size={11} /> Card Payment Required
+                <span className="workshop-detail-card-payment-badge">
+                  <FiCreditCard size={11} /> {t('common:nav.adminPanel') === 'Admin Panel' ? 'Card Payment Required' : 'مطلوب الدفع بالبطاقة'}
                 </span>
               )}
             </div>
             <h1 style={{ fontSize: 32, marginBottom: 16 }}>{workshop.title}</h1>
 
             {/* Host info */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
-                background: 'var(--surface-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 16, fontWeight: 700, color: 'var(--gold-primary)',
-              }}>
-                {avatarSrc ? <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (workshop.artisanName?.charAt(0) || 'A')}
+            <div className="mentorship-detail-avatar-row" style={{ gap: 12 }}>
+              <div className="mentorship-detail-avatar-wrapper" style={{ width: 44, height: 44, fontSize: 16, border: '2px solid var(--gold-primary)' }}>
+                {avatarSrc ? <img src={avatarSrc} alt="" /> : (workshop.artisanName?.charAt(0) || 'A')}
               </div>
-              <div>
-                <p style={{ fontWeight: 600, fontSize: 15 }}>
+              <div style={{ textAlign: 'left' }}>
+                <p style={{ fontWeight: 600, fontSize: 15, margin: 0 }}>
                   {workshop.artisanName || 'Artisan Host'}
-                  {workshop.artisanVerified && <FiCheckCircle size={14} style={{ marginLeft: 6, color: 'var(--gold-primary)' }} />}
+                  {workshop.artisanVerified && <FiCheckCircle size={14} style={{ marginLeft: 6, color: 'var(--gold-primary)', display: 'inline-block', verticalAlign: 'middle' }} />}
                 </p>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 13 }}>Workshop Host</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '4px 0 0' }}>{t('workshop:instructor')}</p>
               </div>
             </div>
           </div>
 
           {/* Body */}
-          <div style={{ padding: '32px 40px' }}>
+          <div className="mentorship-detail-body">
             {/* Meta Grid */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20, marginBottom: 32,
-            }}>
+            <div className="mentorship-detail-meta-grid">
               {[
-                { icon: FiCalendar, label: 'Date', value: workshop.workshopDate ? formatDate(workshop.workshopDate) : 'TBD' },
-                { icon: FiClock, label: 'Duration', value: workshop.duration ? `${workshop.duration} minutes` : 'TBD' },
-                { icon: FiDollarSign, label: 'Price', value: isFree ? 'Free' : formatCurrency(workshop.price) },
-                { icon: FiUsers, label: 'Capacity', value: `${workshop.registrationCount || 0} / ${workshop.maxParticipants || 20}` },
+                { icon: FiCalendar, label: t('workshop:date'), value: workshop.workshopDate ? formatDate(workshop.workshopDate) : 'TBD' },
+                { icon: FiClock, label: t('common:nav.adminPanel') === 'Admin Panel' ? 'Duration' : 'مدة الورشة', value: workshop.duration ? `${workshop.duration} ${t('common:nav.adminPanel') === 'Admin Panel' ? 'minutes' : 'دقيقة'}` : 'TBD' },
+                { icon: FiDollarSign, label: t('workshop:price'), value: isFree ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Free' : 'مجاني') : formatCurrency(workshop.price) },
+                { icon: FiUsers, label: t('workshop:capacity'), value: `${workshop.registrationCount || 0} / ${workshop.maxParticipants || 20}` },
               ].map((item, i) => (
-                <div key={i} style={{ padding: 20, background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--surface-border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: 'var(--gold-primary)' }}>
+                <div key={i} className="mentorship-detail-meta-card">
+                  <div className="mentorship-detail-meta-header">
                     <item.icon size={16} />
-                    <span style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)' }}>{item.label}</span>
+                    <span className="mentorship-detail-meta-label">{item.label}</span>
                   </div>
-                  <p style={{ fontSize: 16, fontWeight: 600 }}>{item.value}</p>
+                  <p className="mentorship-detail-meta-value">{item.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Capacity bar */}
-            <div style={{ marginBottom: 32 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, fontSize: 13 }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Spots filled</span>
+            <div className="workshop-detail-capacity-section">
+              <div className="workshop-detail-capacity-header">
+                <span style={{ color: 'var(--text-secondary)' }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Spots filled' : 'المقاعد المحجوزة'}</span>
                 <span style={{ fontWeight: 600, color: spotsLeft <= 3 ? 'var(--error)' : 'var(--text-primary)' }}>
-                  {spotsLeft} spots remaining
+                  {t('workshop:spotsLeft', { count: spotsLeft })}
                 </span>
               </div>
-              <div style={{ height: 6, background: 'var(--surface-tertiary)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${capacityPct}%`, background: 'var(--gold-gradient)', borderRadius: 3, transition: 'width 0.5s ease' }} />
+              <div className="workshop-detail-capacity-bar">
+                <div className="workshop-detail-capacity-fill" style={{ width: `${capacityPct}%`, background: 'var(--gold-gradient)' }} />
               </div>
             </div>
 
             {/* Description */}
             {workshop.description && (
-              <div style={{ marginBottom: 32 }}>
-                <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 12 }}>About This Workshop</h3>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 15 }}>{workshop.description}</p>
+              <div className="mentorship-detail-description" style={{ marginBottom: 32 }}>
+                <h3 className="mentorship-detail-section-title">{t('workshop:aboutWorkshop')}</h3>
+                <p>{workshop.description}</p>
               </div>
             )}
 
             {/* CTA */}
-            <div style={{
-              padding: 24, background: 'linear-gradient(135deg, rgba(212,168,67,0.08) 0%, rgba(212,168,67,0.03) 100%)',
-              borderRadius: 'var(--radius-lg)', border: '1px solid rgba(212,168,67,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
-            }}>
-              <div>
-                <h3 style={{ fontSize: 22, fontFamily: 'var(--font-body)', fontWeight: 700, marginBottom: 4 }}>
-                  {isFree ? <span style={{ color: 'var(--success)' }}>Free Workshop</span> : formatCurrency(workshop.price)}
+            <div className="mentorship-detail-cta-panel">
+              <div className="mentorship-detail-cta-price">
+                <h3>
+                  {isFree ? <span style={{ color: 'var(--success)' }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Free Workshop' : 'ورشة عمل مجانية'}</span> : formatCurrency(workshop.price)}
                 </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-                  {isAccepting ? `${spotsLeft} spots available` : `Status: ${workshop.status}`}
+                <p className="mentorship-detail-cta-status">
+                  {isAccepting ? t('workshop:spotsLeft', { count: spotsLeft }) : `${t('workshop:workshopStatus')}: ${t('common:status.' + workshop.status.charAt(0).toLowerCase() + workshop.status.slice(1), workshop.status)}`}
                 </p>
               </div>
 
               {isAuthenticated && isBuyer ? (
                 hasRegistered ? (
                   <Button variant="outline" disabled>
-                    <FiCheckCircle style={{ marginRight: 6 }} /> Registered
+                    <FiCheckCircle style={{ marginRight: 6 }} /> {t('workshop:registered')}
                   </Button>
                 ) : (
                   <Button onClick={handleRegisterClick} loading={registering} disabled={!isAccepting || spotsLeft <= 0}>
-                    {spotsLeft <= 0 ? 'Workshop Full' : isFree ? 'Register Now' : `Pay & Register — ${formatCurrency(workshop.price)}`}
+                    {spotsLeft <= 0 ? t('workshop:soldOut') : isFree ? t('workshop:register') : `${t('workshop:register')} — ${formatCurrency(workshop.price)}`}
                   </Button>
                 )
               ) : !isAuthenticated ? (
-                <Button onClick={() => navigate('/login')}>Sign In to Register</Button>
+                <Button onClick={() => navigate('/login')}>{t('workshop:signInToRegister')}</Button>
               ) : null}
             </div>
           </div>
@@ -243,37 +232,26 @@ export default function WorkshopDetailPage() {
       </div>
 
       {/* Payment Modal for paid workshops */}
-      <Modal isOpen={showPaymentModal} onClose={() => setShowPaymentModal(false)} title="Workshop Payment">
+      <Modal isOpen={showPaymentModal} onClose={() => setShowPaymentModal(false)} title={t('workshop:registerModal.title')}>
         <div style={{ padding: '8px 0' }}>
           {/* Payment summary */}
-          <div style={{
-            padding: 20, marginBottom: 24,
-            background: 'var(--surface-secondary)',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--surface-border)',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Workshop</span>
+          <div className="workshop-detail-payment-summary">
+            <div className="workshop-detail-payment-row">
+              <span style={{ color: 'var(--text-secondary)' }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Workshop' : 'ورشة العمل'}</span>
               <span style={{ fontWeight: 600 }}>{workshop.title}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Amount</span>
-              <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--gold-primary)' }}>
+            <div className="workshop-detail-payment-row">
+              <span style={{ color: 'var(--text-secondary)' }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Amount' : 'المبلغ'}</span>
+              <span className="workshop-detail-payment-value">
                 {formatCurrency(workshop.price)}
               </span>
             </div>
           </div>
 
           {/* Card-only notice */}
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            padding: '10px 14px', marginBottom: 20,
-            background: 'rgba(59, 130, 246, 0.06)',
-            borderRadius: 'var(--radius-md)',
-            fontSize: 12, color: '#3B82F6',
-          }}>
+          <div className="workshop-detail-card-notice">
             <FiCreditCard size={14} />
-            Workshop payments require Bank Card payment only.
+            {t('common:nav.adminPanel') === 'Admin Panel' ? 'Workshop payments require Bank Card payment only.' : 'مدفوعات الورش التدريبية تتطلب الدفع بالبطاقة البنكية فقط.'}
           </div>
 
           <CardPaymentForm
@@ -286,3 +264,4 @@ export default function WorkshopDetailPage() {
     </div>
   );
 }
+

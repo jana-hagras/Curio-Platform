@@ -13,15 +13,19 @@ import {
   FiChevronRight, FiX, FiEye, FiLayers, FiCalendar, FiUser,
 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import './Portfolio.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_URL || '${API_BASE}';
 
 /* ─── VIEWS ─────────────────────────────────────── */
 const VIEW = { LIST: 'list', CREATE: 'create', DETAIL: 'detail', EDIT: 'edit' };
 
 export default function MyPortfolioPage() {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation(['dashboard']);
+  const isRtl = i18n.language === 'ar';
+
   const [projects, setProjects] = useState([]);
   const [projectImages, setProjectImages] = useState({}); // { projectId: [images] }
   const [loading, setLoading] = useState(true);
@@ -49,11 +53,11 @@ export default function MyPortfolioPage() {
       }));
       setProjectImages(imgMap);
     } catch {
-      toast.error('Failed to load portfolio');
+      toast.error(t('dashboard:portfolio.failedLoad', 'Failed to load portfolio'));
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, [user.id, t]);
 
   useEffect(() => { fetchProjects(); }, [fetchProjects]);
 
@@ -67,12 +71,12 @@ export default function MyPortfolioPage() {
   const handleDelete = async (projectId) => {
     try {
       await portfolioService.delete(projectId);
-      toast.success('Project deleted');
+      toast.success(t('dashboard:portfolio.projectDeleted', 'Project deleted'));
       setConfirmDelete(null);
       if (view === VIEW.DETAIL) setView(VIEW.LIST);
       fetchProjects();
     } catch {
-      toast.error('Failed to delete project');
+      toast.error(t('dashboard:portfolio.failedDelete', 'Failed to delete project'));
     }
   };
 
@@ -92,20 +96,20 @@ export default function MyPortfolioPage() {
         <>
           <div className="portfolio-header">
             <div>
-              <h1>My Portfolio</h1>
-              <p>Showcase your finest craftwork and attract buyers</p>
+              <h1>{t('dashboard:portfolio.title', 'My Portfolio')}</h1>
+              <p>{t('dashboard:portfolio.subtitle', 'Showcase your finest craftwork and attract buyers')}</p>
             </div>
             <div className="portfolio-actions">
-              <Button onClick={() => setView(VIEW.CREATE)} icon={FiPlus}>Add New Project</Button>
+              <Button onClick={() => setView(VIEW.CREATE)} icon={FiPlus}>{t('dashboard:portfolio.addNew', 'Add New Project')}</Button>
             </div>
           </div>
 
           {projects.length === 0 ? (
             <div className="portfolio-empty">
               <FiLayers className="portfolio-empty-icon" />
-              <h3>No portfolio projects yet</h3>
-              <p>Create your first project to showcase your artisan craft to buyers</p>
-              <Button onClick={() => setView(VIEW.CREATE)} icon={FiPlus}>Create First Project</Button>
+              <h3>{t('dashboard:portfolio.noProjectsTitle', 'No portfolio projects yet')}</h3>
+              <p>{t('dashboard:portfolio.noProjectsSubtitle', 'Create your first project to showcase your artisan craft to buyers')}</p>
+              <Button onClick={() => setView(VIEW.CREATE)} icon={FiPlus}>{t('dashboard:portfolio.createFirst', 'Create First Project')}</Button>
             </div>
           ) : (
             <div className="portfolio-grid">
@@ -126,28 +130,28 @@ export default function MyPortfolioPage() {
                         </div>
                       )}
                       {imgs.length > 1 && (
-                        <span className="portfolio-card-img-count">
+                        <span className="portfolio-card-img-count" style={{ [isRtl ? 'left' : 'right']: 10, [isRtl ? 'right' : 'left']: 'auto' }}>
                           <FiImage size={11} /> {imgs.length}
                         </span>
                       )}
                     </div>
                     <div className="portfolio-card-body">
                       <h3 className="portfolio-card-title">{p.projectName}</h3>
-                      <p className="portfolio-card-desc">{p.description || 'No description provided.'}</p>
+                      <p className="portfolio-card-desc">{p.description || t('dashboard:portfolio.noDesc', 'No description provided.')}</p>
                     </div>
                     <div className="portfolio-card-footer">
-                      <span>{imgs.length} image{imgs.length !== 1 ? 's' : ''}</span>
+                      <span>{t('dashboard:portfolio.imageCount', { count: imgs.length, defaultValue: imgs.length === 1 ? '1 image' : '{{count}} images' })}</span>
                       <div className="portfolio-card-footer-actions">
                         <button
                           className="portfolio-card-action"
-                          title="Edit"
+                          title={t('dashboard:portfolio.edit', 'Edit')}
                           onClick={(e) => { e.stopPropagation(); setSelectedProject(p); setView(VIEW.EDIT); }}
                         >
                           <FiEdit3 size={13} />
                         </button>
                         <button
                           className="portfolio-card-action portfolio-card-action--danger"
-                          title="Delete"
+                          title={t('dashboard:portfolio.delete', 'Delete')}
                           onClick={(e) => { e.stopPropagation(); setConfirmDelete(p.id); }}
                         >
                           <FiTrash2 size={13} />
@@ -197,11 +201,11 @@ export default function MyPortfolioPage() {
       {confirmDelete && (
         <div className="portfolio-confirm-backdrop" onClick={() => setConfirmDelete(null)}>
           <div className="portfolio-confirm-modal" onClick={e => e.stopPropagation()}>
-            <h3>Delete Project</h3>
-            <p>Are you sure you want to delete this project? This will permanently remove the project and all its images. This action cannot be undone.</p>
+            <h3>{t('dashboard:portfolio.confirmDeleteTitle', 'Delete Project')}</h3>
+            <p>{t('dashboard:portfolio.confirmDeleteText', 'Are you sure you want to delete this project? This will permanently remove the project and all its images. This action cannot be undone.')}</p>
             <div className="portfolio-confirm-actions">
-              <Button variant="ghost" onClick={() => setConfirmDelete(null)}>Cancel</Button>
-              <Button style={{ background: 'var(--error)', borderColor: 'var(--error)' }} onClick={() => handleDelete(confirmDelete)}>Delete Project</Button>
+              <Button variant="ghost" onClick={() => setConfirmDelete(null)}>{t('dashboard:portfolio.cancel', 'Cancel')}</Button>
+              <Button style={{ background: 'var(--error)', borderColor: 'var(--error)' }} onClick={() => handleDelete(confirmDelete)}>{t('dashboard:portfolio.deleteProjectBtn', 'Delete Project')}</Button>
             </div>
           </div>
         </div>
@@ -214,16 +218,18 @@ export default function MyPortfolioPage() {
    PROJECT DETAIL COMPONENT
    ═══════════════════════════════════════════════════ */
 function ProjectDetail({ project, images, onBack, onEdit, onDelete }) {
+  const { t, i18n } = useTranslation(['dashboard']);
+  const isRtl = i18n.language === 'ar';
   const [currentIdx, setCurrentIdx] = useState(0);
-  const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const API = import.meta.env.VITE_API_URL || '${API_BASE}';
 
   const prev = () => setCurrentIdx(i => (i === 0 ? images.length - 1 : i - 1));
   const next = () => setCurrentIdx(i => (i === images.length - 1 ? 0 : i + 1));
 
   return (
     <div className="portfolio-detail">
-      <Button variant="ghost" onClick={onBack} icon={FiChevronLeft} style={{ marginBottom: 20 }}>
-        Back to Portfolio
+      <Button variant="ghost" onClick={onBack} icon={isRtl ? FiChevronRight : FiChevronLeft} style={{ marginBottom: 20 }}>
+        {t('dashboard:portfolio.backToPortfolio', 'Back to Portfolio')}
       </Button>
 
       {/* Image Gallery */}
@@ -238,10 +244,10 @@ function ProjectDetail({ project, images, onBack, onEdit, onDelete }) {
             {images.length > 1 && (
               <>
                 <button className="portfolio-detail-hero-nav portfolio-detail-hero-nav--prev" onClick={prev}>
-                  <FiChevronLeft />
+                  {isRtl ? <FiChevronRight /> : <FiChevronLeft />}
                 </button>
                 <button className="portfolio-detail-hero-nav portfolio-detail-hero-nav--next" onClick={next}>
-                  <FiChevronRight />
+                  {isRtl ? <FiChevronLeft /> : <FiChevronRight />}
                 </button>
                 <div className="portfolio-detail-dots">
                   {images.map((_, i) => (
@@ -279,11 +285,11 @@ function ProjectDetail({ project, images, onBack, onEdit, onDelete }) {
       {/* Project Info */}
       <div className="portfolio-detail-meta">
         <h1 className="portfolio-detail-title">{project.projectName}</h1>
-        <p className="portfolio-detail-desc">{project.description || 'No description provided.'}</p>
+        <p className="portfolio-detail-desc">{project.description || t('dashboard:portfolio.noDesc', 'No description provided.')}</p>
 
         <div className="portfolio-detail-info">
           <div className="portfolio-detail-info-item">
-            <FiImage size={14} /> {images.length} image{images.length !== 1 ? 's' : ''}
+            <FiImage size={14} /> {t('dashboard:portfolio.imageCount', { count: images.length, defaultValue: images.length === 1 ? '1 image' : '{{count}} images' })}
           </div>
           <div className="portfolio-detail-info-item">
             <FiUser size={14} /> {project.artisanName || `Artisan #${project.artisan_id}`}
@@ -291,8 +297,8 @@ function ProjectDetail({ project, images, onBack, onEdit, onDelete }) {
         </div>
 
         <div className="portfolio-detail-actions">
-          <Button onClick={onEdit} icon={FiEdit3}>Edit Project</Button>
-          <Button variant="ghost" onClick={onDelete} style={{ color: 'var(--error)' }} icon={FiTrash2}>Delete</Button>
+          <Button onClick={onEdit} icon={FiEdit3}>{t('dashboard:portfolio.editProject', 'Edit Project')}</Button>
+          <Button variant="ghost" onClick={onDelete} style={{ color: 'var(--error)' }} icon={FiTrash2}>{t('dashboard:portfolio.delete', 'Delete')}</Button>
         </div>
       </div>
     </div>
@@ -303,8 +309,10 @@ function ProjectDetail({ project, images, onBack, onEdit, onDelete }) {
    PROJECT FORM (CREATE + EDIT)
    ═══════════════════════════════════════════════════ */
 function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId }) {
+  const { t, i18n } = useTranslation(['dashboard']);
+  const isRtl = i18n.language === 'ar';
   const isEdit = Boolean(project);
-  const API = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const API = import.meta.env.VITE_API_URL || '${API_BASE}';
 
   const [form, setForm] = useState({
     projectName: project?.projectName || '',
@@ -327,9 +335,9 @@ function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId 
 
   const validate = () => {
     const e = {};
-    if (!form.projectName.trim()) e.projectName = 'Project name is required';
-    if (!form.description.trim()) e.description = 'Description is required';
-    if (allImages.length === 0) e.images = 'At least one image is required';
+    if (!form.projectName.trim()) e.projectName = t('dashboard:portfolio.nameRequired', 'Project name is required');
+    if (!form.description.trim()) e.description = t('dashboard:portfolio.descRequired', 'Description is required');
+    if (allImages.length === 0) e.images = t('dashboard:portfolio.imgRequired', 'At least one image is required');
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -355,7 +363,7 @@ function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId 
           artisan_id: artisanId,
         });
         projectId = res.data?.project?.id;
-        if (!projectId) throw new Error('Failed to create project');
+        if (!projectId) throw new Error(t('dashboard:portfolio.failedSave', 'Failed to save project'));
       }
 
       // Handle image deletions (removed existing images)
@@ -382,11 +390,11 @@ function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId 
         }
       }
 
-      toast.success(isEdit ? 'Project updated!' : 'Project created!');
+      toast.success(isEdit ? t('dashboard:portfolio.projectUpdated', 'Project updated!') : t('dashboard:portfolio.projectCreated', 'Project created!'));
       onSaved();
     } catch (err) {
       console.error('Portfolio save error:', err);
-      toast.error(err?.message || 'Failed to save project');
+      toast.error(err?.message || t('dashboard:portfolio.failedSave', 'Failed to save project'));
     } finally {
       setSubmitting(false);
     }
@@ -398,29 +406,29 @@ function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId 
 
   return (
     <div>
-      <Button variant="ghost" onClick={onBack} icon={FiChevronLeft} style={{ marginBottom: 20 }}>
-        {isEdit ? 'Back to Project' : 'Back to Portfolio'}
+      <Button variant="ghost" onClick={onBack} icon={isRtl ? FiChevronRight : FiChevronLeft} style={{ marginBottom: 20 }}>
+        {isEdit ? t('dashboard:portfolio.backToProject', 'Back to Project') : t('dashboard:portfolio.backToPortfolio', 'Back to Portfolio')}
       </Button>
 
       <form onSubmit={handleSubmit} className="portfolio-form">
-        <h2>{isEdit ? 'Edit Project' : 'Create New Project'}</h2>
+        <h2>{isEdit ? t('dashboard:portfolio.editProject', 'Edit Project') : t('dashboard:portfolio.createTitle', 'Create New Project')}</h2>
 
         <div className="portfolio-form-fields">
           <Input
-            label="Project Name"
+            label={t('dashboard:portfolio.projectNameLabel', 'Project Name')}
             value={form.projectName}
             onChange={e => setForm({ ...form, projectName: e.target.value })}
             error={errors.projectName}
-            placeholder="e.g. Egyptian Heritage Collection"
+            placeholder={t('dashboard:portfolio.projectNamePlaceholder', 'e.g. Egyptian Heritage Collection')}
             required
           />
 
           <TextArea
-            label="Description"
+            label={t('dashboard:portfolio.descriptionLabel', 'Description')}
             value={form.description}
             onChange={e => setForm({ ...form, description: e.target.value })}
             error={errors.description}
-            placeholder="Describe this project, the materials used, inspiration, and craftsmanship details..."
+            placeholder={t('dashboard:portfolio.descriptionPlaceholder', 'Describe this project, the materials used, inspiration, and craftsmanship details...')}
             rows={5}
             required
           />
@@ -428,7 +436,7 @@ function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId 
           {/* Existing images (edit mode) */}
           {keptImages.length > 0 && (
             <div>
-              <label className="img-uploader-label">Current Images</label>
+              <label className="img-uploader-label">{t('dashboard:portfolio.currentImages', 'Current Images')}</label>
               <div className="img-uploader-previews" style={{ marginTop: 8 }}>
                 {keptImages.map((img, idx) => (
                   <div key={img.id} className="img-uploader-preview">
@@ -438,7 +446,7 @@ function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId 
                       className="img-uploader-remove"
                       style={{ opacity: 1 }}
                       onClick={() => removeKeptImage(img.id)}
-                      title="Remove image"
+                      title={t('dashboard:portfolio.delete', 'Delete')}
                     >
                       <FiX size={12} />
                     </button>
@@ -454,14 +462,14 @@ function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId 
             maxFiles={8 - keptImages.length}
             required={keptImages.length === 0}
             error={errors.images}
-            label={isEdit ? 'Add More Images' : 'Project Images'}
+            label={isEdit ? t('dashboard:portfolio.addMoreImages', 'Add More Images') : t('dashboard:portfolio.projectImages', 'Project Images')}
           />
         </div>
 
         <div className="portfolio-form-actions">
-          <Button variant="ghost" type="button" onClick={onBack}>Cancel</Button>
+          <Button variant="ghost" type="button" onClick={onBack}>{t('dashboard:portfolio.cancel', 'Cancel')}</Button>
           <Button type="submit" loading={submitting}>
-            {isEdit ? 'Save Changes' : 'Create Project'}
+            {isEdit ? t('dashboard:portfolio.saveChanges', 'Save Changes') : t('dashboard:portfolio.createProject', 'Create Project')}
           </Button>
         </div>
       </form>

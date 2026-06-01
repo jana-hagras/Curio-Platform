@@ -24,6 +24,11 @@ import MentorshipsPage from './pages/public/MentorshipsPage';
 import MentorshipDetailPage from './pages/public/MentorshipDetailPage';
 import WorkshopsPage from './pages/public/WorkshopsPage';
 import WorkshopDetailPage from './pages/public/WorkshopDetailPage';
+import PrivacyPolicyPage from './pages/public/PrivacyPolicyPage';
+import CookiePolicyPage from './pages/public/CookiePolicyPage';
+import TermsPage from './pages/public/TermsPage';
+import CookieBanner from './components/ui/CookieBanner';
+import FloatingChatbot from './components/ui/FloatingChatbot';
 
 // Buyer Pages
 import CartPage from './pages/buyer/CartPage';
@@ -67,6 +72,8 @@ import AdminWorkshopsPage from './pages/admin/AdminWorkshopsPage';
 import ProfilePage from './pages/shared/ProfilePage';
 import ChatPage from './pages/shared/ChatPage';
 import { useAuth } from './hooks/useAuth';
+
+import { useTranslation } from 'react-i18next';
 
 function DashboardRouter() {
   const { isBuyer, isArtisan, isAdmin } = useAuth();
@@ -119,6 +126,24 @@ function DashboardRouter() {
   return <Navigate to="/login" replace />;
 }
 
+function AppToaster() {
+  const { i18n } = useTranslation();
+  return (
+    <Toaster
+      position={i18n.language === 'ar' ? 'top-left' : 'top-right'}
+      toastOptions={{
+        style: {
+          fontFamily: 'var(--font-body)',
+          borderRadius: '12px',
+          background: 'var(--surface-primary)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--surface-border)',
+        }
+      }}
+    />
+  );
+}
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -127,15 +152,7 @@ export default function App() {
           <FavoritesProvider>
             <ChatProvider>
             <Router>
-            <Toaster position="top-right" toastOptions={{
-              style: {
-                fontFamily: 'var(--font-body)',
-                borderRadius: '12px',
-                background: 'var(--surface-primary)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--surface-border)',
-              }
-            }} />
+            <AppToaster />
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<HomePage />} />
@@ -153,6 +170,9 @@ export default function App() {
                 <Route path="/workshops/:id" element={<WorkshopDetailPage />} />
                 <Route path="/cart" element={<ProtectedRoute requiredType="Buyer"><CartPage /></ProtectedRoute>} />
                 <Route path="/checkout" element={<ProtectedRoute requiredType="Buyer"><CheckoutPage /></ProtectedRoute>} />
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+                <Route path="/terms" element={<TermsPage />} />
               </Route>
 
               <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
@@ -176,6 +196,8 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/admin" replace />} />
               </Route>
             </Routes>
+            <CookieBanner />
+            <FloatingChatbot />
             </Router>
             </ChatProvider>
            </FavoritesProvider>
@@ -184,3 +206,4 @@ export default function App() {
     </ThemeProvider>
   );
 }
+

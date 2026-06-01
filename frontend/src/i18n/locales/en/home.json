@@ -1,0 +1,39 @@
+{
+  "hero": {
+    "badge": "✦ Authentic Egyptian Craftsmanship",
+    "title1": "Discover the Art of",
+    "title2": "Ancient Egypt",
+    "desc": "Connect with master artisans and bring home unique, handcrafted treasures that carry centuries of tradition and cultural heritage.",
+    "explore": "Explore Marketplace",
+    "meetArtisans": "Meet Artisans"
+  },
+  "stats": {
+    "artisans": "Artisans",
+    "products": "Products",
+    "happyBuyers": "Happy Buyers"
+  },
+  "features": {
+    "title": "Why Choose",
+    "subtitle": "We bridge the gap between Egypt's finest artisans and global buyers",
+    "verified": "Verified Artisans",
+    "verifiedDesc": "Every artisan is vetted to ensure authentic, quality craftsmanship.",
+    "shipping": "Global Shipping",
+    "shippingDesc": "From Cairo to your doorstep — worldwide delivery of handmade treasures.",
+    "custom": "Custom Orders",
+    "customDesc": "Request bespoke pieces tailored exactly to your vision and needs.",
+    "secure": "Secure Payments",
+    "secureDesc": "Protected transactions with escrow milestones for custom projects."
+  },
+  "featured": {
+    "products": "Featured Products",
+    "productsSubtitle": "Handpicked artisan creations",
+    "artisans": "Meet Our Artisans",
+    "artisansSubtitle": "Talented craftspeople keeping traditions alive"
+  },
+  "cta": {
+    "title": "Ready to Discover Authentic Egyptian Art?",
+    "subtitle": "Join thousands of buyers and artisans on CURIO",
+    "getStarted": "Get Started",
+    "browse": "Browse Products"
+  }
+}

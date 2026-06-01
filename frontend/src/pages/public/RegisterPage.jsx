@@ -6,6 +6,7 @@ import TextArea from "../../components/ui/TextArea";
 import CountrySelect from "../../components/ui/CountrySelect";
 import Button from "../../components/ui/Button";
 import { FiMail, FiLock, FiUser, FiCamera } from "react-icons/fi";
+import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { uploadService } from "../../services/uploadService";
 import "./AuthPages.css";
@@ -29,6 +30,7 @@ export default function RegisterPage() {
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const { register } = useAuth();
+  const { t } = useTranslation(['auth', 'common']);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -47,26 +49,26 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (!form.fName.trim()) errs.fName = "First name is required.";
-    if (!form.lName.trim()) errs.lName = "Last name is required.";
-    if (!form.email.trim()) errs.email = "Email is required.";
+    if (!form.fName.trim()) errs.fName = t('common:validation.nameRequired', { label: t('register.firstName') });
+    if (!form.lName.trim()) errs.lName = t('common:validation.nameRequired', { label: t('register.lastName') });
+    if (!form.email.trim()) errs.email = t('common:validation.emailRequired');
     if (!form.password) {
-      errs.password = "Password is required.";
+      errs.password = t('common:validation.passwordRequired');
     } else {
       const pwIssues = [];
-      if (form.password.length < 8) pwIssues.push("at least 8 characters");
-      if (!/[A-Z]/.test(form.password)) pwIssues.push("one uppercase letter");
-      if (!/[a-z]/.test(form.password)) pwIssues.push("one lowercase letter");
-      if (!/[0-9]/.test(form.password)) pwIssues.push("one number");
+      if (form.password.length < 8) pwIssues.push(t('common:validation.passwordMin'));
+      if (!/[A-Z]/.test(form.password)) pwIssues.push(t('common:validation.passwordUpper'));
+      if (!/[a-z]/.test(form.password)) pwIssues.push(t('common:validation.passwordLower'));
+      if (!/[0-9]/.test(form.password)) pwIssues.push(t('common:validation.passwordNumber'));
       if (pwIssues.length > 0) {
-        errs.password = "Password needs: " + pwIssues.join(", ") + ".";
+        errs.password = t('common:validation.passwordRules', { rules: pwIssues.join(', ') });
       }
     }
     if (form.password !== form.confirmPassword) {
-      errs.confirmPassword = "Passwords do not match.";
+      errs.confirmPassword = t('register.passwordMismatch');
     }
     if (userType === "Buyer" && !form.country) {
-      errs.country = "Country is required.";
+      errs.country = t('common:validation.nameRequired', { label: t('register.country') });
     }
     if (Object.keys(errs).length) {
       setErrors(errs);
@@ -81,15 +83,15 @@ export default function RegisterPage() {
           const uploadRes = await uploadService.uploadImage(imageFile);
           finalImageUrl = uploadRes?.imageUrl || uploadRes?.data?.imageUrl || "";
         } catch (uploadErr) {
-          toast.error("Image upload failed, proceeding without image.");
+          toast.error(t('common:nav.adminPanel') === 'Admin Panel' ? "Image upload failed, proceeding without image." : "فشل تحميل الصورة، جاري المتابعة بدونها.");
         }
       }
 
       await register({ ...form, type: userType, profileImage: finalImageUrl });
-      toast.success("Account created! Please sign in.");
+      toast.success(t('register.success'));
       navigate("/login");
     } catch (err) {
-      toast.error(err.message || "Registration failed");
+      toast.error(err.message || t('common:nav.adminPanel') === 'Admin Panel' ? "Registration failed" : "فشلت عملية التسجيل");
     } finally {
       setLoading(false);
     }
@@ -100,18 +102,19 @@ export default function RegisterPage() {
       <div className="auth-left">
         <div className="auth-left-content">
           <img src={logo} alt="CURIO" className="auth-logo-img" />
-          <h2>Join CURIO</h2>
+          <h2>{t('register.title')}</h2>
           <p>
-            Create your account and start exploring Egypt's finest artisan
-            craftsmanship.
+            {t('common:nav.adminPanel') === 'Admin Panel' 
+              ? "Create your account and start exploring Egypt's finest artisan craftsmanship."
+              : "أنشئ حسابك وابدأ في استكشاف أفضل الحرف اليدوية والفنية المصرية."}
           </p>
         </div>
       </div>
       <div className="auth-right">
         <div className="auth-form-wrapper">
-          <h1 className="auth-title">Create Account</h1>
+          <h1 className="auth-title">{t('register.submit')}</h1>
           <p className="auth-subtitle">
-            Choose your account type to get started.
+            {t('register.subtitle')}
           </p>
 
           <div className="auth-type-selector">
@@ -119,15 +122,15 @@ export default function RegisterPage() {
               className={`auth-type-btn ${userType === "Buyer" ? "auth-type-active" : ""}`}
               onClick={() => setUserType("Buyer")}
             >
-              <h4>🛒 Buyer</h4>
-              <p>Shop & request custom items</p>
+              <h4>🛒 {t('register.buyer')}</h4>
+              <p>{t('register.buyerDesc')}</p>
             </div>
             <div
               className={`auth-type-btn ${userType === "Artisan" ? "auth-type-active" : ""}`}
               onClick={() => setUserType("Artisan")}
             >
-              <h4>🎨 Artisan</h4>
-              <p>Sell your handmade crafts</p>
+              <h4>🎨 {t('register.artisan')}</h4>
+              <p>{t('register.artisanDesc')}</p>
             </div>
           </div>
 
@@ -136,12 +139,12 @@ export default function RegisterPage() {
             className="auth-form"
             id="register-form"
           >
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <div style={{ position: 'relative' }}>
-                <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--surface-border)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, overflow: 'hidden' }}>
-                  {previewUrl ? <img src={previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <FiUser />}
+            <div className="auth-avatar-upload-container">
+              <div className="auth-avatar-upload-wrapper">
+                <div className="auth-avatar-preview">
+                  {previewUrl ? <img src={previewUrl} alt="" /> : <FiUser />}
                 </div>
-                <label style={{ position: 'absolute', bottom: -4, right: -4, width: 28, height: 28, borderRadius: '50%', background: 'var(--black-deep)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer', border: '2px solid var(--surface-primary)' }}>
+                <label className="auth-avatar-label">
                   <FiCamera />
                   <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
                 </label>
@@ -150,7 +153,7 @@ export default function RegisterPage() {
 
             <div className="auth-form-row">
               <Input
-                label="First Name"
+                label={t('register.firstName')}
                 name="fName"
                 icon={FiUser}
                 placeholder="First name"
@@ -159,7 +162,7 @@ export default function RegisterPage() {
                 error={errors.fName}
               />
               <Input
-                label="Last Name"
+                label={t('register.lastName')}
                 name="lName"
                 icon={FiUser}
                 placeholder="Last name"
@@ -169,7 +172,7 @@ export default function RegisterPage() {
               />
             </div>
             <Input
-              label="Email"
+              label={t('register.email')}
               name="email"
               type="email"
               icon={FiMail}
@@ -179,42 +182,42 @@ export default function RegisterPage() {
               error={errors.email}
             />
             <Input
-              label="Password"
+              label={t('register.password')}
               name="password"
               type="password"
               icon={FiLock}
-              placeholder="Min 8 characters"
+              placeholder="••••••••"
               value={form.password}
               onChange={handleChange}
               error={errors.password}
             />
             <Input
-              label="Confirm Password"
+              label={t('register.confirmPassword')}
               name="confirmPassword"
               type="password"
               icon={FiLock}
-              placeholder="Confirm your password"
+              placeholder="••••••••"
               value={form.confirmPassword}
               onChange={handleChange}
               error={errors.confirmPassword}
             />
             <Input
-              label="Phone (optional)"
+              label={t('register.phone')}
               name="phone"
               placeholder="+20 xxx xxx xxxx"
               value={form.phone}
               onChange={handleChange}
             />
             <Input
-              label="Address (optional)"
+              label={t('register.address')}
               name="address"
-              placeholder="Your address"
+              placeholder="Cairo, Egypt"
               value={form.address}
               onChange={handleChange}
             />
             {userType === "Buyer" && (
               <CountrySelect
-                label="Country"
+                label={t('register.country')}
                 value={form.country}
                 onChange={handleChange}
                 error={errors.country}
@@ -223,23 +226,24 @@ export default function RegisterPage() {
             )}
             {userType === "Artisan" && (
               <TextArea
-                label="Bio"
+                label={t('register.bio')}
                 name="bio"
-                placeholder="Tell us about your craft..."
+                placeholder={t('register.bioPlaceholder')}
                 value={form.bio}
                 onChange={handleChange}
                 rows={3}
               />
             )}
             <Button type="submit" fullWidth loading={loading} size="lg">
-              Create Account
+              {t('register.submit')}
             </Button>
           </form>
           <p className="auth-switch">
-            Already have an account? <Link to="/login">Sign In</Link>
+            {t('register.hasAccount')} <Link to="/login">{t('register.login')}</Link>
           </p>
         </div>
       </div>
     </div>
   );
 }
+

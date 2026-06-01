@@ -1,11 +1,14 @@
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { useNavigate } from 'react-router-dom';
 import { FiClock, FiUsers, FiCheckCircle } from 'react-icons/fi';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { useTranslation } from 'react-i18next';
 import Badge from '../ui/Badge';
 import './MentorshipCard.css';
 
 export default function MentorshipCard({ mentorship }) {
   const navigate = useNavigate();
+  const { t } = useTranslation(['mentorship', 'common']);
   const {
     id,
     artisanName,
@@ -22,7 +25,7 @@ export default function MentorshipCard({ mentorship }) {
 
   const avatarSrc = artisanProfileImage
     ? artisanProfileImage.startsWith('/')
-      ? `http://localhost:3000${artisanProfileImage}`
+      ? `${API_BASE}${artisanProfileImage}`
       : artisanProfileImage
     : null;
 
@@ -34,7 +37,7 @@ export default function MentorshipCard({ mentorship }) {
     >
       {status && status !== 'Active' && (
         <div className="mentorship-card-status">
-          <Badge status={status}>{status}</Badge>
+          <Badge status={status}>{t('common:status.' + status.charAt(0).toLowerCase() + status.slice(1), status)}</Badge>
         </div>
       )}
 
@@ -60,7 +63,7 @@ export default function MentorshipCard({ mentorship }) {
       <div className="mentorship-card-body">
         {category && (
           <div className="mentorship-card-category">
-            {category}
+            {t('common:categories.' + category, category)}
           </div>
         )}
         {description && (
@@ -72,18 +75,21 @@ export default function MentorshipCard({ mentorship }) {
         <div className="mentorship-card-meta">
           <div className="mentorship-card-meta-item">
             <FiClock size={14} />
-            <span>{duration} min</span>
+            <span>{duration} {t('common:nav.adminPanel') === 'Admin Panel' ? 'min' : 'دقيقة'}</span>
           </div>
           <div className="mentorship-card-meta-item">
             <FiUsers size={14} />
-            <span>1-on-1 Session</span>
+            <span>{t('mentorship:oneOnOne')}</span>
           </div>
         </div>
         <div className="mentorship-card-price">
           {formatCurrency(sessionPrice)}
-          <span>/session</span>
+          <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginLeft: 4 }}>
+            {t('mentorship:perSession') ? ` / ${t('mentorship:perSession')}` : ' / session'}
+          </span>
         </div>
       </div>
     </div>
   );
 }
+

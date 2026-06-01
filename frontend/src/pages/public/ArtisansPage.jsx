@@ -4,6 +4,7 @@ import ArtisanCard from "../../components/cards/ArtisanCard";
 import SearchBar from "../../components/ui/SearchBar";
 import EmptyState from "../../components/ui/EmptyState";
 import { useDebounce } from "../../hooks/useDebounce";
+import { useTranslation } from "react-i18next";
 import { ShimmerCategoryItem } from "react-shimmer-effects";
 import { FiUsers } from "react-icons/fi";
 
@@ -12,6 +13,7 @@ export default function ArtisansPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
+  const { t } = useTranslation(['common']);
 
   useEffect(() => {
     setLoading(true);
@@ -39,10 +41,10 @@ export default function ArtisansPage() {
       >
         <div className="container">
           <h1 style={{ fontSize: 40, marginBottom: 8, color: "#fff" }}>
-            Our Artisans
+            {t('common:nav.adminPanel') === 'Admin Panel' ? 'Our Artisans' : 'حرفيينا المبدعين'}
           </h1>
           <p style={{ color: "rgba(255,255,255,.6)", fontSize: 18 }}>
-            Meet the talented craftspeople behind every creation
+            {t('common:nav.adminPanel') === 'Admin Panel' ? 'Meet the talented craftspeople behind every creation' : 'تعرف على الحرفيين الموهوبين وراء كل تحفة فنية'}
           </p>
         </div>
       </div>
@@ -51,7 +53,7 @@ export default function ArtisansPage() {
           <SearchBar
             value={search}
             onChange={setSearch}
-            placeholder="Search artisans..."
+            placeholder={t('common:nav.adminPanel') === 'Admin Panel' ? "Search artisans..." : "ابحث عن الحرفيين..."}
           />
         </div>
         {loading ? (
@@ -86,8 +88,8 @@ export default function ArtisansPage() {
         ) : artisans.length === 0 ? (
           <EmptyState
             icon={FiUsers}
-            title="No artisans found"
-            message="Try a different search."
+            title={t('common:nav.adminPanel') === 'Admin Panel' ? "No artisans found" : "لم يتم العثور على حرفيين"}
+            message={t('common:nav.adminPanel') === 'Admin Panel' ? "Try a different search." : "حاول البحث بكلمات مختلفة."}
           />
         ) : (
           <div
@@ -106,3 +108,4 @@ export default function ArtisansPage() {
     </div>
   );
 }
+

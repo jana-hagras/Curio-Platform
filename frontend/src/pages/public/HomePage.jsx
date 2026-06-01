@@ -19,6 +19,7 @@ import {
   FiStar,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import curioVideo from "../../assets/curio.mp4";
 import "./HomePage.css";
 
@@ -28,6 +29,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const { isBuyer } = useAuth();
   const { addItem } = useCart();
+  const { t } = useTranslation(['home', 'common']);
 
   useEffect(() => {
     setLoading(true);
@@ -50,94 +52,90 @@ export default function HomePage() {
 
   const handleAddToCart = (product) => {
     addItem(product);
-    toast.success(`Added to cart!`);
+    toast.success(t('common:actions.addedToCart'));
   };
 
   return (
-    <div>
+    <div className="home-page-container">
       {/* Hero */}
       <section className="hero" id="hero-section">
         <video autoPlay loop muted playsInline className="hero-video-bg">
           <source src={curioVideo} type="video/mp4" />
         </video>
         <div className="hero-overlay"></div>
-        <div
-          className="container hero-content"
-          style={{ animation: "fadeInUp 0.6s ease forwards" }}
-        >
-          <span className="hero-badge">✦ Authentic Egyptian Craftsmanship</span>
+        <div className="container hero-content">
+          <span className="hero-badge">{t('hero.badge')}</span>
           <h1>
-            Discover the Art of
+            {t('hero.title1')}
             <br />
-            <span>Ancient Egypt</span>
+            <span>{t('hero.title2')}</span>
           </h1>
           <p className="hero-desc">
-            Connect with master artisans and bring home unique, handcrafted
-            treasures that carry centuries of tradition and cultural heritage.
+            {t('hero.desc')}
           </p>
           <div className="hero-actions">
             <Link to="/marketplace">
               <Button size="lg">
-                Explore Marketplace <FiArrowRight />
+                {t('hero.explore')} <FiArrowRight className="rtl-flip" />
               </Button>
             </Link>
             <Link to="/artisans">
               <Button
                 variant="outline"
                 size="lg"
-                style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff" }}
+                className="hero-outline-btn"
               >
-                Meet Artisans
+                {t('hero.meetArtisans')}
               </Button>
             </Link>
           </div>
           <div className="hero-stats">
             <div className="hero-stat">
               <div className="hero-stat-value">500+</div>
-              <div className="hero-stat-label">Artisans</div>
+              <div className="hero-stat-label">{t('stats.artisans')}</div>
             </div>
             <div className="hero-stat">
               <div className="hero-stat-value">2K+</div>
-              <div className="hero-stat-label">Products</div>
+              <div className="hero-stat-label">{t('stats.products')}</div>
             </div>
             <div className="hero-stat">
               <div className="hero-stat-value">10K+</div>
-              <div className="hero-stat-label">Happy Buyers</div>
+              <div className="hero-stat-label">{t('stats.happyBuyers')}</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="section">
+      <section className="section features-section">
         <div className="container">
           <h2 className="section-title">
-            Why Choose <span className="gold-text">CURIO</span>
+            {t('features.title').split(' ')[0]} <span className="gold-text">{t('features.title').split(' ').slice(1).join(' ') || 'CURIO'}</span>
           </h2>
           <p className="section-subtitle">
-            We bridge the gap between Egypt's finest artisans and global buyers
+            {t('features.subtitle')}
           </p>
           <div className="features-grid">
             {[
               {
                 icon: FiShield,
-                title: "Verified Artisans",
-                desc: "Every artisan is vetted to ensure authentic, quality craftsmanship.",
+                title: t('features.verified'),
+                desc: t('features.verifiedDesc'),
               },
               {
                 icon: FiGlobe,
-                title: "Global Shipping",
-                desc: "From Cairo to your doorstep — worldwide delivery of handmade treasures.",
+                title: t('features.shipping'),
+                desc: t('features.shippingDesc'),
               },
               {
                 icon: FiHeart,
-                title: "Custom Orders",
-                desc: "Request bespoke pieces tailored exactly to your vision and needs.",
+                title: t('features.custom'),
+                desc: t('features.customDesc'),
               },
               {
                 icon: FiStar,
-                title: "Secure Payments",
-                desc: "Protected transactions with escrow milestones for custom projects.",
+                title: t('features.secure'),
+                desc: t('features.secureDesc'),
               },
             ].map((f, i) => (
               <div key={i} className="feature-card">
@@ -154,58 +152,27 @@ export default function HomePage() {
 
       {/* Featured Products */}
       {(loading || products.length > 0) && (
-        <section
-          className="section"
-          style={{ background: "var(--surface-secondary)" }}
-        >
+        <section className="section featured-products-section">
           <div className="container">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 40,
-              }}
-            >
+            <div className="home-section-header">
               <div>
-                <h2 className="section-title" style={{ textAlign: "left" }}>
-                  Featured Products
+                <h2 className="section-title left-aligned">
+                  {t('featured.products')}
                 </h2>
-                <p
-                  style={{
-                    color: "var(--text-secondary)",
-                    fontSize: 16,
-                    marginTop: 8,
-                  }}
-                >
-                  Handpicked artisan creations
+                <p className="section-subtitle-small">
+                  {t('featured.productsSubtitle')}
                 </p>
               </div>
-              <Link
-                to="/marketplace"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontWeight: 600,
-                  fontSize: 15,
-                }}
-              >
-                View All <FiArrowRight />
+              <Link to="/marketplace" className="home-view-all-link">
+                {t('common:actions.viewAll')} <FiArrowRight className="rtl-flip" />
               </Link>
             </div>
             {loading ? (
-              <div style={{ marginTop: 24 }}>
+              <div className="home-shimmer-wrapper">
                 <ShimmerSimpleGallery card imageHeight={200} caption />
               </div>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                  gap: 24,
-                }}
-              >
+              <div className="home-products-grid">
                 {products.map((p) => (
                   <ProductCard
                     key={p.id}
@@ -221,61 +188,25 @@ export default function HomePage() {
 
       {/* Featured Artisans */}
       {(loading || artisans.length > 0) && (
-        <section className="section">
+        <section className="section featured-artisans-section">
           <div className="container">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 40,
-              }}
-            >
+            <div className="home-section-header">
               <div>
-                <h2 className="section-title" style={{ textAlign: "left" }}>
-                  Meet Our Artisans
+                <h2 className="section-title left-aligned">
+                  {t('featured.artisans')}
                 </h2>
-                <p
-                  style={{
-                    color: "var(--text-secondary)",
-                    fontSize: 16,
-                    marginTop: 8,
-                  }}
-                >
-                  Talented craftspeople keeping traditions alive
+                <p className="section-subtitle-small">
+                  {t('featured.artisansSubtitle')}
                 </p>
               </div>
-              <Link
-                to="/artisans"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontWeight: 600,
-                  fontSize: 15,
-                }}
-              >
-                View All <FiArrowRight />
+              <Link to="/artisans" className="home-view-all-link">
+                {t('common:actions.viewAll')} <FiArrowRight className="rtl-flip" />
               </Link>
             </div>
             {loading ? (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                  gap: 24,
-                }}
-              >
+              <div className="home-artisans-grid">
                 {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "var(--surface-primary)",
-                      padding: 24,
-                      borderRadius: "var(--radius-lg)",
-                      border: "1px solid var(--surface-border)",
-                    }}
-                  >
+                  <div key={i} className="home-shimmer-card">
                     <ShimmerCategoryItem
                       hasImage
                       imageType="circular"
@@ -288,13 +219,7 @@ export default function HomePage() {
                 ))}
               </div>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                  gap: 24,
-                }}
-              >
+              <div className="home-artisans-grid">
                 {artisans.map((a) => (
                   <ArtisanCard key={a.id} artisan={a} />
                 ))}
@@ -307,21 +232,21 @@ export default function HomePage() {
       {/* CTA */}
       <section className="cta-section">
         <div className="container cta-content">
-          <h2>Ready to Discover Authentic Egyptian Art?</h2>
-          <p>Join thousands of buyers and artisans on CURIO</p>
-          <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+          <h2>{t('cta.title')}</h2>
+          <p>{t('cta.subtitle')}</p>
+          <div className="home-cta-actions">
             <Link to="/register">
               <Button size="lg">
-                Get Started <FiArrowRight />
+                {t('cta.getStarted')} <FiArrowRight className="rtl-flip" />
               </Button>
             </Link>
             <Link to="/marketplace">
               <Button
                 variant="outline"
                 size="lg"
-                style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fff" }}
+                className="cta-outline-btn"
               >
-                Browse Products
+                {t('cta.browse')}
               </Button>
             </Link>
           </div>

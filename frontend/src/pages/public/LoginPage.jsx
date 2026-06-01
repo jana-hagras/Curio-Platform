@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { FiMail, FiLock } from "react-icons/fi";
+import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import "./AuthPages.css";
 import logo from "../../assets/logo.png";
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { login, isAuthenticated, isAdmin } = useAuth();
+  const { t } = useTranslation(['auth', 'common']);
   const navigate = useNavigate();
 
   // Redirect authenticated users away from login page
@@ -30,8 +32,8 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
-    if (!form.email.trim()) errs.email = "Email is required.";
-    if (!form.password) errs.password = "Password is required.";
+    if (!form.email.trim()) errs.email = t('common:validation.emailRequired');
+    if (!form.password) errs.password = t('common:validation.passwordRequired');
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
@@ -40,7 +42,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const userData = await login(form.email, form.password);
-      toast.success("Welcome back!");
+      toast.success(t('common:time.justNow')); // Or any success toast
       // Role-based redirect
       if (userData.type === 'Admin') {
         navigate("/admin", { replace: true });
@@ -48,7 +50,7 @@ export default function LoginPage() {
         navigate("/dashboard", { replace: true });
       }
     } catch (err) {
-      toast.error(err.message || "Login failed");
+      toast.error(err.message || t('login.error'));
       if (err.errors?.length) {
         const mapped = {};
         err.errors.forEach((e) => {
@@ -66,18 +68,19 @@ export default function LoginPage() {
       <div className="auth-left">
         <div className="auth-left-content">
           <img src={logo} alt="CURIO" className="auth-logo-img" />
-          <h2>Welcome to CURIO</h2>
+          <h2>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Welcome to CURIO' : 'مرحباً بك في كيريو'}</h2>
           <p>
-            Discover authentic Egyptian craftsmanship and connect with master
-            artisans.
+            {t('common:nav.adminPanel') === 'Admin Panel' 
+              ? 'Discover authentic Egyptian craftsmanship and connect with master artisans.'
+              : 'اكتشف الحرف اليدوية المصرية الأصيلة وتواصل مع أمهر الحرفيين.'}
           </p>
         </div>
       </div>
       <div className="auth-right">
         <div className="auth-form-wrapper">
-          <h1 className="auth-title">Sign In</h1>
+          <h1 className="auth-title">{t('login.submit')}</h1>
           <p className="auth-subtitle">
-            Welcome back! Please sign in to your account.
+            {t('login.subtitle')}
           </p>
 
           {errors.general && (
@@ -86,7 +89,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="auth-form" id="login-form">
             <Input
-              label="Email Address"
+              label={t('login.email')}
               name="email"
               type="email"
               icon={FiMail}
@@ -96,25 +99,26 @@ export default function LoginPage() {
               error={errors.email}
             />
             <Input
-              label="Password"
+              label={t('login.password')}
               name="password"
               type="password"
               icon={FiLock}
-              placeholder="Enter your password"
+              placeholder="••••••••"
               value={form.password}
               onChange={handleChange}
               error={errors.password}
             />
             <Button type="submit" fullWidth loading={loading} size="lg">
-              Sign In
+              {t('login.submit')}
             </Button>
           </form>
 
           <p className="auth-switch">
-            Don't have an account? <Link to="/register">Sign Up</Link>
+            {t('login.noAccount')} <Link to="/register">{t('login.register')}</Link>
           </p>
         </div>
       </div>
     </div>
   );
 }
+

@@ -5,26 +5,28 @@ import {
   FiSettings, FiBarChart2, FiShield, FiLogOut, FiStar, FiCreditCard, FiSend, FiImage,
   FiBookOpen, FiVideo
 } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import './Sidebar.css';
 
 export default function AdminLayout() {
   const { logout } = useAuth();
+  const { t } = useTranslation(['admin', 'common']);
 
   const adminLinks = [
-    { path: '/admin', label: 'Overview', icon: FiGrid, end: true },
-    { path: '/admin/users', label: 'Users', icon: FiUsers },
-    { path: '/admin/products', label: 'Products', icon: FiPackage },
-    { path: '/admin/orders', label: 'Orders', icon: FiShoppingBag },
-    { path: '/admin/requests', label: 'Requests', icon: FiFileText },
-    { path: '/admin/applications', label: 'Applications', icon: FiSend },
-    { path: '/admin/reviews', label: 'Reviews', icon: FiStar },
-    { path: '/admin/payments', label: 'Payments', icon: FiCreditCard },
-    { path: '/admin/portfolios', label: 'Portfolios', icon: FiImage },
-    { path: '/admin/mentorships', label: 'Mentorships', icon: FiBookOpen },
-    { path: '/admin/workshops', label: 'Workshops', icon: FiVideo },
-    { path: '/admin/settings', label: 'Settings', icon: FiSettings },
+    { path: '/admin', label: t('common:sidebar.overview'), icon: FiGrid, end: true },
+    { path: '/admin/users', label: t('admin:users.title'), icon: FiUsers },
+    { path: '/admin/products', label: t('admin:products.title'), icon: FiPackage },
+    { path: '/admin/orders', label: t('admin:orders.title'), icon: FiShoppingBag },
+    { path: '/admin/requests', label: t('admin:requests.title'), icon: FiFileText },
+    { path: '/admin/applications', label: t('admin:applications.title'), icon: FiSend },
+    { path: '/admin/reviews', label: t('admin:reviews.title'), icon: FiStar },
+    { path: '/admin/payments', label: t('admin:payments.title'), icon: FiCreditCard },
+    { path: '/admin/portfolios', label: t('admin:portfolios.title'), icon: FiImage },
+    { path: '/admin/mentorships', label: t('admin:mentorships.title'), icon: FiBookOpen },
+    { path: '/admin/workshops', label: t('admin:workshops.title'), icon: FiVideo },
+    { path: '/admin/settings', label: t('admin:settings.title'), icon: FiSettings },
   ];
 
   return (
@@ -35,7 +37,7 @@ export default function AdminLayout() {
           <div className="sidebar-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <FiShield style={{ color: 'var(--gold-primary)', fontSize: 18 }} />
-              <h3>Admin Panel</h3>
+              <h3>{t('common:nav.adminPanel')}</h3>
             </div>
           </div>
           <nav className="sidebar-nav">
@@ -59,7 +61,7 @@ export default function AdminLayout() {
               style={{ width: '100%', textAlign: 'left', color: '#EF4444' }}
             >
               <FiLogOut className="sidebar-link-icon" />
-              <span>Sign Out</span>
+              <span>{t('common:sidebar.signOut')}</span>
             </button>
           </nav>
         </aside>
@@ -71,3 +73,4 @@ export default function AdminLayout() {
     </div>
   );
 }
+

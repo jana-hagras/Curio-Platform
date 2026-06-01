@@ -5,6 +5,7 @@ import SearchBar from "../../components/ui/SearchBar";
 import Spinner from "../../components/ui/Spinner";
 import EmptyState from "../../components/ui/EmptyState";
 import { useDebounce } from "../../hooks/useDebounce";
+import { useTranslation } from "react-i18next";
 import { CATEGORIES } from "../../utils/constants";
 import { FiFileText } from "react-icons/fi";
 
@@ -14,6 +15,7 @@ export default function RequestsPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const debouncedSearch = useDebounce(search);
+  const { t } = useTranslation(['request', 'marketplace', 'common']);
 
   useEffect(() => {
     setLoading(true);
@@ -41,16 +43,12 @@ export default function RequestsPage() {
         <div className="container">
           <div className="container">
             <h1 style={{ fontSize: 40, marginBottom: 8, color: "#fff" }}>
-              Custom Requests
+              {t('request:title', 'Custom Requests')}
             </h1>
             <p style={{ color: "rgba(255,255,255,.6)", fontSize: 18 }}>
-              Meet the talented craftspeople behind every creation
+              {t('request:subtitle', 'Browse custom crafting requests from buyers worldwide')}
             </p>
           </div>
-
-          <p style={{ color: "rgba(255,255,255,.6)", fontSize: 18 }}>
-            Browse buyer requests and offer your craftsmanship
-          </p>
         </div>
       </div>
       <div className="container" style={{ padding: "32px 24px" }}>
@@ -65,7 +63,7 @@ export default function RequestsPage() {
           <SearchBar
             value={search}
             onChange={setSearch}
-            placeholder="Search requests..."
+            placeholder={t('request:search', "Search requests...")}
           />
           <select
             className="select-field"
@@ -73,10 +71,10 @@ export default function RequestsPage() {
             onChange={(e) => setCategory(e.target.value)}
             style={{ maxWidth: 180 }}
           >
-            <option value="">All Categories</option>
+            <option value="">{t('marketplace:allCategories') || 'All Categories'}</option>
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {t('common:categories.' + c, c)}
               </option>
             ))}
           </select>
@@ -86,8 +84,8 @@ export default function RequestsPage() {
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={FiFileText}
-            title="No requests found"
-            message="Try adjusting your search."
+            title={t('request:noRequests', "No requests found")}
+            message={t('request:noRequestsDesc', "Try adjusting your search.")}
           />
         ) : (
           <div
@@ -106,3 +104,4 @@ export default function RequestsPage() {
     </div>
   );
 }
+

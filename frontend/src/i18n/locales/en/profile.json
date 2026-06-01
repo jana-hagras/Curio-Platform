@@ -1,0 +1,19 @@
+{
+  "title": "Profile Settings",
+  "subtitle": "Manage your account details and profile information",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "email": "Email Address",
+  "phone": "Phone Number",
+  "bio": "Bio / Description",
+  "address": "Address",
+  "city": "City",
+  "country": "Country",
+  "save": "Save Profile",
+  "saving": "Saving changes...",
+  "success": "Profile updated successfully!",
+  "avatar": "Profile Picture",
+  "accountType": "Account Type",
+  "artisanDetails": "Artisan Profile Info",
+  "craftType": "Craft Type / Specialty"
+}

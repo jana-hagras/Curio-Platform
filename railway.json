@@ -1,0 +1,30 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "watch": [
+      "backend/**"
+    ],
+    "nixpacksPlan": {
+      "phases": {
+        "setup": {
+          "nixPkgs": [
+            "nodejs"
+          ]
+        },
+        "install": {
+          "cmds": [
+            "cd backend && npm ci --legacy-peer-deps"
+          ]
+        },
+        "build": {
+          "cmds": []
+        }
+      }
+    }
+  },
+  "deploy": {
+    "startCommand": "cd backend && npm run start",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}

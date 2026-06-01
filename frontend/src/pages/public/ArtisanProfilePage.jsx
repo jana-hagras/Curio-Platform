@@ -13,11 +13,53 @@ import Button from '../../components/ui/Button';
 import TextArea from '../../components/ui/TextArea';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
+import { useTranslation } from 'react-i18next';
 import { FiCheckCircle, FiMapPin, FiMail, FiStar, FiImage, FiChevronLeft, FiChevronRight, FiEdit3, FiX, FiMessageSquare } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useChat } from '../../hooks/useChat';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_URL || '${API_BASE}';
+
+/* ── Edit Review Modal ───────────────────────── */
+function EditReviewModal({ review, onClose, onSave }) {
+  const [editRating, setEditRating] = useState(review.rating);
+  const [editComment, setEditComment] = useState(review.comment || '');
+  const [saving, setSaving] = useState(false);
+  const { t } = useTranslation(['common']);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!editRating) return toast.error(t('common:nav.adminPanel') === 'Admin Panel' ? 'Please select a rating' : 'الرجاء اختيار التقييم');
+    setSaving(true);
+    try {
+      await onSave(review.id, { rating: editRating, comment: editComment });
+      onClose();
+    } catch { /* handled by parent */ }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', maxWidth: 520, width: '95%', animation: 'scaleIn 0.2s ease', border: '1px solid var(--surface-border)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Edit Your Review' : 'تعديل التقييم'}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4 }}><FiX size={18} /></button>
+        </div>
+        <form onSubmit={handleSubmit} style={{ padding: '24px 28px' }}>
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ fontSize: 14, fontWeight: 600, display: 'block', marginBottom: 10 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Rating' : 'التقييم'}</label>
+            <StarRating rating={editRating} onRate={setEditRating} size={32} />
+          </div>
+          <TextArea label={t('common:nav.adminPanel') === 'Admin Panel' ? 'Comment' : 'التعليق'} value={editComment} onChange={e => setEditComment(e.target.value)} placeholder={t('common:nav.adminPanel') === 'Admin Panel' ? "Update your experience..." : "حدّث تجربتك هنا..."} rows={4} />
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--surface-border)' }}>
+            <Button variant="ghost" type="button" onClick={onClose}>{t('common:actions.cancel') || 'Cancel'}</Button>
+            <Button type="submit" loading={saving}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Save Changes' : 'حفظ التعديلات'}</Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 export default function ArtisanProfilePage() {
   const { id } = useParams();
@@ -35,6 +77,7 @@ export default function ArtisanProfilePage() {
   const { addItem } = useCart();
   const { openPrivateChat } = useChat();
   const [messagingArtisan, setMessagingArtisan] = useState(false);
+  const { t } = useTranslation(['common']);
 
   // Review form
   const [rating, setRating] = useState(0);
@@ -74,7 +117,7 @@ export default function ArtisanProfilePage() {
           setReviews(allRevs);
         });
       }
-    }).catch(() => toast.error('Failed to load profile'))
+    }).catch(() => toast.error(t('common:nav.adminPanel') === 'Admin Panel' ? 'Failed to load profile' : 'فشل تحميل الملف الشخصي'))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -84,8 +127,8 @@ export default function ArtisanProfilePage() {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (rating === 0) return toast.error('Please select a rating');
-    if (!products.length) return toast.error('No products to review');
+    if (rating === 0) return toast.error(t('common:nav.adminPanel') === 'Admin Panel' ? 'Please select a rating' : 'الرجاء اختيار التقييم');
+    if (!products.length) return toast.error(t('common:nav.adminPanel') === 'Admin Panel' ? 'No products to review' : 'لا توجد منتجات لتقييمها');
     setSubmitting(true);
     try {
       const res = await reviewService.create({
@@ -98,8 +141,8 @@ export default function ArtisanProfilePage() {
       setReviews(prev => [...prev, res.data?.review || { rating, comment: feedback, buyerName: user.firstName }]);
       setRating(0);
       setFeedback('');
-      toast.success('Review submitted!');
-    } catch { toast.error('Failed to submit review'); }
+      toast.success(t('common:nav.adminPanel') === 'Admin Panel' ? 'Review submitted!' : 'تم تقديم التقييم بنجاح!');
+    } catch { toast.error(t('common:nav.adminPanel') === 'Admin Panel' ? 'Failed to submit review' : 'فشل إرسال التقييم'); }
     finally { setSubmitting(false); }
   };
 
@@ -108,9 +151,9 @@ export default function ArtisanProfilePage() {
       const res = await reviewService.update(reviewId, { ...data, buyer_id: user.id });
       const updated = res.data?.review;
       if (updated) setReviews(prev => prev.map(r => r.id === reviewId ? updated : r));
-      toast.success('Review updated!');
+      toast.success(t('common:nav.adminPanel') === 'Admin Panel' ? 'Review updated!' : 'تم تحديث التقييم بنجاح!');
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to update review');
+      toast.error(err?.response?.data?.message || (t('common:nav.adminPanel') === 'Admin Panel' ? 'Failed to update review' : 'فشل تحديث التقييم'));
       throw err;
     }
   };
@@ -118,10 +161,10 @@ export default function ArtisanProfilePage() {
   const userAlreadyReviewed = isBuyer && user ? reviews.some(r => r.buyer_id === user.id) : false;
 
   if (loading) return <Spinner />;
-  if (!artisan) return <div className="container" style={{ padding: 60, textAlign: 'center' }}><h2>Artisan not found</h2></div>;
+  if (!artisan) return <div className="container" style={{ padding: 60, textAlign: 'center' }}><h2>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Artisan not found' : 'الحرفي غير موجود'}</h2></div>;
 
   const imgSrc = artisan.profileImage
-    ? (artisan.profileImage.startsWith('/') ? `http://localhost:3000${artisan.profileImage}` : artisan.profileImage)
+    ? (artisan.profileImage.startsWith('/') ? `${API_BASE}${artisan.profileImage}` : artisan.profileImage)
     : null;
 
   const tabs = ['products', 'portfolio', 'reviews'];
@@ -136,7 +179,7 @@ export default function ArtisanProfilePage() {
             <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 700, color: 'var(--black-deep)', overflow: 'hidden' }}>
               {imgSrc ? <img src={imgSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : `${artisan.firstName?.charAt(0)}${artisan.lastName?.charAt(0)}`}
             </div>
-            {artisan.status === 'Active' && <div style={{ position: 'absolute', bottom: 4, right: 4, width: 24, height: 24, backgroundColor: 'var(--success)', border: '4px solid var(--surface-primary)', borderRadius: '50%', zIndex: 2 }} title="Active"></div>}
+            {artisan.status === 'Active' && <div style={{ position: 'absolute', bottom: 4, right: 4, width: 24, height: 24, backgroundColor: 'var(--success)', border: '4px solid var(--surface-primary)', borderRadius: '50%', zIndex: 2 }} title={t('common:nav.adminPanel') === 'Admin Panel' ? 'Active' : 'نشط'}></div>}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
@@ -144,13 +187,13 @@ export default function ArtisanProfilePage() {
               {artisan.verified && <FiCheckCircle style={{ color: 'var(--success)', fontSize: 22 }} />}
               <Badge status={artisan.status || 'Active'} />
             </div>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 12, maxWidth: 600 }}>{artisan.bio || 'Egyptian Artisan'}</p>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 12, maxWidth: 600 }}>{artisan.bio || (t('common:nav.adminPanel') === 'Admin Panel' ? 'Egyptian Artisan' : 'حرفي مصري')}</p>
             <div style={{ display: 'flex', gap: 20, fontSize: 14, color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
               {artisan.address && <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FiMapPin /> {artisan.address}</span>}
               {artisan.email && <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FiMail /> {artisan.email}</span>}
               {reviews.length > 0 && (
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <FiStar style={{ color: '#F59E0B' }} /> {avgRating} ({reviews.length} reviews)
+                  <FiStar style={{ color: '#F59E0B' }} /> {avgRating} ({reviews.length} {t('common:nav.adminPanel') === 'Admin Panel' ? 'reviews' : 'تقييمات'})
                 </span>
               )}
             </div>
@@ -164,7 +207,7 @@ export default function ArtisanProfilePage() {
                       const chat = await openPrivateChat(Number(id));
                       navigate(`/dashboard/chat/${chat.chat_id}`);
                     } catch (err) {
-                      toast.error('Failed to open chat');
+                      toast.error(t('common:nav.adminPanel') === 'Admin Panel' ? 'Failed to open chat' : 'فشل فتح المحادثة');
                     } finally {
                       setMessagingArtisan(false);
                     }
@@ -191,7 +234,7 @@ export default function ArtisanProfilePage() {
                   id="message-artisan-btn"
                 >
                   <FiMessageSquare size={16} />
-                  {messagingArtisan ? 'Opening chat...' : 'Message Artisan'}
+                  {messagingArtisan ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Opening chat...' : 'جاري فتح المحادثة...') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'Message Artisan' : 'مراسلة الحرفي')}
                 </button>
               </div>
             )}
@@ -200,16 +243,16 @@ export default function ArtisanProfilePage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-          {tabs.map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
+          {tabs.map(tName => (
+            <button key={tName} onClick={() => setTab(tName)} style={{
               padding: '10px 24px', borderRadius: 'var(--radius-full)',
               fontWeight: 600, fontSize: 14,
-              background: tab === t ? 'var(--gold-primary)' : 'var(--surface-primary)',
-              color: tab === t ? 'var(--black-deep)' : 'var(--text-secondary)',
+              background: tab === tName ? 'var(--gold-primary)' : 'var(--surface-primary)',
+              color: tab === tName ? 'var(--black-deep)' : 'var(--text-secondary)',
               border: '1px solid var(--surface-border)', transition: 'all 200ms',
               textTransform: 'capitalize',
             }}>
-              {t === 'products' ? `Products (${products.length})` : t === 'portfolio' ? `Portfolio (${projects.length})` : `Reviews (${reviews.length})`}
+              {tName === 'products' ? `${t('common:nav.adminPanel') === 'Admin Panel' ? 'Products' : 'المنتجات'} (${products.length})` : tName === 'portfolio' ? `${t('common:nav.adminPanel') === 'Admin Panel' ? 'Portfolio' : 'معرض الأعمال'} (${projects.length})` : `${t('common:nav.adminPanel') === 'Admin Panel' ? 'Reviews' : 'التقييمات'} (${reviews.length})`}
             </button>
           ))}
         </div>
@@ -217,9 +260,9 @@ export default function ArtisanProfilePage() {
         {tab === 'products' && (
           products.length ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
-              {products.map(p => <ProductCard key={p.id} product={p} onAddToCart={isBuyer ? (pr) => { addItem(pr); toast.success('Added!'); } : null} />)}
+              {products.map(p => <ProductCard key={p.id} product={p} onAddToCart={isBuyer ? (pr) => { addItem(pr); toast.success(t('common:nav.adminPanel') === 'Admin Panel' ? 'Added!' : 'تمت الإضافة!'); } : null} />)}
             </div>
-          ) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 40 }}>No products yet.</p>
+          ) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 40 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'No products yet.' : 'لا توجد منتجات بعد.'}</p>
         )}
 
         {tab === 'portfolio' && (
@@ -248,7 +291,7 @@ export default function ArtisanProfilePage() {
                       </div>
                       <div style={{ padding: 20 }}>
                         <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6 }}>{p.projectName}</h3>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description || 'No description.'}</p>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description || (t('common:nav.adminPanel') === 'Admin Panel' ? 'No description.' : 'لا يوجد وصف.')}</p>
                       </div>
                     </div>
                   );
@@ -267,17 +310,17 @@ export default function ArtisanProfilePage() {
                           <img src={`${API_BASE}${imgs[galleryIdx].Image}`} alt="" style={{ width: '100%', height: 400, objectFit: 'cover', display: 'block' }} />
                           {imgs.length > 1 && (
                             <>
-                              <button onClick={() => setGalleryIdx(i => i === 0 ? imgs.length - 1 : i - 1)} style={{ position: 'absolute', top: '50%', left: 16, transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}><FiChevronLeft /></button>
-                              <button onClick={() => setGalleryIdx(i => i === imgs.length - 1 ? 0 : i + 1)} style={{ position: 'absolute', top: '50%', right: 16, transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}><FiChevronRight /></button>
+                              <button onClick={() => setGalleryIdx(i => i === 0 ? imgs.length - 1 : i - 1)} style={{ position: 'absolute', top: '50%', left: 16, transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}><FiChevronLeft className="rtl-flip" /></button>
+                              <button onClick={() => setGalleryIdx(i => i === imgs.length - 1 ? 0 : i + 1)} style={{ position: 'absolute', top: '50%', right: 16, transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}><FiChevronRight className="rtl-flip" /></button>
                             </>
                           )}
                         </div>
                       )}
                       <div style={{ padding: 32 }}>
                         <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 12 }}>{selectedPortfolio.projectName}</h2>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: 15, lineHeight: 1.8, marginBottom: 20 }}>{selectedPortfolio.description || 'No description.'}</p>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: 15, lineHeight: 1.8, marginBottom: 20 }}>{selectedPortfolio.description || (t('common:nav.adminPanel') === 'Admin Panel' ? 'No description.' : 'لا يوجد وصف.')}</p>
                         <div style={{ display: 'flex', gap: 16, fontSize: 13, color: 'var(--text-tertiary)' }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FiImage size={14} /> {imgs.length} image{imgs.length !== 1 ? 's' : ''}</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><FiImage size={14} /> {imgs.length} {t('common:nav.adminPanel') === 'Admin Panel' ? `image${imgs.length !== 1 ? 's' : ''}` : 'صور'}</span>
                         </div>
                         {imgs.length > 1 && (
                           <div style={{ display: 'flex', gap: 8, marginTop: 16, overflowX: 'auto', paddingBottom: 4 }}>
@@ -294,7 +337,7 @@ export default function ArtisanProfilePage() {
                 );
               })()}
             </>
-          ) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 40 }}>No portfolio projects yet.</p>
+          ) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 40 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'No portfolio projects yet.' : 'لا توجد مشاريع في معرض الأعمال بعد.'}</p>
         )}
 
         {tab === 'reviews' && (
@@ -302,21 +345,21 @@ export default function ArtisanProfilePage() {
             {/* Submit Review — only if buyer hasn't reviewed */}
             {isBuyer && !userAlreadyReviewed && (
               <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
-                <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 16 }}>Write a Review</h3>
+                <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 16 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Write a Review' : 'اكتب تقييماً'}</h3>
                 <form onSubmit={handleReviewSubmit}>
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 14, fontWeight: 500, display: 'block', marginBottom: 8 }}>Rating</label>
+                    <label style={{ fontSize: 14, fontWeight: 500, display: 'block', marginBottom: 8 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Rating' : 'التقييم'}</label>
                     <StarRating rating={rating} onRate={setRating} size={28} />
                   </div>
-                  <TextArea placeholder="Share your experience..." value={feedback} onChange={e => setFeedback(e.target.value)} rows={3} />
-                  <Button type="submit" loading={submitting} style={{ marginTop: 12 }}>Submit Review</Button>
+                  <TextArea placeholder={t('common:nav.adminPanel') === 'Admin Panel' ? "Share your experience..." : "شاركنا تجربتك..."} value={feedback} onChange={e => setFeedback(e.target.value)} rows={3} />
+                  <Button type="submit" loading={submitting} style={{ marginTop: 12 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Submit Review' : 'إرسال التقييم'}</Button>
                 </form>
               </div>
             )}
 
             {/* Reviews List */}
             {reviews.length === 0 ? (
-              <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 40 }}>No reviews yet.</p>
+              <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: 40 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'No reviews yet.' : 'لا توجد تقييمات بعد.'}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {reviews.map((r, i) => {
@@ -326,20 +369,20 @@ export default function ArtisanProfilePage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           <StarRating rating={r.rating} readonly size={16} />
-                          <span style={{ fontWeight: 600, fontSize: 14 }}>{r.buyerName || 'Buyer'}</span>
+                          <span style={{ fontWeight: 600, fontSize: 14 }}>{r.buyerName || (t('common:nav.adminPanel') === 'Admin Panel' ? 'Buyer' : 'مشتري')}</span>
                           {r.editedAt && (
-                            <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontStyle: 'italic', background: 'var(--surface-secondary)', padding: '2px 6px', borderRadius: 4 }}>Edited</span>
+                            <span style={{ fontSize: 11, color: 'var(--text-tertiary)', fontStyle: 'italic', background: 'var(--surface-secondary)', padding: '2px 6px', borderRadius: 4 }}>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Edited' : 'معدل'}</span>
                           )}
                         </div>
                         {isOwner && (
                           <button
                             onClick={() => setEditingReview(r)}
-                            title="Edit your review"
+                            title={t('common:nav.adminPanel') === 'Admin Panel' ? "Edit your review" : "تعديل تقييمك"}
                             style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', borderRadius: 6, border: '1px solid var(--surface-border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: 12, fontWeight: 500, transition: 'all 0.2s' }}
                             onMouseOver={e => { e.currentTarget.style.borderColor = 'var(--gold-primary)'; e.currentTarget.style.color = 'var(--gold-primary)'; }}
                             onMouseOut={e => { e.currentTarget.style.borderColor = 'var(--surface-border)'; e.currentTarget.style.color = 'var(--text-secondary)'; }}
                           >
-                            <FiEdit3 size={11} /> Edit
+                            <FiEdit3 size={11} /> {t('common:nav.adminPanel') === 'Admin Panel' ? 'Edit' : 'تعديل'}
                           </button>
                         )}
                       </div>
@@ -366,42 +409,3 @@ export default function ArtisanProfilePage() {
   );
 }
 
-/* ── Edit Review Modal ───────────────────────── */
-function EditReviewModal({ review, onClose, onSave }) {
-  const [editRating, setEditRating] = useState(review.rating);
-  const [editComment, setEditComment] = useState(review.comment || '');
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!editRating) return toast.error('Please select a rating');
-    setSaving(true);
-    try {
-      await onSave(review.id, { rating: editRating, comment: editComment });
-      onClose();
-    } catch { /* handled by parent */ }
-    finally { setSaving(false); }
-  };
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, backdropFilter: 'blur(4px)' }} onClick={onClose}>
-      <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', maxWidth: 520, width: '95%', animation: 'scaleIn 0.2s ease', border: '1px solid var(--surface-border)' }} onClick={e => e.stopPropagation()}>
-        <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700 }}>Edit Your Review</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4 }}><FiX size={18} /></button>
-        </div>
-        <form onSubmit={handleSubmit} style={{ padding: '24px 28px' }}>
-          <div style={{ marginBottom: 20 }}>
-            <label style={{ fontSize: 14, fontWeight: 600, display: 'block', marginBottom: 10 }}>Rating</label>
-            <StarRating rating={editRating} onRate={setEditRating} size={32} />
-          </div>
-          <TextArea label="Comment" value={editComment} onChange={e => setEditComment(e.target.value)} placeholder="Update your experience..." rows={4} />
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--surface-border)' }}>
-            <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
-            <Button type="submit" loading={saving}>Save Changes</Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}

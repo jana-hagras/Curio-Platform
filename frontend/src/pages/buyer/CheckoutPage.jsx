@@ -15,12 +15,15 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { FiShield, FiCheck, FiFileText, FiLock, FiTruck, FiCreditCard } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import InvoiceModal from '../../components/ui/InvoiceModal';
+import { useTranslation } from 'react-i18next';
+import './Checkout.css';
 
 export default function CheckoutPage() {
   const { user } = useAuth();
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t, i18n } = useTranslation(['order', 'common', 'dashboard']);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [step, setStep] = useState('form'); // form | success
@@ -30,6 +33,8 @@ export default function CheckoutPage() {
     shippingAddress: user?.address || '',
     paymentMethod: '',
   });
+
+  const isRtl = i18n.language === 'ar';
 
   // Escrow checkout state
   const [escrowMode, setEscrowMode] = useState(false);
@@ -67,14 +72,14 @@ export default function CheckoutPage() {
         })
         .catch((err) => {
           console.error('Failed to load escrow data:', err);
-          toast.error('Failed to load payment details');
+          toast.error(t('order:checkoutExtra.paymentDataMissing', 'Payment data missing'));
           navigate('/dashboard/proposals');
         })
         .finally(() => setInitialLoading(false));
     } else {
       setInitialLoading(false);
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, t]);
 
   // Redirect to cart if regular checkout with empty cart
   if (!initialLoading && !escrowMode && items.length === 0 && step !== 'success') {
@@ -85,8 +90,8 @@ export default function CheckoutPage() {
   // ── Regular Cart Checkout ──
   const handleCartCheckout = async (e) => {
     e.preventDefault();
-    if (!form.shippingAddress) { toast.error('Address is required'); return; }
-    if (!form.paymentMethod) { toast.error('Payment method is required'); return; }
+    if (!form.shippingAddress) { toast.error(t('order:checkoutExtra.addressRequired', 'Address is required')); return; }
+    if (!form.paymentMethod) { toast.error(t('order:checkoutExtra.paymentMethodRequired', 'Payment method is required')); return; }
 
     setLoading(true);
     try {
@@ -101,7 +106,7 @@ export default function CheckoutPage() {
       });
       
       const orderId = orderRes?.data?.order?.id || orderRes?.order?.id || orderRes?.data?.id || orderRes?.id;
-      if (!orderId) throw new Error('Failed to create order');
+      if (!orderId) throw new Error(t('order:checkoutExtra.failedCreateOrder', 'Failed to create order'));
 
       // 2. Create order items
       for (const item of items) {
@@ -140,10 +145,10 @@ export default function CheckoutPage() {
 
       clearCart();
       setStep('success');
-      toast.success('Order placed successfully!');
+      toast.success(t('order:checkoutExtra.orderConfirmed', 'Order Confirmed!'));
     } catch (err) {
       console.error('Checkout error:', err);
-      toast.error(err?.message || 'Failed to place order. Try again.');
+      toast.error(err?.message || t('order:checkoutExtra.failedOrder', 'Failed to place order. Try again.'));
     } finally {
       setLoading(false);
     }
@@ -152,7 +157,7 @@ export default function CheckoutPage() {
   // ── Escrow Payment Checkout ──
   const handleEscrowCheckout = async (e) => {
     e.preventDefault();
-    if (!escrowPayment) { toast.error('Payment data missing'); return; }
+    if (!escrowPayment) { toast.error(t('order:checkoutExtra.paymentDataMissing', 'Payment data missing')); return; }
 
     setLoading(true);
     try {
@@ -163,10 +168,10 @@ export default function CheckoutPage() {
       });
 
       setStep('success');
-      toast.success('Escrow payment confirmed! Funds are now held securely.');
+      toast.success(t('order:checkoutExtra.escrowSuccess', 'Escrow payment confirmed! Funds are now held securely.'));
     } catch (err) {
       console.error('Escrow checkout error:', err);
-      toast.error(err?.message || 'Failed to process escrow payment. Try again.');
+      toast.error(err?.message || t('order:checkoutExtra.escrowFailed', 'Failed to process escrow payment. Try again.'));
     } finally {
       setLoading(false);
     }
@@ -188,30 +193,30 @@ export default function CheckoutPage() {
   // ── Success Screen ──
   if (step === 'success') {
     return (
-      <div className="container" style={{ padding: '80px 24px', maxWidth: 600, textAlign: 'center' }}>
-        <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--success)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 36, margin: '0 auto 24px', animation: 'scaleIn 0.4s ease' }}>
+      <div className="checkout-success-container">
+        <div className="checkout-success-icon">
           <FiCheck />
         </div>
         <h1 style={{ fontSize: 28, marginBottom: 12 }}>
-          {escrowMode ? 'Escrow Payment Confirmed!' : 'Order Confirmed!'}
+          {escrowMode ? t('order:checkoutExtra.escrowPaymentConfirmed', 'Escrow Payment Confirmed!') : t('order:checkoutExtra.orderConfirmed', 'Order Confirmed!')}
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: 16, marginBottom: 32 }}>
           {escrowMode 
-            ? 'Your funds are held in escrow and will be released to the artisan as milestones are completed.'
-            : "Your order has been placed successfully. You'll receive updates on your dashboard."
+            ? t('order:checkoutExtra.escrowDesc', 'Your funds are held in escrow and will be released to the artisan as milestones are completed.')
+            : t('order:checkoutExtra.orderDesc', "Your order has been placed successfully. You'll receive updates on your dashboard.")
           }
         </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="checkout-success-actions">
           {escrowMode ? (
             <>
-              <Button onClick={() => navigate('/dashboard/proposals')}>View Proposals</Button>
-              <Button variant="outline" onClick={() => navigate('/dashboard/payments')}>My Payments</Button>
+              <Button onClick={() => navigate('/dashboard/proposals')}>{t('dashboard:proposals.title', 'View Proposals')}</Button>
+              <Button variant="outline" onClick={() => navigate('/dashboard/payments')}>{t('common:nav.myPayments', 'My Payments')}</Button>
             </>
           ) : (
             <>
-              <Button onClick={() => navigate('/dashboard/orders')}>View Orders</Button>
-              <Button variant="outline" icon={FiFileText} onClick={() => setShowInvoice(true)}>View Invoice</Button>
-              <Button variant="outline" onClick={() => navigate('/marketplace')}>Continue Shopping</Button>
+              <Button onClick={() => navigate('/dashboard/orders')}>{t('order:orders.title', 'View Orders')}</Button>
+              <Button variant="outline" icon={FiFileText} onClick={() => setShowInvoice(true)}>{t('order:checkoutExtra.viewInvoice', 'View Invoice')}</Button>
+              <Button variant="outline" onClick={() => navigate('/marketplace')}>{t('order:checkoutExtra.continueShopping', 'Continue Shopping')}</Button>
             </>
           )}
         </div>
@@ -231,35 +236,35 @@ export default function CheckoutPage() {
   if (escrowMode) {
     const amount = Number(escrowPayment?.totalAmount || 0);
     return (
-      <div className="container" style={{ padding: '40px 24px', maxWidth: 800 }}>
-        <h1 style={{ fontSize: 28, marginBottom: 32 }}>Escrow Checkout</h1>
-        <form onSubmit={handleEscrowCheckout} style={{ background: 'var(--surface-primary)', padding: 32, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)' }}>
+      <div className="checkout-page-container">
+        <h1 className="checkout-title">{t('order:checkoutExtra.escrowCheckout', 'Escrow Checkout')}</h1>
+        <form onSubmit={handleEscrowCheckout} className="checkout-card">
           
           {/* Escrow Info Banner */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', background: 'rgba(59, 130, 246, 0.08)', borderRadius: 'var(--radius-md)', marginBottom: 24, border: '1px solid rgba(59, 130, 246, 0.15)' }}>
-            <FiLock style={{ color: '#3B82F6', fontSize: 20, flexShrink: 0 }} />
-            <div>
-              <p style={{ fontWeight: 600, fontSize: 14, color: '#3B82F6', marginBottom: 2 }}>Escrow Protected Payment</p>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                Your funds will be held securely and released to the artisan only when milestones are completed.
+          <div className="checkout-escrow-banner">
+            <FiLock className="checkout-escrow-banner-icon" />
+            <div className="checkout-escrow-banner-content">
+              <p>{t('order:checkoutExtra.escrowProtected', 'Escrow Protected Payment')}</p>
+              <p>
+                {t('order:checkoutExtra.escrowProtectedDesc', 'Your funds will be held securely and released to the artisan only when milestones are completed.')}
               </p>
             </div>
           </div>
 
           {/* Request Details */}
-          <h3 style={{ marginBottom: 20, fontFamily: 'var(--font-body)', fontSize: 18, fontWeight: 600 }}>Request Details</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-            <div style={{ background: 'var(--surface-secondary)', padding: '14px 18px', borderRadius: 'var(--radius-md)' }}>
-              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 4 }}>Request</p>
-              <p style={{ fontWeight: 600, fontSize: 15 }}>{escrowRequest?.title || `Request #${escrowPayment?.request_id}`}</p>
+          <h3 className="checkout-section-title">{t('order:checkoutExtra.requestDetails', 'Request Details')}</h3>
+          <div className="checkout-split-grid">
+            <div className="checkout-grid-item">
+              <p className="checkout-grid-item-label">{t('order:checkoutExtra.requestLabel', 'Request')}</p>
+              <p className="checkout-grid-item-value">{escrowRequest?.title || `${t('order:checkoutExtra.requestLabel')} #${escrowPayment?.request_id}`}</p>
             </div>
-            <div style={{ background: 'var(--surface-secondary)', padding: '14px 18px', borderRadius: 'var(--radius-md)' }}>
-              <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginBottom: 4 }}>Category</p>
-              <p style={{ fontWeight: 600, fontSize: 15 }}>{escrowRequest?.category || '—'}</p>
+            <div className="checkout-grid-item">
+              <p className="checkout-grid-item-label">{t('order:checkoutExtra.categoryLabel', 'Category')}</p>
+              <p className="checkout-grid-item-value">{t('common:categories.' + escrowRequest?.category, escrowRequest?.category) || '—'}</p>
             </div>
           </div>
 
-          <h3 style={{ margin: '32px 0 20px', fontFamily: 'var(--font-body)', fontSize: 18, fontWeight: 600 }}>Payment Method</h3>
+          <h3 className="checkout-section-title" style={{ marginTop: 32 }}>{t('order:checkoutExtra.paymentMethod', 'Payment Method')}</h3>
           
           {/* Payment method selector */}
           <PaymentMethodSelector
@@ -277,25 +282,27 @@ export default function CheckoutPage() {
 
           {form.paymentMethod !== 'Card' && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '24px 0', padding: '12px 16px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: 'var(--radius-md)', color: 'var(--success)', fontSize: 13 }}>
-                <FiShield /> Your payment information is secure
+              <div className="checkout-secure-notice">
+                <FiShield /> {t('order:checkoutExtra.paymentSecure', 'Your payment information is secure')}
               </div>
 
-              <div style={{ borderTop: '1px solid var(--surface-border)', margin: '24px 0 20px' }} />
+              <div className="checkout-divider" />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 14 }}>
-                <span>Custom Request Escrow</span>
-                <span style={{ fontWeight: 600 }}>{formatCurrency(amount)}</span>
+              <div className="checkout-details-list">
+                <div className="checkout-detail-row">
+                  <span>{t('order:checkoutExtra.customRequestEscrow', 'Custom Request Escrow')}</span>
+                  <span>{formatCurrency(amount)}</span>
+                </div>
               </div>
 
-              <div style={{ borderTop: '1px solid var(--surface-border)', margin: '16px 0' }} />
+              <div className="checkout-divider" />
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                <span style={{ fontSize: 18, fontWeight: 600 }}>Total (Escrow)</span>
-                <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--gold-primary)' }}>{formatCurrency(amount)}</span>
+              <div className="checkout-total-row">
+                <span className="checkout-total-label">{t('order:checkoutExtra.totalEscrow', 'Total (Escrow)')}</span>
+                <span className="checkout-total-amount">{formatCurrency(amount)}</span>
               </div>
 
-              <Button type="submit" fullWidth size="lg" loading={loading}>Confirm Escrow Payment</Button>
+              <Button type="submit" fullWidth size="lg" loading={loading}>{t('order:checkoutExtra.confirmEscrowPayment', 'Confirm Escrow Payment')}</Button>
             </>
           )}
         </form>
@@ -305,33 +312,27 @@ export default function CheckoutPage() {
 
   // ── Regular Cart Checkout Form ──
   return (
-    <div className="container" style={{ padding: '40px 24px', maxWidth: 800 }}>
-      <h1 style={{ fontSize: 28, marginBottom: 32 }}>Checkout</h1>
-      <form onSubmit={handleCartCheckout} style={{ background: 'var(--surface-primary)', padding: 32, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)' }}>
-        <h3 style={{ marginBottom: 20, fontFamily: 'var(--font-body)', fontSize: 18, fontWeight: 600 }}>Shipping Details</h3>
+    <div className="checkout-page-container">
+      <h1 className="checkout-title">{t('order:checkout.title', 'Checkout')}</h1>
+      <form onSubmit={handleCartCheckout} className="checkout-card">
+        <h3 className="checkout-section-title">{t('order:checkoutExtra.shippingDetails', 'Shipping Details')}</h3>
         <Input
-          label="Shipping Address"
+          label={t('order:checkoutExtra.shippingDetails', 'Shipping Details')}
           value={form.shippingAddress}
           onChange={e => setForm({...form, shippingAddress: e.target.value})}
-          placeholder="Full delivery address"
+          placeholder={t('order:checkoutExtra.addressPlaceholder', 'Full delivery address')}
           required
         />
 
-        <h3 style={{ margin: '32px 0 20px', fontFamily: 'var(--font-body)', fontSize: 18, fontWeight: 600 }}>Payment Method</h3>
+        <h3 className="checkout-section-title" style={{ marginTop: 32 }}>{t('order:checkoutExtra.paymentMethod', 'Payment Method')}</h3>
 
         {/* Country notice */}
         {buyerCountry && (
-          <div style={{ 
-            display: 'flex', alignItems: 'center', gap: 8, 
-            padding: '10px 14px', marginBottom: 16,
-            background: 'rgba(212, 168, 67, 0.08)', 
-            borderRadius: 'var(--radius-md)',
-            fontSize: 13, color: 'var(--text-secondary)'
-          }}>
+          <div className="checkout-country-notice">
             <FiShield size={14} style={{ color: 'var(--gold-primary)' }} />
             {isEgypt 
-              ? 'Cash on Delivery and Bank Card are available for Egypt.' 
-              : 'Bank Card payment is required for international orders.'
+              ? t('order:checkoutExtra.egyptNotice', 'Cash on Delivery and Bank Card are available for Egypt.') 
+              : t('order:checkoutExtra.intlNotice', 'Bank Card payment is required for international orders.')
             }
           </div>
         )}
@@ -353,28 +354,30 @@ export default function CheckoutPage() {
         {/* COD or other non-card flow */}
         {form.paymentMethod !== 'Card' && form.paymentMethod && (
           <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '24px 0', padding: '12px 16px', background: 'rgba(16, 185, 129, 0.08)', borderRadius: 'var(--radius-md)', color: 'var(--success)', fontSize: 13 }}>
-              <FiShield /> Your payment information is secure
+            <div className="checkout-secure-notice">
+              <FiShield /> {t('order:checkoutExtra.paymentSecure', 'Your payment information is secure')}
             </div>
 
-            <div style={{ borderTop: '1px solid var(--surface-border)', margin: '24px 0 20px' }} />
+            <div className="checkout-divider" />
 
             {/* Order Summary */}
-            {items.map(item => (
-              <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: 14 }}>
-                <span>{item.itemName || item.name} × {item.quantity}</span>
-                <span style={{ fontWeight: 600 }}>{formatCurrency(item.price * item.quantity)}</span>
-              </div>
-            ))}
-
-            <div style={{ borderTop: '1px solid var(--surface-border)', margin: '16px 0' }} />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <span style={{ fontSize: 18, fontWeight: 600 }}>Total</span>
-              <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--gold-primary)' }}>{formatCurrency(totalPrice)}</span>
+            <div className="checkout-details-list">
+              {items.map(item => (
+                <div key={item.id} className="checkout-detail-row">
+                  <span>{item.itemName || item.name} × {item.quantity}</span>
+                  <span>{formatCurrency(item.price * item.quantity)}</span>
+                </div>
+              ))}
             </div>
 
-            <Button type="submit" fullWidth size="lg" loading={loading}>Complete Purchase</Button>
+            <div className="checkout-divider" />
+
+            <div className="checkout-total-row">
+              <span className="checkout-total-label">{t('order:cart.total', 'Total')}</span>
+              <span className="checkout-total-amount">{formatCurrency(totalPrice)}</span>
+            </div>
+
+            <Button type="submit" fullWidth size="lg" loading={loading}>{t('order:checkout.placeOrder', 'Complete Purchase')}</Button>
           </>
         )}
       </form>
@@ -384,13 +387,16 @@ export default function CheckoutPage() {
 
 // ── Payment Method Selector Component ──
 function PaymentMethodSelector({ methods, selected, onSelect }) {
+  const { t, i18n } = useTranslation(['order']);
+  const isRtl = i18n.language === 'ar';
+  
   const METHOD_INFO = {
-    COD: { label: 'Cash on Delivery', icon: FiTruck, desc: 'Pay when your order arrives' },
-    Card: { label: 'Bank Card', icon: FiCreditCard, desc: 'Visa, MasterCard, or other cards' },
+    COD: { label: t('order:checkoutExtra.cod', 'Cash on Delivery'), icon: FiTruck, desc: t('order:checkoutExtra.codDesc', 'Pay when your order arrives') },
+    Card: { label: t('order:checkoutExtra.card', 'Bank Card'), icon: FiCreditCard, desc: t('order:checkoutExtra.cardDesc', 'Visa, MasterCard, or other cards') },
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: methods.length > 1 ? '1fr 1fr' : '1fr', gap: 12 }}>
+    <div className="payment-selector-grid">
       {methods.map(method => {
         const info = METHOD_INFO[method] || { label: method, icon: FiShield, desc: '' };
         const isActive = selected === method;
@@ -398,33 +404,17 @@ function PaymentMethodSelector({ methods, selected, onSelect }) {
           <div
             key={method}
             onClick={() => onSelect(method)}
-            style={{
-              padding: '18px 20px',
-              borderRadius: 'var(--radius-md)',
-              border: `2px solid ${isActive ? 'var(--gold-primary)' : 'var(--surface-border)'}`,
-              background: isActive ? 'rgba(212, 168, 67, 0.06)' : 'var(--surface-secondary)',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 14,
-            }}
+            className={`payment-selector-card ${isActive ? 'active' : ''}`}
           >
-            <div style={{
-              width: 42, height: 42, borderRadius: 10,
-              background: isActive ? 'rgba(212, 168, 67, 0.12)' : 'var(--surface-tertiary)',
-              color: isActive ? 'var(--gold-primary)' : 'var(--text-secondary)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'all 0.2s',
-            }}>
+            <div className="payment-selector-icon-wrapper">
               <info.icon size={20} />
             </div>
-            <div>
+            <div className="payment-selector-info">
               <p style={{ fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{info.label}</p>
               <p style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{info.desc}</p>
             </div>
             {isActive && (
-              <div style={{ marginLeft: 'auto', color: 'var(--gold-primary)' }}>
+              <div className="payment-selector-check">
                 <FiCheck size={18} />
               </div>
             )}

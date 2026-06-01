@@ -10,8 +10,7 @@
 
 .workshop-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(212, 168, 67, 0.15);
-  border-color: var(--gold-primary);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(212, 168, 67, 0.15);
 }
 
 .workshop-card-banner {

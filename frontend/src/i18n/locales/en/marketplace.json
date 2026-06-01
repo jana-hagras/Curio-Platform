@@ -1,0 +1,19 @@
+{
+  "title": "Marketplace",
+  "subtitle": "Discover unique handcrafted treasures from Egypt's finest artisans",
+  "search": "Search products...",
+  "allCategories": "All Categories",
+  "sortBy": "Sort by",
+  "sortOptions": {
+    "newest": "Newest",
+    "priceLow": "Price: Low to High",
+    "priceHigh": "Price: High to Low",
+    "rating": "Highest Rated"
+  },
+  "filters": "Filters",
+  "priceRange": "Price Range",
+  "clearFilters": "Clear Filters",
+  "showing": "Showing {{count}} products",
+  "noProducts": "No products found",
+  "noProductsDesc": "Try adjusting your filters or search terms"
+}

@@ -12,6 +12,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { FiCheck, FiX, FiInbox, FiLock } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 export default function ProposalsPage() {
   const { user } = useAuth();
@@ -22,6 +23,9 @@ export default function ProposalsPage() {
   const [acceptingId, setAcceptingId] = useState(null);
   const [expandedReq, setExpandedReq] = useState(null);
   const [milestones, setMilestones] = useState({});
+  const { t, i18n } = useTranslation(['dashboard', 'common']);
+
+  const isRtl = i18n.language === 'ar';
 
   useEffect(() => {
     requestService.getByBuyer(user.id)
@@ -74,7 +78,7 @@ export default function ProposalsPage() {
         ),
       }));
 
-      toast.success('Proposal accepted! Redirecting to escrow checkout...');
+      toast.success(t('dashboard:proposals.successAccept', 'Proposal accepted! Redirecting to escrow checkout...'));
 
       // 6. Redirect to checkout with escrow payment
       if (paymentId) {
@@ -86,7 +90,7 @@ export default function ProposalsPage() {
       }
     } catch (err) {
       console.error('Accept proposal error:', err);
-      toast.error('Failed to accept proposal');
+      toast.error(t('dashboard:proposals.failedAccept', 'Failed to accept proposal'));
     } finally {
       setAcceptingId(null);
     }
@@ -104,15 +108,15 @@ export default function ProposalsPage() {
   return (
     <div style={{ animation: 'fadeInUp 0.4s ease forwards' }}>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, marginBottom: 4 }}>Proposals</h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>View and manage proposals from artisans</p>
+        <h1 style={{ fontSize: 28, marginBottom: 4 }}>{t('dashboard:proposals.title', 'Proposals')}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>{t('dashboard:proposals.subtitle', 'Review proposals from artisans')}</p>
       </div>
 
       {requests.length === 0 ? (
         <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', padding: '80px 32px', textAlign: 'center' }}>
           <FiInbox style={{ fontSize: 56, color: 'var(--surface-border)', marginBottom: 20 }} />
-          <h3 style={{ fontSize: 22, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 8 }}>No proposals yet</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>Create a request to start receiving proposals from artisans</p>
+          <h3 style={{ fontSize: 22, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 8 }}>{t('dashboard:proposals.noProposals', 'No proposals yet')}</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>{t('dashboard:proposals.createRequestDesc', 'Create a request to start receiving proposals')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -128,20 +132,24 @@ export default function ProposalsPage() {
                   style={{ padding: '20px 24px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: isExpanded ? '1px solid var(--surface-border)' : 'none' }}>
                   <div>
                     <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 4 }}>{req.title}</h3>
-                    <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{req.category} · Budget: {formatCurrency(req.budget)} · {apps.length} proposal(s)</p>
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                      {t('common:categories.' + req.category, req.category)} · {t('common:budget', 'Budget')}: {formatCurrency(req.budget)} · {t('dashboard:proposals.proposalCount', { count: apps.length })}
+                    </p>
                   </div>
-                  <Badge status={hasApproved ? 'Approved' : 'Pending'}>{hasApproved ? 'Accepted' : `${apps.length} Proposals`}</Badge>
+                  <Badge status={hasApproved ? 'Approved' : 'Pending'}>
+                    {hasApproved ? t('dashboard:proposals.accepted', 'Accepted') : t('dashboard:proposals.proposalCountBadge', { count: apps.length })}
+                  </Badge>
                 </div>
                 {isExpanded && (
                   <div style={{ padding: '16px 24px' }}>
                     {apps.length === 0 ? (
-                      <p style={{ color: 'var(--text-secondary)', fontSize: 14, padding: '16px 0' }}>No proposals yet for this request.</p>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: 14, padding: '16px 0' }}>{t('dashboard:proposals.noProposalsForReq', 'No proposals yet for this request.')}</p>
                     ) : (
                       apps.map(app => (
                         <div key={app.id} style={{ padding: '16px 0', borderBottom: '1px solid var(--surface-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                              <p style={{ fontWeight: 600, fontSize: 15 }}>{app.artisanName || `Artisan #${app.artisan_id}`}</p>
+                              <p style={{ fontWeight: 600, fontSize: 15 }}>{app.artisanName || `${t('dashboard:proposals.artisan', 'Artisan')} #${app.artisan_id}`}</p>
                               <Badge status={app.status} />
                             </div>
                             <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{app.proposal}</p>
@@ -155,7 +163,7 @@ export default function ProposalsPage() {
                                 icon={FiCheck}
                                 loading={acceptingId === app.id}
                               >
-                                Accept & Pay
+                                {t('dashboard:proposals.acceptAndPay', 'Accept & Pay')}
                               </Button>
                             </div>
                           )}
@@ -168,9 +176,9 @@ export default function ProposalsPage() {
                       <div style={{ marginTop: 16, padding: '14px 18px', background: 'rgba(59, 130, 246, 0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(59, 130, 246, 0.12)', display: 'flex', alignItems: 'center', gap: 12 }}>
                         <FiLock style={{ color: '#3B82F6', fontSize: 18, flexShrink: 0 }} />
                         <div>
-                          <p style={{ fontWeight: 600, fontSize: 13, color: '#3B82F6' }}>Escrow Payment Active</p>
+                          <p style={{ fontWeight: 600, fontSize: 13, color: '#3B82F6' }}>{t('dashboard:proposals.escrowActive', 'Escrow Payment Active')}</p>
                           <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                            Budget of {formatCurrency(req.budget)} is held in escrow and released as milestones are completed.
+                            {t('dashboard:proposals.escrowDesc', { amount: formatCurrency(req.budget) })}
                           </p>
                         </div>
                       </div>
@@ -179,7 +187,7 @@ export default function ProposalsPage() {
                     {/* Milestones */}
                     {reqMilestones.length > 0 && (
                       <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid var(--surface-border)' }}>
-                        <h4 style={{ fontSize: 16, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 16 }}>Milestones</h4>
+                        <h4 style={{ fontSize: 16, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 16 }}>{t('dashboard:proposals.milestones', 'Milestones')}</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                           {reqMilestones.map((m, i) => (
                             <div key={m.id || i} style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -189,8 +197,8 @@ export default function ProposalsPage() {
                               <div style={{ flex: 1 }}>
                                 <p style={{ fontWeight: 600, fontSize: 14 }}>{m.title}</p>
                                 <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                                  Due: {formatDate(m.dueDate)}
-                                  {m.escrowAmount > 0 && <span style={{ marginLeft: 8, color: 'var(--gold-primary)' }}>· {formatCurrency(m.escrowAmount)}</span>}
+                                  {t('dashboard:proposals.dueDate', { date: formatDate(m.dueDate) })}
+                                  {m.escrowAmount > 0 && <span style={{ [isRtl ? 'marginRight' : 'marginLeft']: 8, color: 'var(--gold-primary)' }}>· {formatCurrency(m.escrowAmount)}</span>}
                                 </p>
                               </div>
                               <Badge status={m.status} />

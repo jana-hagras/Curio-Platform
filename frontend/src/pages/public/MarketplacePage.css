@@ -1,71 +1,179 @@
+/* ═══════════════════════════════════════════
+   MARKETPLACE PAGE — Floema & Lando Norris Inspired
+   ═══════════════════════════════════════════ */
+
+.marketplace-page {
+  background: var(--surface-secondary);
+  min-height: 100vh;
+}
+
+/* Cinematic Hero Header */
+.marketplace-hero {
+  padding: 100px 0 70px;
+  background: var(--black-deep);
+  color: var(--text-light);
+  text-align: center;
+  border-bottom: 1px solid var(--surface-border);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.marketplace-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(212, 168, 67, 0.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Architectural styling line */
+.marketplace-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+  opacity: 0.3;
+}
+
+.marketplace-hero-badge {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold-primary);
+  margin-bottom: 16px;
+  background: rgba(212, 168, 67, 0.08);
+  padding: 6px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212, 168, 67, 0.15);
+}
+
+.marketplace-hero h1 {
+  font-family: var(--font-heading);
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  letter-spacing: -1px;
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.marketplace-hero p {
+  color: var(--text-secondary);
+  font-size: 16px;
+  max-width: 580px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.marketplace-content {
+  padding: 48px 24px;
+}
+
+/* Glassmorphic Filters Row (Oryzo AI Style) */
 .marketplace-filters {
   display: flex;
-  gap: 20px;
+  gap: 24px;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
+  justify-content: space-between;
+  background: var(--surface-primary);
+  padding: 16px 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.marketplace-search-wrapper {
+  flex: 1;
+  min-width: 280px;
 }
 
 .marketplace-filter-group {
   display: flex;
-  gap: 24px;
+  gap: 16px;
   align-items: center;
 }
 
 .marketplace-filters .select-field {
-  padding: 10px 36px 10px 16px;
+  padding: 10px 36px 10px 14px;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   border: 1px solid var(--surface-border);
-  background: var(--black-deep);
-  color: #ffffff;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-fast) ease;
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23D4A843' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 12px center;
-  min-width: 180px;
+  background-position: right 14px center;
+  min-width: 170px;
+  max-width: 200px;
 }
 
 .marketplace-filters .select-field:hover {
-  border-color: var(--gold-primary);
+  border-color: rgba(212, 168, 67, 0.4);
 }
 
 .marketplace-filters .select-field:focus {
   outline: none;
   border-color: var(--gold-primary);
-  box-shadow: 0 0 0 2px rgba(212, 168, 67, 0.15);
+  box-shadow: 0 0 0 2px rgba(212, 168, 67, 0.1);
 }
 
-.marketplace-filter-btn {
-  padding: 8px 20px;
-  border-radius: var(--radius-full);
-  font-size: 14px;
-  font-weight: 500;
-  border: 1px solid var(--surface-border);
-  background: var(--surface-primary);
+.marketplace-count-text {
   color: var(--text-secondary);
-  transition: all 0.2s;
-  cursor: pointer;
+  font-size: 13px;
+  margin-bottom: 24px;
+  letter-spacing: 0.3px;
 }
 
-.marketplace-filter-btn:hover {
-  border-color: var(--gold-primary);
-  color: var(--gold-primary);
+.marketplace-shimmer-wrapper {
+  margin-top: 32px;
 }
 
-.marketplace-filter-btn.active {
-  background: var(--gold-primary);
-  color: var(--black-deep);
-  border-color: var(--gold-primary);
-  font-weight: 600;
-}
-
+/* Elegant spacing grid */
 .marketplace-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  gap: 36px;
+}
+
+/* Media Query Adaptability */
+@media (max-width: 768px) {
+  .marketplace-hero {
+    padding: 80px 0 50px;
+  }
+  .marketplace-hero h1 {
+    font-size: 34px;
+  }
+  .marketplace-filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+  }
+  .marketplace-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .marketplace-filters .select-field {
+    max-width: none;
+    min-width: 0;
+  }
 }

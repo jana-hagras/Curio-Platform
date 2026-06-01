@@ -442,12 +442,16 @@ const migratePaymentForMentorshipWorkshop = async (conn) => {
 // Initialize database at startup
 export const initDatabase = async () => {
     // 1. Create DB with a temp connection (pool can't connect to a DB that doesn't exist yet)
-    const tempConn = await mysql.createConnection({
+    const dbConfig = {
         host: process.env.DB_HOST || 'localhost',
         port: Number(process.env.DB_PORT) || 3306,
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || '',
-    });
+    };
+    if (process.env.DB_SSL === 'true') {
+        dbConfig.ssl = { minVersion: 'TLSv1.2', rejectUnauthorized: true };
+    }
+    const tempConn = await mysql.createConnection(dbConfig);
 
     await tempConn.query("CREATE DATABASE IF NOT EXISTS CURIO");
     console.log("Database CURIO checked/created");
@@ -473,6 +477,7 @@ export const initDatabase = async () => {
         await migrateRequestAIVersioning(conn);
         await migrateRequestImageAndSelection(conn);
         await migrateWorkshopMeetingLink(conn);
+        await migrateChatbotKnowledge(conn);
 
     } finally {
         conn.release();
@@ -899,4 +904,33 @@ async function migrateWorkshopMeetingLink(conn) {
         }
     }
     console.log("Workshop MeetingLink migration complete ✅");
+}
+
+// ─── ChatbotKnowledge table: create and seed default instructions and FAQs ───
+async function migrateChatbotKnowledge(conn) {
+    try {
+        await conn.query(`
+            CREATE TABLE IF NOT EXISTS ChatbotKnowledge (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                key_name VARCHAR(50) UNIQUE NOT NULL,
+                content TEXT NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        `);
+        console.log("  ✅ ChatbotKnowledge table verified");
+
+        const defaultInstructions = "You are Curio AI, the official assistant for Curio (a premium Egyptian handcrafts marketplace). Use the provided database query results (if any) as the absolute source of truth. If database records are provided, speak about them accurately and politely. If no records are found or if query results are empty, inform the user clearly without inventing fake records. Be conversational, professional, and support both English and Arabic. When answering policy or workflow questions, use the platform details: 10% platform fee, escrow held for custom requests and released on milestone completion, workshops hosted by artisans, mentorships offered as 1-on-1 sessions.";
+        
+        const defaultFaqs = "FAQ Guidelines:\n1. Custom Requests: Buyers can submit design ideas. AI creates a 3D preview. Artisans bid. Payments are held in Escrow.\n2. Milestones: Custom order budgets are split into milestones. Payouts release when buyers approve milestone completion.\n3. Workshops: Live group learning hosted by artisans. Fee required on registration.\n4. Mentorships: 1-on-1 training. Status can be Active, Inactive, or Full.\n5. Commission: Curio retains a standard 10% platform fee on sales, workshops, and mentorships. Artisans receive 90%.";
+
+        await conn.query(`
+            INSERT INTO ChatbotKnowledge (key_name, content)
+            VALUES ('instructions', ?), ('faq', ?)
+            ON DUPLICATE KEY UPDATE content = VALUES(content)
+        `, [defaultInstructions, defaultFaqs]);
+        
+        console.log("  ✅ ChatbotKnowledge seeded successfully");
+    } catch (e) {
+        console.warn("  ⚠️ ChatbotKnowledge migration/seeding warning:", e.message);
+    }
 }

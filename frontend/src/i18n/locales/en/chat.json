@@ -1,0 +1,16 @@
+{
+  "title": "Messages",
+  "activeChat": "Active Chat",
+  "noChats": "No conversations yet",
+  "noChatsDesc": "Start chatting with an artisan or buyer from a product, mentorship, workshop, or request page.",
+  "sendPlaceholder": "Type a message...",
+  "send": "Send",
+  "typing": "is typing...",
+  "online": "Online",
+  "offline": "Offline",
+  "systemMessage": "System Message",
+  "orderSystemMessage": "Order created: #{{id}}",
+  "mentorshipSystemMessage": "Mentorship Application: {{status}}",
+  "workshopSystemMessage": "Workshop Registration: {{status}}",
+  "customRequestSystemMessage": "Request Proposal: {{status}}"
+}

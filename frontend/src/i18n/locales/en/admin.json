@@ -1,0 +1,35 @@
+{
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "totalUsers": "Total Users",
+    "totalProducts": "Total Products",
+    "totalOrders": "Total Orders",
+    "totalRevenue": "Total Revenue",
+    "recentOrders": "Recent Orders"
+  },
+  "users": {
+    "title": "User Management",
+    "search": "Search users...",
+    "id": "ID",
+    "name": "Name",
+    "email": "Email",
+    "type": "Type",
+    "status": "Status",
+    "joined": "Joined",
+    "actions": "Actions",
+    "noUsers": "No users found",
+    "deleteConfirm": "Delete this user?",
+    "deleted": "User deleted"
+  },
+  "products": { "title": "Product Management", "search": "Search products...", "noProducts": "No products found", "deleted": "Product deleted" },
+  "orders": { "title": "Order Management", "search": "Search orders...", "orderId": "Order ID", "buyer": "Buyer", "total": "Total", "date": "Date", "status": "Status", "noOrders": "No orders found", "deleted": "Order deleted", "statusUpdated": "Status updated" },
+  "requests": { "title": "Request Management", "search": "Search requests...", "noRequests": "No requests found" },
+  "applications": { "title": "Application Management", "search": "Search applications...", "noApplications": "No applications found", "artisan": "Artisan", "buyer": "Buyer", "request": "Request" },
+  "reviews": { "title": "Review Management", "search": "Search reviews...", "noReviews": "No reviews found", "reviewer": "Reviewer", "product": "Product", "rating": "Rating", "comment": "Comment" },
+  "payments": { "title": "Payment Management", "search": "Search payments...", "noPayments": "No payments found", "totalPayments": "Total Payments", "completedPayments": "Completed", "pendingPayments": "Pending", "totalAmount": "Total Amount" },
+  "portfolios": { "title": "Portfolio Management", "search": "Search portfolios...", "noPortfolios": "No portfolios found" },
+  "mentorships": { "title": "Mentorship Management", "tabs": { "mentorships": "Mentorships", "applications": "Applications" } },
+  "workshops": { "title": "Workshop Management", "tabs": { "workshops": "Workshops", "registrations": "Registrations" } },
+  "settings": { "title": "Platform Settings", "general": "General Settings", "save": "Save Settings", "saved": "Settings saved" },
+  "common": { "id": "ID", "name": "Name", "category": "Category", "price": "Price", "duration": "Duration", "status": "Status", "date": "Date", "actions": "Actions", "artisan": "Artisan", "buyer": "Buyer", "noData": "No data found" }
+}

@@ -1,3 +1,4 @@
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useContext, useRef, useEffect } from "react";
 import {
@@ -11,6 +12,7 @@ import {
   FiSun,
   FiMoon,
   FiHeart,
+  FiGlobe,
 
   FiFileText,
   FiHome,
@@ -23,10 +25,13 @@ import { ThemeContext } from "../../context/ThemeContext";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { useChat } from "../../hooks/useChat";
+import { useTranslation } from "react-i18next";
 import "./Navbar.css";
 import logo from "../../assets/logo.png";
 
+
 export default function Navbar() {
+  const { t, i18n } = useTranslation('common');
   const { user, isAuthenticated, logout, isBuyer, isArtisan, isAdmin } = useAuth();
   const { totalItems } = useCart();
   const { totalUnread } = useChat();
@@ -52,36 +57,34 @@ export default function Navbar() {
   const getNavLinks = () => {
     if (!isAuthenticated) {
       return [
-        { path: "/", label: "Home", icon: FiHome },
-        { path: "/marketplace", label: "Marketplace", icon: FiList },
-        { path: "/artisans", label: "Artisans", icon: FiUser },
+        { path: "/", label: t("nav.home"), icon: FiHome },
+        { path: "/marketplace", label: t("nav.marketplace"), icon: FiList },
+        { path: "/artisans", label: t("nav.artisans"), icon: FiUser },
       ];
     }
 
     if (isBuyer) {
       return [
-        { path: "/", label: "Home", icon: FiHome },
-        { path: "/marketplace", label: "Marketplace", icon: FiList },
-        { path: "/mentorships", label: "Mentorships", icon: FiBriefcase },
-        { path: "/workshops", label: "Workshops", icon: FiInbox },
-        { path: "/dashboard/requests", label: "Requests", icon: FiFileText },
-        { path: "/dashboard/favorites", label: "Favorites", icon: FiHeart },
-
+        { path: "/", label: t("nav.home"), icon: FiHome },
+        { path: "/marketplace", label: t("nav.marketplace"), icon: FiList },
+        { path: "/mentorships", label: t("nav.mentorships"), icon: FiBriefcase },
+        { path: "/workshops", label: t("nav.workshops"), icon: FiInbox },
+        { path: "/dashboard/requests", label: t("nav.requests"), icon: FiFileText },
+        { path: "/dashboard/favorites", label: t("nav.favorites"), icon: FiHeart },
       ];
     }
 
     if (isArtisan) {
       return [
-        { path: "/dashboard", label: "Dashboard", icon: FiGrid },
-        { path: "/dashboard/applications", label: "Orders", icon: FiBriefcase },
-        { path: "/requests", label: "Requests", icon: FiFileText },
-
+        { path: "/dashboard", label: t("nav.dashboard"), icon: FiGrid },
+        { path: "/dashboard/applications", label: t("nav.orders"), icon: FiBriefcase },
+        { path: "/requests", label: t("nav.requests"), icon: FiFileText },
       ];
     }
 
     if (isAdmin) {
       return [
-        { path: '/admin', label: 'Dashboard', icon: FiGrid },
+        { path: '/admin', label: t("nav.dashboard"), icon: FiGrid },
       ];
     }
 
@@ -89,6 +92,7 @@ export default function Navbar() {
   };
 
   const navLinks = getNavLinks();
+
 
   const handleLogout = () => {
     logout();
@@ -127,6 +131,25 @@ export default function Navbar() {
 
         <div className="navbar-actions">
           <button
+            onClick={() => i18n.changeLanguage(i18n.language === 'ar' ? 'en' : 'ar')}
+            className="navbar-cart"
+            style={{
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              padding: "0 8px"
+            }}
+            title={i18n.language === 'ar' ? "English" : "العربية"}
+          >
+            <FiGlobe style={{ fontSize: 16 }} />
+            <span style={{ fontSize: 12, fontWeight: 700 }}>
+              {i18n.language === 'ar' ? "EN" : "عربي"}
+            </span>
+          </button>
+          <button
             onClick={toggleTheme}
             className="navbar-cart"
             style={{
@@ -134,7 +157,7 @@ export default function Navbar() {
               background: "transparent",
               cursor: "pointer",
             }}
-            title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+            title={t('nav.switchTheme', { mode: theme === "light" ? "dark" : "light" })}
           >
             {theme === "light" ? <FiMoon /> : <FiSun />}
           </button>
@@ -168,7 +191,7 @@ export default function Navbar() {
                     <img
                       src={
                         profileImage.startsWith("/")
-                          ? `http://localhost:3000${profileImage}`
+                          ? `${API_BASE}${profileImage}`
                           : profileImage
                       }
                       alt=""
@@ -201,7 +224,7 @@ export default function Navbar() {
                       className="navbar-dropdown-item"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      <FiGrid /> Dashboard
+                      <FiGrid /> {t('nav.dashboard')}
                     </Link>
                     {!isAdmin && (
                     <Link
@@ -209,7 +232,7 @@ export default function Navbar() {
                       className="navbar-dropdown-item"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      <FiUser /> Profile
+                      <FiUser /> {t('nav.profile')}
                     </Link>
                     )}
                     <div className="navbar-dropdown-divider" />
@@ -217,7 +240,7 @@ export default function Navbar() {
                       className="navbar-dropdown-item navbar-dropdown-logout"
                       onClick={handleLogout}
                     >
-                      <FiLogOut /> Logout
+                      <FiLogOut /> {t('nav.logout')}
                     </button>
                   </div>
                 </>
@@ -226,17 +249,18 @@ export default function Navbar() {
           ) : (
             <div className="navbar-auth-btns">
               <Link to="/login" className="navbar-login-btn" id="navbar-login">
-                Sign In
+                {t('nav.signIn')}
               </Link>
               <Link
                 to="/register"
                 className="navbar-register-btn"
                 id="navbar-register"
               >
-                Sign Up
+                {t('nav.signUp')}
               </Link>
             </div>
           )}
+
 
           <button
             className="navbar-mobile-toggle"

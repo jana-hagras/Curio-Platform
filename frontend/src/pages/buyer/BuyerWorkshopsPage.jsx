@@ -4,16 +4,20 @@ import { useAuth } from '../../hooks/useAuth';
 import { workshopRegistrationService } from '../../services/workshopRegistrationService';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { FiCalendar, FiClock, FiExternalLink } from 'react-icons/fi';
+import { FiCalendar, FiExternalLink } from 'react-icons/fi';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import DashboardSkeleton from '../../components/ui/DashboardSkeleton';
+import { useTranslation } from 'react-i18next';
 
 export default function BuyerWorkshopsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['workshop', 'common']);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const isRtl = i18n.language === 'ar';
 
   useEffect(() => {
     workshopRegistrationService.getByBuyer(user.id)
@@ -28,18 +32,18 @@ export default function BuyerWorkshopsPage() {
     <div style={{ animation: 'fadeInUp 0.4s ease forwards' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
         <div>
-          <h1 style={{ fontSize: 28, marginBottom: 4 }}>My Workshops</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>View your workshop registrations</p>
+          <h1 style={{ fontSize: 28, marginBottom: 4 }}>{t('workshop:myWorkshops', 'My Workshops')}</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 15 }}>{t('workshop:buyer.viewRegistrations', 'View your workshop registrations')}</p>
         </div>
-        <Button onClick={() => navigate('/workshops')}>Browse Workshops</Button>
+        <Button onClick={() => navigate('/workshops')}>{t('workshop:backToWorkshops', 'Browse Workshops')}</Button>
       </div>
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
         {[
-          { label: 'Registered', value: registrations.filter(r => r.status === 'Registered').length, icon: FiCalendar, color: '#3B82F6' },
-          { label: 'Confirmed', value: registrations.filter(r => r.status === 'Confirmed').length, icon: FiCalendar, color: '#10B981' },
-          { label: 'Total', value: registrations.length, icon: FiCalendar, color: '#D4A843' },
+          { label: t('workshop:registered', 'Registered'), value: registrations.filter(r => r.status === 'Registered').length, icon: FiCalendar, color: '#3B82F6' },
+          { label: t('common:status.confirmed', 'Confirmed'), value: registrations.filter(r => r.status === 'Confirmed').length, icon: FiCalendar, color: '#10B981' },
+          { label: t('common:labels.total', 'Total'), value: registrations.length, icon: FiCalendar, color: '#D4A843' },
         ].map((s, i) => (
           <div key={i} style={{ background: 'var(--surface-primary)', padding: 20, borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: `${s.color}15`, color: s.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}><s.icon /></div>
@@ -55,9 +59,9 @@ export default function BuyerWorkshopsPage() {
       {registrations.length === 0 ? (
         <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', padding: '60px 24px', textAlign: 'center' }}>
           <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: 24 }}><FiCalendar /></div>
-          <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', marginBottom: 8 }}>No Workshops Registered</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 }}>Browse and register for upcoming workshops</p>
-          <Button onClick={() => navigate('/workshops')}>Browse Workshops</Button>
+          <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', marginBottom: 8 }}>{t('workshop:buyer.noWorkshopsRegistered', 'No Workshops Registered')}</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 }}>{t('workshop:buyer.noWorkshopsRegisteredDesc', 'Browse and register for upcoming workshops')}</p>
+          <Button onClick={() => navigate('/workshops')}>{t('workshop:backToWorkshops', 'Browse Workshops')}</Button>
         </div>
       ) : (
         <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--surface-border)', overflow: 'hidden' }}>
@@ -76,20 +80,20 @@ export default function BuyerWorkshopsPage() {
                 <div style={{ minWidth: 0 }}>
                   <p style={{ fontWeight: 600, fontSize: 15, marginBottom: 2 }}>{r.workshopTitle || 'Workshop'}</p>
                   <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                    by {r.artisanName || 'Artisan'}
+                    {t('workshop:buyer.byArtisan', 'by {{name}}', { name: r.artisanName || 'Artisan' })}
                     {r.workshopDate && ` · ${formatDate(r.workshopDate)}`}
                     {r.workshopPrice && Number(r.workshopPrice) > 0 && ` · ${formatCurrency(r.workshopPrice)}`}
                   </p>
                   {r.registrationDate && (
-                    <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>Registered {formatDate(r.registrationDate)}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>{t('workshop:registered')} {formatDate(r.registrationDate)}</p>
                   )}
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Badge status={r.status}>{r.status}</Badge>
+                <Badge status={r.status}>{t('common:status.' + r.status.charAt(0).toLowerCase() + r.status.slice(1), r.status)}</Badge>
                 {r.meetingLink && (
                   <a href={r.meetingLink} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--gold-primary)', fontWeight: 600, padding: '6px 12px', borderRadius: 'var(--radius-full)', background: 'rgba(212,168,67,0.1)', textDecoration: 'none' }}>
-                    <FiExternalLink size={13} /> Join Workshop
+                    <FiExternalLink size={13} className={isRtl ? 'rtl-flip' : ''} /> {t('workshop:buyer.joinWorkshop', 'Join Workshop')}
                   </a>
                 )}
               </div>

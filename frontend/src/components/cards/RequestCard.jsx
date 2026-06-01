@@ -3,10 +3,12 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Badge from '../ui/Badge';
 import Image from '../ui/Image';
+import { useTranslation } from 'react-i18next';
 import { FiCalendar, FiDollarSign, FiImage, FiCpu } from 'react-icons/fi';
 import './RequestCard.css';
 
 export default function RequestCard({ request }) {
+  const { t } = useTranslation(['common']);
   // Preferred AI image first, then first completed AI image
   const thumbnailUrl = request.preferredImage
     || (request.aiImages && request.aiImages.length > 0 ? request.aiImages[0] : null);
@@ -43,21 +45,21 @@ export default function RequestCard({ request }) {
           <div className="request-card-thumbnail-fallback">
             <FiImage className="request-card-thumbnail-fallback-icon" />
             <span className="request-card-thumbnail-fallback-text">
-              {aiStatus === 'Processing' ? 'Generating preview…' : 'Custom Request'}
+              {aiStatus === 'Processing' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Generating preview…' : 'جاري توليد المعاينة...') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'Custom Request' : 'طلب مخصص')}
             </span>
           </div>
         )}
 
         {/* Category pill */}
         {request.category && (
-          <span className="request-card-category">{request.category}</span>
+          <span className="request-card-category">{t('common:categories.' + request.category, request.category)}</span>
         )}
 
         {/* AI status overlay */}
         {aiStatus !== 'None' && aiBadgeClass && (
           <span className={`request-card-ai-badge ${aiBadgeClass}`}>
             <FiCpu size={11} />
-            {aiStatus === 'Processing' ? 'AI Generating' : `AI ${aiStatus}`}
+            {aiStatus === 'Processing' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'AI Generating' : 'توليد ذكاء اصطناعي') : `AI ${aiStatus}`}
           </span>
         )}
       </div>
@@ -66,7 +68,11 @@ export default function RequestCard({ request }) {
       <div className="request-card-body">
         <div className="request-card-header">
           <h3 className="request-card-title">{request.title}</h3>
-          {request.status && <Badge status={request.status === 'Open' ? 'Active' : request.status}>{request.status}</Badge>}
+          {request.status && (
+            <Badge status={request.status === 'Open' ? 'Active' : request.status}>
+              {request.status === 'Open' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Open' : 'مفتوح') : request.status}
+            </Badge>
+          )}
         </div>
 
         <p className="request-card-desc">
@@ -85,9 +91,10 @@ export default function RequestCard({ request }) {
         </div>
 
         {request.buyerName && (
-          <div className="request-card-buyer">By {request.buyerName}</div>
+          <div className="request-card-buyer">{t('common:nav.adminPanel') === 'Admin Panel' ? 'By' : 'بواسطة'} {request.buyerName}</div>
         )}
       </div>
     </Link>
   );
 }
+

@@ -1,0 +1,231 @@
+.product-detail-page {
+  padding: 40px 0;
+  background: var(--surface-secondary);
+  min-height: calc(100vh - 68px);
+}
+
+.product-detail-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.product-detail-back-btn:hover {
+  background: var(--surface-tertiary);
+  color: var(--text-primary);
+}
+
+.product-detail-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+
+.product-detail-images {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.product-detail-main-img {
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 1.15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.product-detail-main-img:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.product-detail-thumbs {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.product-detail-thumb-item {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+}
+
+.product-detail-thumb-item:hover {
+  transform: scale(1.05);
+}
+
+.product-detail-thumb-item.active {
+  border-color: var(--gold-primary);
+  box-shadow: var(--shadow-gold);
+}
+
+.product-detail-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.product-detail-title {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.product-detail-artisan {
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+}
+
+.product-detail-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.product-detail-rating-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.product-detail-price {
+  font-family: var(--font-body);
+  font-size: 32px;
+  color: var(--gold-dark);
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.product-detail-desc {
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.product-detail-qty-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.product-detail-qty-picker {
+  display: flex;
+  align-items: center;
+  border: 2px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-primary);
+}
+
+.product-detail-qty-picker button {
+  padding: 10px 16px;
+  font-size: 18px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: background var(--transition-fast);
+}
+
+.product-detail-qty-picker button:hover {
+  background: var(--surface-secondary);
+}
+
+.product-detail-qty-picker span {
+  padding: 10px 20px;
+  font-weight: 600;
+  min-width: 50px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.product-detail-reviews-section {
+  background: var(--surface-primary);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.product-detail-reviews-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.product-detail-review-form {
+  margin-bottom: 36px;
+  padding: 24px;
+  background: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-border);
+}
+
+.product-detail-review-form h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.product-detail-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.product-detail-review-item {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.product-detail-review-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .product-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .product-detail-main-img {
+    aspect-ratio: 1.2;
+  }
+
+  .product-detail-title {
+    font-size: 28px;
+  }
+}

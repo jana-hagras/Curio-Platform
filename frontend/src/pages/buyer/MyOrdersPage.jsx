@@ -8,6 +8,7 @@ import { formatDate } from '../../utils/formatDate';
 import { FiFileText, FiEdit2 } from 'react-icons/fi';
 import InvoiceModal from '../../components/ui/InvoiceModal';
 import EditOrderModal from '../../components/ui/EditOrderModal';
+import { useTranslation } from 'react-i18next';
 
 /** Returns true if the order was placed within the last 24 hours */
 const isEditableOrder = (order) => {
@@ -25,6 +26,7 @@ export default function MyOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
   const [filter, setFilter] = useState('All');
+  const { t } = useTranslation(['order', 'common']);
 
   const fetchOrders = useCallback(() => {
     setLoading(true);
@@ -50,12 +52,12 @@ export default function MyOrdersPage() {
   });
 
   const columns = [
-    { header: 'Order ID', accessor: 'id' },
-    { header: 'Date', accessor: 'orderDate', render: r => formatDate(r.orderDate) },
-    { header: 'Total', accessor: 'totalAmount', render: r => formatCurrency(r.totalAmount) },
-    { header: 'Status', accessor: 'status', render: r => <Badge status={r.status} /> },
+    { header: t('order:orders.orderId', 'Order ID'), accessor: 'id' },
+    { header: t('order:orders.date', 'Date'), accessor: 'orderDate', render: r => formatDate(r.orderDate) },
+    { header: t('order:orders.total', 'Total'), accessor: 'totalAmount', render: r => formatCurrency(r.totalAmount) },
+    { header: t('order:orders.status', 'Status'), accessor: 'status', render: r => <Badge status={r.status} /> },
     {
-      header: 'Actions',
+      header: t('order:orders.actions', 'Actions'),
       accessor: 'actions',
       render: r => (
         <div style={{ display: 'flex', gap: 8 }}>
@@ -72,7 +74,7 @@ export default function MyOrdersPage() {
               color: 'var(--text-primary)',
             }}
           >
-            <FiFileText /> Invoice
+            <FiFileText /> {t('order:orders.invoice', 'Invoice')}
           </button>
 
           {/* Edit button — visible only within 24 hours of placement */}
@@ -89,7 +91,7 @@ export default function MyOrdersPage() {
                 color: 'var(--gold-primary, #d4af37)',
               }}
             >
-              <FiEdit2 /> Edit
+              <FiEdit2 /> {t('order:orders.edit', 'Edit')}
             </button>
           )}
         </div>
@@ -100,16 +102,16 @@ export default function MyOrdersPage() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ margin: 0 }}>My Orders</h1>
+        <h1 style={{ margin: 0 }}>{t('order:orders.title', 'My Orders')}</h1>
         <select
           className="select-field"
           style={{ width: 'auto', padding: '8px 16px' }}
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         >
-          <option value="All">All Orders</option>
-          <option value="Completed">Completed</option>
-          <option value="Pending">Pending</option>
+          <option value="All">{t('order:orders.all', 'All Orders')}</option>
+          <option value="Completed">{t('common:status.Completed', 'Completed')}</option>
+          <option value="Pending">{t('common:status.Pending', 'Pending')}</option>
         </select>
       </div>
 
@@ -117,7 +119,7 @@ export default function MyOrdersPage() {
         columns={columns}
         data={filteredAndSortedOrders}
         loading={loading}
-        emptyMessage="You haven't placed any orders yet."
+        emptyMessage={t('order:orders.noOrders', "You haven't placed any orders yet.")}
       />
 
       {selectedOrder && (

@@ -3,6 +3,7 @@ import { FiSearch, FiBookOpen } from 'react-icons/fi';
 import { mentorshipService } from '../../services/mentorshipService';
 import { CATEGORIES } from '../../utils/constants';
 import MentorshipCard from '../../components/cards/MentorshipCard';
+import { useTranslation } from 'react-i18next';
 import './MentorshipsPage.css';
 
 export default function MentorshipsPage() {
@@ -11,6 +12,7 @@ export default function MentorshipsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const { t } = useTranslation(['mentorship', 'common']);
 
   useEffect(() => {
     mentorshipService.getAll()
@@ -50,23 +52,23 @@ export default function MentorshipsPage() {
       <div className="container">
         {/* Hero */}
         <div className="mentorships-hero">
-          <h1>Learn from Master <span className="gold-text">Artisans</span></h1>
-          <p>Book one-on-one mentorship sessions with verified craftsmen. Master traditional techniques and elevate your skills.</p>
+          <h1>{t('mentorship:title').split(' ').slice(0, -1).join(' ') || 'Learn from Master'} <span className="gold-text">{t('mentorship:title').split(' ').slice(-1)[0] || 'Artisans'}</span></h1>
+          <p>{t('mentorship:subtitle')}</p>
         </div>
 
         {/* Stats */}
         <div className="mentorships-stats">
           <div className="mentorships-stat">
             <div className="mentorships-stat-value">{activeMentorships.length}</div>
-            <div className="mentorships-stat-label">Available Mentorships</div>
+            <div className="mentorships-stat-label">{t('common:nav.adminPanel') === 'Admin Panel' ? 'Available Mentorships' : 'البرامج المتاحة'}</div>
           </div>
           <div className="mentorships-stat">
             <div className="mentorships-stat-value">{uniqueArtisans}</div>
-            <div className="mentorships-stat-label">Expert Mentors</div>
+            <div className="mentorships-stat-label">{t('common:nav.adminPanel') === 'Admin Panel' ? 'Expert Mentors' : 'المرشدون الخبراء'}</div>
           </div>
           <div className="mentorships-stat">
             <div className="mentorships-stat-value">{CATEGORIES.length}</div>
-            <div className="mentorships-stat-label">Craft Categories</div>
+            <div className="mentorships-stat-label">{t('common:nav.adminPanel') === 'Admin Panel' ? 'Craft Categories' : 'فئات الحرف الفنية'}</div>
           </div>
         </div>
 
@@ -76,7 +78,7 @@ export default function MentorshipsPage() {
             <FiSearch size={16} />
             <input
               type="text"
-              placeholder="Search mentors, skills, or categories..."
+              placeholder={t('mentorship:search')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               id="mentorships-search-input"
@@ -88,9 +90,9 @@ export default function MentorshipsPage() {
             onChange={e => setCategory(e.target.value)}
             id="mentorships-category-filter"
           >
-            <option value="">All Categories</option>
+            <option value="">{t('common:empty.noItems') === 'No items found' ? 'All Categories' : 'كل الفئات الفنية'}</option>
             {CATEGORIES.map(c => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{t('common:categories.' + c, c)}</option>
             ))}
           </select>
         </div>
@@ -125,11 +127,11 @@ export default function MentorshipsPage() {
             <div className="mentorships-empty-icon">
               <FiBookOpen />
             </div>
-            <h3>No Mentorships Found</h3>
+            <h3>{t('mentorship:noMentorships')}</h3>
             <p>
               {search || category
-                ? 'Try adjusting your search or filters.'
-                : 'No mentorship offerings are available yet. Check back soon!'}
+                ? (t('common:empty.noItems') === 'No items found' ? 'Try adjusting your search or filters.' : 'حاول تعديل خيارات البحث أو التصفية.')
+                : t('mentorship:noMentorshipsDesc')}
             </p>
           </div>
         )}
@@ -137,3 +139,4 @@ export default function MentorshipsPage() {
     </div>
   );
 }
+

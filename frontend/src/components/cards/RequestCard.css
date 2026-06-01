@@ -12,8 +12,7 @@
 
 .request-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--gold-primary);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(212, 168, 67, 0.15);
 }
 
 /* ── Thumbnail area ── */
@@ -125,7 +124,8 @@
   position: absolute;
   top: 10px;
   left: 10px;
-  background: var(--black-deep);
+  background: rgba(10, 10, 14, 0.7);
+  backdrop-filter: blur(8px);
   color: var(--gold-primary);
   padding: 4px 12px;
   border-radius: var(--radius-full);
@@ -133,6 +133,7 @@
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  border: 1px solid rgba(212, 168, 67, 0.2);
 }
 
 /* ── Body ── */

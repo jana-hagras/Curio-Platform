@@ -1,3 +1,4 @@
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiClock, FiUsers, FiCheckCircle, FiCalendar, FiDollarSign, FiSend, FiArrowLeft, FiTag } from 'react-icons/fi';
@@ -6,9 +7,11 @@ import { mentorshipApplicationService } from '../../services/mentorshipApplicati
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
+import { useTranslation } from 'react-i18next';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import toast from 'react-hot-toast';
+import './MentorshipsPage.css';
 
 export default function MentorshipDetailPage() {
   const { id } = useParams();
@@ -20,11 +23,12 @@ export default function MentorshipDetailPage() {
   const [message, setMessage] = useState('');
   const [applying, setApplying] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const { t } = useTranslation(['mentorship', 'common']);
 
   useEffect(() => {
     mentorshipService.getById(id)
       .then(res => setMentorship(res.data?.mentorship))
-      .catch(() => toast.error('Mentorship not found'))
+      .catch(() => toast.error(t('mentorship:noMentorships')))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -48,7 +52,7 @@ export default function MentorshipDetailPage() {
         buyer_id: user.id,
         message,
       });
-      toast.success('Application submitted successfully!');
+      toast.success(t('mentorship:applyModal.success'));
       setShowApplyModal(false);
       setHasApplied(true);
     } catch (err) {
@@ -73,124 +77,103 @@ export default function MentorshipDetailPage() {
   if (!mentorship) {
     return (
       <div className="container" style={{ padding: '80px 0', textAlign: 'center' }}>
-        <h2>Mentorship not found</h2>
-        <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>This mentorship may have been removed.</p>
-        <Button onClick={() => navigate('/mentorships')} style={{ marginTop: 24 }}>Browse Mentorships</Button>
+        <h2>{t('mentorship:noMentorships')}</h2>
+        <p style={{ color: 'var(--text-secondary)', marginTop: 8 }}>
+          {t('common:empty.noItems') === 'No items found' ? 'This mentorship may have been removed.' : 'ربما تم إزالة هذا البرنامج.'}
+        </p>
+        <Button onClick={() => navigate('/mentorships')} style={{ marginTop: 24 }}>{t('mentorship:backToMentorships')}</Button>
       </div>
     );
   }
 
   const avatarSrc = mentorship.artisanProfileImage
-    ? mentorship.artisanProfileImage.startsWith('/') ? `http://localhost:3000${mentorship.artisanProfileImage}` : mentorship.artisanProfileImage
+    ? mentorship.artisanProfileImage.startsWith('/') ? `${API_BASE}${mentorship.artisanProfileImage}` : mentorship.artisanProfileImage
     : null;
 
   return (
-    <div style={{ padding: 'var(--space-2xl) 0 var(--space-4xl)', animation: 'fadeInUp 0.4s ease forwards' }}>
-      <div className="container" style={{ maxWidth: 900, margin: '0 auto' }}>
+    <div className="mentorships-page">
+      <div className="mentorship-detail-container">
         {/* Back */}
-        <button onClick={() => navigate('/mentorships')} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)', fontSize: 14, marginBottom: 24, fontWeight: 500 }}>
-          <FiArrowLeft size={16} /> Back to Mentorships
+        <button onClick={() => navigate('/mentorships')} className="mentorship-detail-back-btn">
+          <FiArrowLeft size={16} className="rtl-flip" /> {t('mentorship:backToMentorships')}
         </button>
 
         {/* Main Card */}
-        <div style={{
-          background: 'var(--surface-primary)',
-          borderRadius: 'var(--radius-xl)',
-          border: '1px solid var(--surface-border)',
-          overflow: 'hidden',
-        }}>
+        <div className="mentorship-detail-card">
           {/* Header with gradient */}
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(212,168,67,0.12) 0%, rgba(212,168,67,0.04) 100%)',
-            padding: '40px 40px 32px',
-            borderBottom: '1px solid var(--surface-border)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24 }}>
+          <div className="mentorship-detail-header">
+            <div className="mentorship-detail-avatar-row">
               {/* Avatar */}
-              <div style={{
-                width: 80, height: 80, borderRadius: '50%', overflow: 'hidden', flexShrink: 0,
-                background: 'var(--surface-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 28, fontWeight: 700, color: 'var(--gold-primary)',
-                border: '3px solid var(--gold-primary)',
-              }}>
-                {avatarSrc ? <img src={avatarSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (mentorship.artisanName?.charAt(0) || 'M')}
+              <div className="mentorship-detail-avatar-wrapper">
+                {avatarSrc ? <img src={avatarSrc} alt="" /> : (mentorship.artisanName?.charAt(0) || 'M')}
               </div>
 
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <h1 style={{ fontSize: 28, margin: 0 }}>{mentorship.artisanName || 'Artisan Mentor'}</h1>
+              <div className="mentorship-detail-profile-info">
+                <div className="mentorship-detail-title-row">
+                  <h1>{mentorship.artisanName || 'Artisan Mentor'}</h1>
                   {mentorship.artisanVerified && (
-                    <span style={{ color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, fontWeight: 600 }}>
-                      <FiCheckCircle size={16} /> Verified
+                    <span className="mentorship-detail-verified-badge">
+                      <FiCheckCircle size={16} /> {t('common:nav.adminPanel') === 'Admin Panel' ? 'Verified' : 'حساب موثق'}
                     </span>
                   )}
                 </div>
                 {mentorship.artisanBio && (
-                  <p style={{ color: 'var(--text-secondary)', fontSize: 15, lineHeight: 1.5, marginTop: 8 }}>{mentorship.artisanBio}</p>
+                  <p className="mentorship-detail-bio">{mentorship.artisanBio}</p>
                 )}
               </div>
             </div>
           </div>
 
           {/* Body */}
-          <div style={{ padding: '32px 40px' }}>
+          <div className="mentorship-detail-body">
             {/* Meta Grid */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20, marginBottom: 32,
-            }}>
+            <div className="mentorship-detail-meta-grid">
               {[
-                { icon: FiTag, label: 'Category', value: mentorship.category || 'General' },
-                { icon: FiClock, label: 'Duration', value: `${mentorship.duration} minutes` },
-                { icon: FiDollarSign, label: 'Session Price', value: formatCurrency(mentorship.sessionPrice) },
-                { icon: FiUsers, label: 'Students', value: '1-on-1 Session' },
-                { icon: FiCalendar, label: 'Start Date', value: mentorship.startDate ? formatDate(mentorship.startDate) : 'Flexible' },
+                { icon: FiTag, label: t('mentorship:categoryLabel'), value: t('common:categories.' + mentorship.category, mentorship.category || 'General') },
+                { icon: FiClock, label: t('mentorship:duration'), value: `${mentorship.duration} ${t('common:nav.adminPanel') === 'Admin Panel' ? 'minutes' : 'دقيقة'}` },
+                { icon: FiDollarSign, label: t('mentorship:sessionPrice'), value: formatCurrency(mentorship.sessionPrice) },
+                { icon: FiUsers, label: t('mentorship:students'), value: t('mentorship:oneOnOne') },
+                { icon: FiCalendar, label: t('mentorship:startDateLabel'), value: mentorship.startDate ? formatDate(mentorship.startDate) : t('mentorship:flexible') },
               ].map((item, i) => (
-                <div key={i} style={{
-                  padding: 20, background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--surface-border)',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: 'var(--gold-primary)' }}>
+                <div key={i} className="mentorship-detail-meta-card">
+                  <div className="mentorship-detail-meta-header">
                     <item.icon size={16} />
-                    <span style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)' }}>{item.label}</span>
+                    <span className="mentorship-detail-meta-label">{item.label}</span>
                   </div>
-                  <p style={{ fontSize: 16, fontWeight: 600 }}>{item.value}</p>
+                  <p className="mentorship-detail-meta-value">{item.value}</p>
                 </div>
               ))}
             </div>
 
             {/* Description */}
             {mentorship.description && (
-              <div style={{ marginBottom: 32 }}>
-                <h3 style={{ fontSize: 18, fontFamily: 'var(--font-body)', fontWeight: 600, marginBottom: 12 }}>About This Mentorship</h3>
-                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 15 }}>{mentorship.description}</p>
+              <div className="mentorship-detail-description" style={{ marginBottom: 32 }}>
+                <h3 className="mentorship-detail-section-title">{t('mentorship:aboutMentorship')}</h3>
+                <p>{mentorship.description}</p>
               </div>
             )}
 
             {/* CTA */}
-            <div style={{
-              padding: 24, background: 'linear-gradient(135deg, rgba(212,168,67,0.08) 0%, rgba(212,168,67,0.03) 100%)',
-              borderRadius: 'var(--radius-lg)', border: '1px solid rgba(212,168,67,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
-            }}>
-              <div>
-                <h3 style={{ fontSize: 22, fontFamily: 'var(--font-body)', fontWeight: 700, marginBottom: 4 }}>
-                  {formatCurrency(mentorship.sessionPrice)} <span style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-secondary)' }}>per session</span>
+            <div className="mentorship-detail-cta-panel">
+              <div className="mentorship-detail-cta-price">
+                <h3>
+                  {formatCurrency(mentorship.sessionPrice)} <span>{t('mentorship:perSession') ? ` / ${t('mentorship:perSession')}` : ' / session'}</span>
                 </h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 14 }}>
-                  {mentorship.status === 'Active' ? 'Currently accepting students' : `Status: ${mentorship.status}`}
+                <p className="mentorship-detail-cta-status">
+                  {mentorship.status === 'Active' ? t('mentorship:acceptingStudents') : `${t('mentorship:statusLabel')}: ${t('common:status.' + mentorship.status.charAt(0).toLowerCase() + mentorship.status.slice(1), mentorship.status)}`}
                 </p>
               </div>
 
               {isAuthenticated && isBuyer ? (
                 hasApplied ? (
-                  <Button variant="outline" disabled>Already Applied</Button>
+                  <Button variant="outline" disabled>{t('mentorship:alreadyApplied')}</Button>
                 ) : (
                   <Button icon={FiSend} onClick={() => setShowApplyModal(true)} disabled={mentorship.status !== 'Active'}>
-                    Apply for Mentorship
+                    {t('mentorship:applyMentorship')}
                   </Button>
                 )
               ) : !isAuthenticated ? (
-                <Button onClick={() => navigate('/login')}>Sign In to Apply</Button>
+                <Button onClick={() => navigate('/login')}>{t('mentorship:signInToApply')}</Button>
               ) : null}
             </div>
           </div>
@@ -198,28 +181,27 @@ export default function MentorshipDetailPage() {
       </div>
 
       {/* Apply Modal */}
-      <Modal isOpen={showApplyModal} onClose={() => setShowApplyModal(false)} title="Apply for Mentorship">
+      <Modal isOpen={showApplyModal} onClose={() => setShowApplyModal(false)} title={t('mentorship:applyModal.title')}>
         <div style={{ padding: '8px 0' }}>
           <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20 }}>
-            Send a message to <strong>{mentorship.artisanName}</strong> explaining why you'd like to learn from them.
+            {t('common:nav.adminPanel') === 'Admin Panel' 
+              ? <>Send a message to <strong>{mentorship.artisanName}</strong> explaining why you'd like to learn from them.</> 
+              : <>أرسل رسالة إلى <strong>{mentorship.artisanName}</strong> توضح فيها لماذا ترغب في التعلم والتدرب على يديه.</>}
           </p>
           <textarea
             value={message}
             onChange={e => setMessage(e.target.value)}
-            placeholder="Tell the mentor about yourself, your experience level, and what you hope to learn..."
+            placeholder={t('mentorship:applyModal.placeholder')}
             rows={5}
-            style={{
-              width: '100%', padding: 14, borderRadius: 'var(--radius-md)', border: '1px solid var(--surface-border)',
-              background: 'var(--surface-primary)', color: 'var(--text-primary)', fontSize: 14, resize: 'vertical',
-              fontFamily: 'var(--font-body)',
-            }}
+            className="mentorship-detail-textarea"
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
-            <Button variant="ghost" onClick={() => setShowApplyModal(false)}>Cancel</Button>
-            <Button onClick={handleApply} loading={applying} icon={FiSend}>Submit Application</Button>
+            <Button variant="ghost" onClick={() => setShowApplyModal(false)}>{t('common:actions.cancel') || 'Cancel'}</Button>
+            <Button onClick={handleApply} loading={applying} icon={FiSend}>{t('mentorship:applyModal.submit')}</Button>
           </div>
         </div>
       </Modal>
     </div>
   );
 }
+

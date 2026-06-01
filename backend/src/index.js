@@ -20,13 +20,13 @@ const start = async () => {
     }
 
     const app = bootstrap();
-    const PORT = process.env.PORT;
+    const PORT = process.env.PORT || 7000;
 
     // Create HTTP server and attach Socket.IO
     const server = createServer(app);
     initSocket(server);
 
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
         console.log(`Server running on port ${PORT} 🚀`);
     });
 };

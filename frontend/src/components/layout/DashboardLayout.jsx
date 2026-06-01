@@ -5,6 +5,7 @@ import {
   FiPackage, FiImage, FiSend, FiHeart, FiInbox, FiBriefcase,
   FiBookOpen, FiCalendar, FiMessageSquare
 } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import BackButton from '../ui/BackButton';
@@ -14,32 +15,31 @@ import './Sidebar.css';
 export default function DashboardLayout() {
   const { isBuyer, isArtisan } = useAuth();
   const { totalUnread } = useChat();
+  const { t } = useTranslation('common');
 
   const buyerLinks = [
-    { path: '/dashboard', label: 'Overview', icon: FiGrid, end: true },
-    { path: '/dashboard/orders', label: 'My Orders', icon: FiShoppingBag },
-    { path: '/dashboard/requests', label: 'My Requests', icon: FiFileText },
-    { path: '/dashboard/mentorships', label: 'My Mentorships', icon: FiBookOpen },
-    { path: '/dashboard/workshops', label: 'My Workshops', icon: FiCalendar },
-    { path: '/dashboard/proposals', label: 'Proposals', icon: FiInbox },
-    { path: '/dashboard/favorites', label: 'Favorites', icon: FiHeart },
-    { path: '/dashboard/payments', label: 'Payments', icon: FiDollarSign },
-    { path: '/dashboard/chat', label: 'Messages', icon: FiMessageSquare, badge: totalUnread },
-
-    { path: '/dashboard/profile', label: 'Profile', icon: FiUser },
+    { path: '/dashboard', label: t('sidebar.overview'), icon: FiGrid, end: true },
+    { path: '/dashboard/orders', label: t('sidebar.myOrders'), icon: FiShoppingBag },
+    { path: '/dashboard/requests', label: t('sidebar.myRequests'), icon: FiFileText },
+    { path: '/dashboard/mentorships', label: t('sidebar.myMentorships'), icon: FiBookOpen },
+    { path: '/dashboard/workshops', label: t('sidebar.myWorkshops'), icon: FiCalendar },
+    { path: '/dashboard/proposals', label: t('sidebar.proposals'), icon: FiInbox },
+    { path: '/dashboard/favorites', label: t('nav.favorites'), icon: FiHeart },
+    { path: '/dashboard/payments', label: t('sidebar.payments'), icon: FiDollarSign },
+    { path: '/dashboard/chat', label: t('sidebar.messages'), icon: FiMessageSquare, badge: totalUnread },
+    { path: '/dashboard/profile', label: t('nav.profile'), icon: FiUser },
   ];
 
   const artisanLinks = [
-    { path: '/dashboard', label: 'Overview', icon: FiGrid, end: true },
-    { path: '/dashboard/products', label: 'My Products', icon: FiPackage },
-    { path: '/dashboard/applications', label: 'My Orders', icon: FiBriefcase },
-    { path: '/dashboard/mentorships', label: 'Mentorships', icon: FiBookOpen },
-    { path: '/dashboard/workshops', label: 'Workshops', icon: FiCalendar },
-    { path: '/dashboard/portfolio', label: 'Portfolio', icon: FiImage },
-    { path: '/dashboard/wallet', label: 'Wallet', icon: FiDollarSign },
-    { path: '/dashboard/chat', label: 'Messages', icon: FiMessageSquare, badge: totalUnread },
-
-    { path: '/dashboard/profile', label: 'Profile', icon: FiUser },
+    { path: '/dashboard', label: t('sidebar.overview'), icon: FiGrid, end: true },
+    { path: '/dashboard/products', label: t('sidebar.myProducts'), icon: FiPackage },
+    { path: '/dashboard/applications', label: t('sidebar.myOrders'), icon: FiBriefcase },
+    { path: '/dashboard/mentorships', label: t('sidebar.myMentorships'), icon: FiBookOpen },
+    { path: '/dashboard/workshops', label: t('sidebar.myWorkshops'), icon: FiCalendar },
+    { path: '/dashboard/portfolio', label: t('sidebar.portfolio'), icon: FiImage },
+    { path: '/dashboard/wallet', label: t('sidebar.wallet'), icon: FiDollarSign },
+    { path: '/dashboard/chat', label: t('sidebar.messages'), icon: FiMessageSquare, badge: totalUnread },
+    { path: '/dashboard/profile', label: t('nav.profile'), icon: FiUser },
   ];
 
   const links = isBuyer ? buyerLinks : artisanLinks;
@@ -50,7 +50,7 @@ export default function DashboardLayout() {
       <div className="dashboard-layout">
         <aside className="sidebar" id="sidebar">
           <div className="sidebar-header">
-            <h3>Dashboard</h3>
+            <h3>{t('nav.dashboard')}</h3>
           </div>
           <nav className="sidebar-nav">
             {links.map((link) => (
@@ -93,3 +93,4 @@ export default function DashboardLayout() {
     </div>
   );
 }
+

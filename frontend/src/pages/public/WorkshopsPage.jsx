@@ -3,6 +3,7 @@ import { FiSearch, FiCalendar } from 'react-icons/fi';
 import { workshopService } from '../../services/workshopService';
 import { CATEGORIES } from '../../utils/constants';
 import WorkshopCard from '../../components/cards/WorkshopCard';
+import { useTranslation } from 'react-i18next';
 import './MentorshipsPage.css'; /* reuse same page layout styles */
 
 export default function WorkshopsPage() {
@@ -11,6 +12,7 @@ export default function WorkshopsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const { t } = useTranslation(['workshop', 'common']);
 
   useEffect(() => {
     workshopService.getAll()
@@ -51,19 +53,19 @@ export default function WorkshopsPage() {
       <div className="container">
         {/* Hero */}
         <div className="mentorships-hero">
-          <h1>Hands-On <span className="gold-text">Workshops</span></h1>
-          <p>Join live workshops hosted by expert artisans. Learn new crafting techniques in collaborative sessions.</p>
+          <h1>{t('workshop:title').split(' ').slice(0, -1).join(' ') || 'Hands-On'} <span className="gold-text">{t('workshop:title').split(' ').slice(-1)[0] || 'Workshops'}</span></h1>
+          <p>{t('workshop:subtitle')}</p>
         </div>
 
         {/* Stats */}
         <div className="mentorships-stats">
           <div className="mentorships-stat">
             <div className="mentorships-stat-value">{activeWorkshops.length}</div>
-            <div className="mentorships-stat-label">Active Workshops</div>
+            <div className="mentorships-stat-label">{t('workshop:upcomingWorkshops', 'Active Workshops')}</div>
           </div>
           <div className="mentorships-stat">
             <div className="mentorships-stat-value">{uniqueHosts}</div>
-            <div className="mentorships-stat-label">Expert Hosts</div>
+            <div className="mentorships-stat-label">{t('workshop:instructor', 'Expert Hosts')}</div>
           </div>
         </div>
 
@@ -73,7 +75,7 @@ export default function WorkshopsPage() {
             <FiSearch size={16} />
             <input
               type="text"
-              placeholder="Search workshops, hosts, or skills..."
+              placeholder={t('workshop:search')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               id="workshops-search-input"
@@ -85,9 +87,9 @@ export default function WorkshopsPage() {
             onChange={e => setCategory(e.target.value)}
             id="workshops-category-filter"
           >
-            <option value="">All Categories</option>
+            <option value="">{t('common:empty.noItems') === 'No items found' ? 'All Categories' : 'كل الفئات الفنية'}</option>
             {CATEGORIES.map(c => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>{t('common:categories.' + c)}</option>
             ))}
           </select>
         </div>
@@ -122,11 +124,11 @@ export default function WorkshopsPage() {
             <div className="mentorships-empty-icon">
               <FiCalendar />
             </div>
-            <h3>No Workshops Found</h3>
+            <h3>{t('workshop:noWorkshops')}</h3>
             <p>
               {search || category
-                ? 'Try adjusting your search or filters.'
-                : 'No workshops are scheduled yet. Check back soon!'}
+                ? (t('common:empty.noItems') === 'No items found' ? 'Try adjusting your search or filters.' : 'حاول تعديل خيارات البحث أو التصفية.')
+                : t('workshop:noWorkshopsDesc')}
             </p>
           </div>
         )}
@@ -134,3 +136,4 @@ export default function WorkshopsPage() {
     </div>
   );
 }
+

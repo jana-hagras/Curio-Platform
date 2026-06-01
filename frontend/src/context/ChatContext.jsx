@@ -1,3 +1,4 @@
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { chatService } from '../services/chatService';
@@ -5,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 
 export const ChatContext = createContext(null);
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const SOCKET_URL = import.meta.env.VITE_API_URL || '${API_BASE}';
 
 export function ChatProvider({ children }) {
   const { user, isAuthenticated } = useAuth();

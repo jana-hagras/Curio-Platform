@@ -1,9 +1,27 @@
 .footer {
-  background: var(--black-deep);
+  background: #0A0A0E;
   color: rgba(255, 255, 255, 0.7);
-  padding: 40px 0 0;
+  padding: 60px 0 0;
   margin-top: auto;
-  border-top: 1px solid rgba(212, 168, 67, 0.1);
+  border-top: 1px solid rgba(212, 168, 67, 0.15);
+  transition: all var(--transition-base);
+}
+
+[data-theme="light"] .footer {
+  background: #FCFAF7;
+  color: var(--text-primary);
+  border-top: 1px solid rgba(212, 168, 67, 0.12);
+}
+
+[data-theme="light"] .footer-link,
+[data-theme="light"] .footer-contact-item,
+[data-theme="light"] .footer-tagline {
+  color: rgba(20, 20, 22, 0.65);
+}
+
+[data-theme="light"] .footer-bottom {
+  border-top: 1px solid rgba(20, 20, 22, 0.08);
+  color: rgba(20, 20, 22, 0.45);
 }
 
 .footer-grid {

@@ -25,6 +25,7 @@ import mentorshipAppRouter from "./modules/mentorshipApplication/mentorshipAppli
 import workshopRouter from "./modules/workshop/workshop.controller.js";
 import workshopRegRouter from "./modules/workshopRegistration/workshopRegistration.controller.js";
 import chatRouter from "./modules/chat/chat.controller.js";
+import assistantRouter from "./modules/assistant/assistant.controller.js";
 
 export const bootstrap = () => {
   const app = express();
@@ -53,6 +54,7 @@ export const bootstrap = () => {
   app.use("/workshops", workshopRouter);
   app.use("/workshop-registrations", workshopRegRouter);
   app.use("/chats", chatRouter);
+  app.use("/assistant", assistantRouter);
 
   app.use((req, res) => {
     res.status(404).json({ ok: false, message: "Route not found" });

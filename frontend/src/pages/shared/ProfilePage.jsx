@@ -1,3 +1,4 @@
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { userService } from "../../services/userService";
@@ -35,7 +36,7 @@ export default function ProfilePage() {
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
     if (form.profileImage) {
-      return form.profileImage.startsWith('/') ? `http://localhost:3000${form.profileImage}` : form.profileImage;
+      return form.profileImage.startsWith('/') ? `${API_BASE}${form.profileImage}` : form.profileImage;
     }
     return null;
   };
