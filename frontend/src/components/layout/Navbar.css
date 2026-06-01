@@ -55,6 +55,7 @@
   font-weight: 700;
   color: var(--gold-primary);
   letter-spacing: 3px;
+  text-shadow: 0 0 15px rgba(212, 168, 67, 0.4);
 }
 
 /* Nav Links */
@@ -315,6 +316,10 @@
   background: var(--error-light);
 }
 
+.hide-desktop {
+  display: none !important;
+}
+
 /* Mobile toggle */
 .navbar-mobile-toggle {
   display: none;
@@ -325,6 +330,10 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
+  .hide-desktop {
+    display: flex !important;
+  }
+
   .navbar-container {
     height: 60px;
   }
@@ -337,8 +346,17 @@
     display: none;
   }
 
-  .navbar-auth-btns .navbar-login-btn {
+  .navbar-auth-btns {
     display: none;
+  }
+
+  .navbar-mobile-auth-btns {
+    width: 100%;
+    justify-content: center;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid rgba(212, 168, 67, 0.15);
   }
 
   .navbar-links {

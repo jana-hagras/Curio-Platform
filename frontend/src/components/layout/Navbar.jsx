@@ -127,6 +127,16 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
+          {!isAuthenticated && (
+            <div className="navbar-mobile-auth-btns hide-desktop">
+              <Link to="/login" className="navbar-login-btn" onClick={() => setMobileOpen(false)}>
+                {t('nav.signIn')}
+              </Link>
+              <Link to="/register" className="navbar-register-btn" onClick={() => setMobileOpen(false)}>
+                {t('nav.signUp')}
+              </Link>
+            </div>
+          )}
         </div>
 
         <div className="navbar-actions">

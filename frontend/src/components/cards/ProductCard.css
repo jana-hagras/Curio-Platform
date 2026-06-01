@@ -6,19 +6,19 @@
   display: block;
   text-decoration: none;
   color: inherit;
-  background: var(--surface-primary);
-  border: 1px solid var(--surface-border);
+  background: linear-gradient(160deg, var(--surface-primary) 0%, var(--surface-secondary) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;
-  transition: all var(--transition-slow) cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--shadow-sm);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .product-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(212, 168, 67, 0.4);
-  box-shadow: var(--shadow-lg), 0 12px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
+  border-color: rgba(212, 168, 67, 0.5);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(212, 168, 67, 0.12);
 }
 
 .product-card-image {
@@ -26,7 +26,6 @@
   aspect-ratio: 4 / 3;
   overflow: hidden;
   background: var(--surface-secondary);
-  border-bottom: 1px solid var(--surface-border);
 }
 
 .product-card-image img {
@@ -144,15 +143,16 @@
   align-items: center;
   justify-content: space-between;
   margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--surface-border);
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .product-card-price {
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: -0.5px;
 }
 
 .product-card-actions {
