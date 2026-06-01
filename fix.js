@@ -24,7 +24,7 @@ files.forEach(file => {
   if (newContent !== content) {
       if (!newContent.includes('const API_BASE =')) {
           // If we replaced something with API_BASE but it's not defined, define it
-          newContent = "const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';\n" + newContent;
+          newContent = "const API_BASE = import.meta.env.REACT_APP_API_BASE || 'http://localhost:7000';\n" + newContent;
       }
       fs.writeFileSync(file, newContent, 'utf8');
       console.log('Fixed', file);
