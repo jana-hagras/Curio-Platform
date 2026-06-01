@@ -107,3 +107,7 @@ coverage/
 # =========================
 *.sqlite
 *.db
+
+# UPLOADS
+backend/public/uploads/
+
