@@ -447,11 +447,25 @@ export const initDatabase = async () => {
         port: Number(process.env.DB_PORT) || 3306,
         user: process.env.DB_USER || 'root',
         password: process.env.DB_PASSWORD || '',
+        connectTimeout: 60000,
     };
     if (process.env.DB_SSL === 'true') {
         dbConfig.ssl = { minVersion: 'TLSv1.2', rejectUnauthorized: true };
     }
-    const tempConn = await mysql.createConnection(dbConfig);
+    
+    let tempConn;
+    let retries = 3;
+    while (retries > 0) {
+        try {
+            tempConn = await mysql.createConnection(dbConfig);
+            break;
+        } catch (err) {
+            console.error(`DB connection failed. Retries left: ${retries - 1}. Error: ${err.message}`);
+            retries--;
+            if (retries === 0) throw err;
+            await new Promise(res => setTimeout(res, 5000));
+        }
+    }
 
     await tempConn.query("CREATE DATABASE IF NOT EXISTS CURIO");
     console.log("Database CURIO checked/created");

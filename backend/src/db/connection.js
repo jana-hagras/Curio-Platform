@@ -9,6 +9,7 @@ const dbConfig = {
     waitForConnections: true,
     connectionLimit: 10,
     multipleStatements: true,
+    connectTimeout: 60000,
 };
 
 if (process.env.DB_SSL === 'true') {
