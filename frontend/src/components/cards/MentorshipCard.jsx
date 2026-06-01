@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { API_BASE } from '../../services/api';
 import { FiClock, FiUsers, FiCheckCircle } from 'react-icons/fi';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useTranslation } from 'react-i18next';

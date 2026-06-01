@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../services/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiClock, FiUsers, FiCalendar, FiDollarSign, FiArrowLeft, FiTag, FiCheckCircle, FiCreditCard } from 'react-icons/fi';
 import { workshopService } from '../../services/workshopService';

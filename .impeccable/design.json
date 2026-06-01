@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-01T17:10:00Z",
+  "title": "Design System: Curio",
+  "extensions": {
+    "colorMeta": {
+      "gold-primary": { "role": "primary", "displayName": "Artisan Gold", "canonical": "oklch(76% 0.17 84)" },
+      "black-deep": { "role": "neutral", "displayName": "Obsidian Deep", "canonical": "oklch(12% 0.01 260)" },
+      "surface-secondary": { "role": "neutral", "displayName": "Warm Cream", "canonical": "oklch(98% 0.005 84)" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display Heading", "purpose": "Hero titles and editorial headlines." },
+      "body": { "displayName": "Body Text", "purpose": "General paragraphs, details, and forms." }
+    },
+    "shadows": [
+      { "name": "ambient-low", "value": "0 4px 12px rgba(0, 0, 0, 0.04)", "purpose": "Resting cards and input boxes." },
+      { "name": "tactile-lift", "value": "0 20px 40px -10px rgba(0, 0, 0, 0.08)", "purpose": "Active focus states and card hovers." }
+    ],
+    "motion": [
+      { "name": "ease-out-quint", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Primary transition curve." },
+      { "name": "press-scale", "value": "scale(0.97)", "purpose": "Press feedback on pointer interaction." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Standard action button with tactile press feedback.",
+      "html": "<button class=\"ds-btn-primary\">EXPLORE MARKETPLACE</button>",
+      "css": ".ds-btn-primary { background: #D4A843; color: #0A0A0E; padding: 12px 24px; font-size: 14px; font-weight: 600; font-family: 'Inter', sans-serif; border-radius: 12px; border: none; letter-spacing: 0.3px; cursor: pointer; transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 14px rgba(212, 168, 67, 0.3); } .ds-btn-primary:hover { background: #E0BC5E; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(212, 168, 67, 0.4); } .ds-btn-primary:active { transform: scale(0.97) translateY(0); }"
+    },
+    {
+      "name": "Luxury Product Card",
+      "kind": "card",
+      "refersTo": "card-product",
+      "description": "Premium display card with integrated status and hidden overflow image animations.",
+      "html": "<div class=\"ds-card\">\n  <div class=\"ds-card-img-wrap\">\n    <img src=\"https://images.unsplash.com/photo-1581428982868-e410dd047a90?w=800&q=80\" class=\"ds-card-img\" alt=\"Pottery\">\n    <span class=\"ds-card-badge\">Pottery</span>\n  </div>\n  <div class=\"ds-card-body\">\n    <h3 class=\"ds-card-title\">Handmade Clay Vase</h3>\n    <p class=\"ds-card-price\">550.00 EGP</p>\n  </div>\n</div>",
+      "css": ".ds-card { background: #FFFFFF; border-radius: 16px; border: 1px solid #EAE6DF; overflow: hidden; cursor: pointer; transition: all 250ms cubic-bezier(0.25, 0.8, 0.25, 1); } .ds-card-img-wrap { position: relative; overflow: hidden; aspect-ratio: 4/3; } .ds-card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; } .ds-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08); } .ds-card:hover .ds-card-img { transform: scale(1.05); } .ds-card:active { transform: scale(0.98) translateY(-2px); } .ds-card-badge { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.6); color: #fff; padding: 4px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; border-radius: 999px; } .ds-card-body { padding: 16px; } .ds-card-title { font-family: 'Playfair Display', serif; font-size: 18px; margin: 0 0 8px; color: #141416; } .ds-card-price { font-size: 15px; font-weight: 700; color: #B8912A; margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Craft Luxury Vault",
+    "overview": "Curio represents the digital home of authentic Egyptian artisanry. Its aesthetic architecture is built on the intersection of ancient heritage (conveyed through warm golds, serif display types, and organic paper tones) and modern, high-end digital tooling.",
+    "keyCharacteristics": [
+      "Tactile and heavy surfaces.",
+      "High typographic contrast.",
+      "Snappy, spring-like click physics.",
+      "Dual-language structural harmony."
+    ],
+    "rules": [
+      { "name": "The Gold Rarity Rule", "body": "Gold is used on less than 10% of any given screen area. Its premium feel depends entirely on its scarcity.", "section": "colors" },
+      { "name": "The Dual-Language Height Rule", "body": "When Arabic typography (Cairo) is active, line-height increments by 15% to prevent diacritics clipping.", "section": "typography" },
+      { "name": "The Active Spring Rule", "body": "Interactive elements scale down by 3% (scale(0.97)) on press, providing a physical, springy click sensation.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do maintain generous white space between grid items (minimum 24px spacing).",
+      "Do use native scale transforms on hover to raise cards rather than introducing hard borders.",
+      "Do pair Playfair Display headings with Inter body text."
+    ],
+    "donts": [
+      "Don't use solid 1px black lines to wrap inner details.",
+      "Don't use neon colors or bright saturated gradients for actions.",
+      "Don't apply un-gated image scaling (scale the image container border instead)."
+    ]
+  }
+}

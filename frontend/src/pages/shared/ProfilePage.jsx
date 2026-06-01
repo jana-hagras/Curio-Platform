@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { userService } from "../../services/userService";
 import { uploadService } from "../../services/uploadService";

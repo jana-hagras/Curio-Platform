@@ -15,6 +15,7 @@ import '../../features/artisan/artisan_requests_screen.dart';
 import '../../features/cart/cart_screen.dart';
 import '../../features/orders/orders_screen.dart';
 import '../../features/checkout/checkout_screen.dart';
+import '../../features/checkout/order_summary_screen.dart';
 import '../../features/checkout/order_confirmation_screen.dart';
 import '../../features/orders/order_details_screen.dart';
 import '../../features/reviews/reviews_screen.dart';
@@ -60,6 +61,7 @@ class AppRoutes {
   static const String orders = '/orders';
   static const String orderDetails = '/order-details';
   static const String checkout = '/checkout';
+  static const String orderSummary = '/order-summary';
   static const String orderConfirmation = '/order-confirmation';
   static const String reviews = '/reviews';
   static const String favorites = '/favorites';
@@ -103,6 +105,7 @@ class AppRoutes {
       orders: (ctx) => const OrdersScreen(),
       orderDetails: (ctx) => const OrderDetailsScreen(),
       checkout: (ctx) => const CheckoutScreen(),
+      orderSummary: (ctx) => const OrderSummaryScreen(),
       orderConfirmation: (ctx) => const OrderConfirmationScreen(),
       reviews: (ctx) => const ReviewsScreen(),
       favorites: (ctx) => const FavoritesScreen(),

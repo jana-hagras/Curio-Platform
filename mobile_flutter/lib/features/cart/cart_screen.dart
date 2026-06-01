@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/custom_image.dart';
+import '../../shared/widgets/empty_state_widget.dart';
 import '../../providers/cart_provider.dart';
 
 class CartScreen extends StatelessWidget {
@@ -15,32 +16,13 @@ class CartScreen extends StatelessWidget {
       body: Consumer<CartProvider>(
         builder: (ctx, cartProvider, _) {
           if (cartProvider.items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.shopping_bag_outlined,
-                      size: 64, color: AppColors.textSecondary),
-                  const SizedBox(height: 16),
-                  const Text("Your cart is empty",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  Text("Start exploring and add items!",
-                      style: TextStyle(
-                          fontSize: 14,
-                          color:
-                              AppColors.textSecondary.withValues(alpha: 0.7))),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: 200,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/home'),
-                      child: const Text("Shop Now"),
-                    ),
-                  ),
-                ],
-              ),
+            return EmptyStateWidget(
+              icon: Icons.shopping_bag_outlined,
+              title: 'Your cart is empty',
+              subtitle: 'Start exploring and add items to your cart!',
+              actionLabel: 'Shop Now',
+              actionIcon: Icons.storefront_outlined,
+              onAction: () => Navigator.pushNamed(context, '/home'),
             );
           }
           return Column(

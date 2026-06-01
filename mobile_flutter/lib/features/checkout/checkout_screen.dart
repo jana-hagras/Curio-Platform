@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/cart_provider.dart';
-import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/notification_provider.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -16,7 +14,6 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   String _address = '';
   String _payment = 'Cash on Delivery';
-  bool _isPlacing = false;
   late TextEditingController _addressCtrl;
 
   @override
@@ -33,7 +30,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.dispose();
   }
 
-  Future<void> _placeOrder() async {
+  void _proceedToSummary() {
     if (_address.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -44,57 +41,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    setState(() => _isPlacing = true);
-
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final cart = Provider.of<CartProvider>(context, listen: false);
-    final orderProv = Provider.of<OrderProvider>(context, listen: false);
-    final notif = Provider.of<NotificationProvider>(context, listen: false);
-
-    if (auth.user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login to continue')),
-      );
-      setState(() => _isPlacing = false);
-      return;
-    }
-
-    try {
-      final order = await orderProv.placeOrder(
-        buyerId: auth.user!.id,
-        buyerName: auth.user!.fullName,
-        deliveryAddress: _address,
-        cartItems: cart.items,
-      );
-
-      await notif.addNotification(
-        title: 'Order Placed',
-        body: '${order.orderId} is processing',
-        icon: 'check_circle',
-        color: 'success',
-      );
-      await cart.clearCart();
-
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/order-confirmation',
-          (r) => false,
-          arguments: {'orderId': order.orderId},
-        );
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to place order. Please try again.'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isPlacing = false);
-    }
+    Navigator.pushNamed(
+      context,
+      '/order-summary',
+      arguments: {
+        'address': _address,
+        'paymentMethod': _payment,
+      },
+    );
   }
 
   @override
@@ -256,22 +210,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _isPlacing ? null : _placeOrder,
+                  onPressed: _proceedToSummary,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
                   ),
-                  child: _isPlacing
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2.5, color: Colors.white),
-                        )
-                      : const Text('Complete Purchase',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700)),
+                  child: const Text('Review Order',
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w700)),
                 ),
               ),
             ),

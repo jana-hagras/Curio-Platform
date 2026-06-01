@@ -1,4 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
+import { API_BASE } from '../../services/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { requestService } from '../../services/requestService';
 import { API_BASE } from '../../services/api';
