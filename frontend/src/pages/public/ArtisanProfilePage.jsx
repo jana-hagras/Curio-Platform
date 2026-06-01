@@ -17,8 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { FiCheckCircle, FiMapPin, FiMail, FiStar, FiImage, FiChevronLeft, FiChevronRight, FiEdit3, FiX, FiMessageSquare } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useChat } from '../../hooks/useChat';
-
-const API_BASE = import.meta.env.VITE_API_URL || '${API_BASE}';
+import { API_BASE } from '../../services/api';
 
 /* ── Edit Review Modal ───────────────────────── */
 function EditReviewModal({ review, onClose, onSave }) {

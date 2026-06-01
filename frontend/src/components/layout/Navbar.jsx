@@ -1,5 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { API_BASE } from "../../services/api";
 import { useState, useContext, useRef, useEffect } from "react";
 import {
   FiMenu,

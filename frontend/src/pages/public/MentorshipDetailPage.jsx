@@ -1,5 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../../services/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiClock, FiUsers, FiCheckCircle, FiCalendar, FiDollarSign, FiSend, FiArrowLeft, FiTag } from 'react-icons/fi';
 import { mentorshipService } from '../../services/mentorshipService';

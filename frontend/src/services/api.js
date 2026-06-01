@@ -1,8 +1,13 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import axios from 'axios';
 
+export const API_BASE = import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL;
+
+if (!API_BASE) {
+  throw new Error("VITE_API_BASE is not configured");
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '${API_BASE}',
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },

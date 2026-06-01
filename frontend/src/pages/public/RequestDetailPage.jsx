@@ -1,4 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
+import { API_BASE } from '../../services/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { requestService } from '../../services/requestService';
 import { applicationService } from '../../services/applicationService';
@@ -110,17 +111,17 @@ export default function RequestDetailPage() {
     if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
       return path;
     }
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
+    const apiBase = API_BASE;
     return `${apiBase}${path}`;
   };
 
   const get3DModelUrl = (path) => {
     if (!path) return '';
     if (path.startsWith('http://') || path.startsWith('https://')) {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
+      const apiBase = API_BASE;
       return `${apiBase}/requests/proxy-3d?url=${encodeURIComponent(path)}`;
     }
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
+    const apiBase = API_BASE;
     return `${apiBase}${path}`;
   };
 

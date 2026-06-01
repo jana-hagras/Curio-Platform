@@ -1,5 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:7000';
 import { Link } from 'react-router-dom';
+import { API_BASE } from '../../services/api';
 import { useTranslation } from 'react-i18next';
 import './ArtisanCard.css';
 

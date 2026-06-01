@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { API_BASE } from '../../services/api';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Badge from '../ui/Badge';
@@ -18,7 +19,7 @@ export default function RequestCard({ request }) {
     if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
       return path;
     }
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
+    const apiBase = API_BASE;
     return `${apiBase}${path}`;
   };
 

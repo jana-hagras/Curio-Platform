@@ -15,8 +15,7 @@ import {
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import './Portfolio.css';
-
-const API_BASE = import.meta.env.VITE_API_URL || '${API_BASE}';
+import { API_BASE } from '../../services/api';
 
 /* ─── VIEWS ─────────────────────────────────────── */
 const VIEW = { LIST: 'list', CREATE: 'create', DETAIL: 'detail', EDIT: 'edit' };
@@ -221,7 +220,7 @@ function ProjectDetail({ project, images, onBack, onEdit, onDelete }) {
   const { t, i18n } = useTranslation(['dashboard']);
   const isRtl = i18n.language === 'ar';
   const [currentIdx, setCurrentIdx] = useState(0);
-  const API = import.meta.env.VITE_API_URL || '${API_BASE}';
+  const API = API_BASE;
 
   const prev = () => setCurrentIdx(i => (i === 0 ? images.length - 1 : i - 1));
   const next = () => setCurrentIdx(i => (i === images.length - 1 ? 0 : i + 1));
@@ -312,7 +311,7 @@ function ProjectForm({ project, existingImages = [], onBack, onSaved, artisanId 
   const { t, i18n } = useTranslation(['dashboard']);
   const isRtl = i18n.language === 'ar';
   const isEdit = Boolean(project);
-  const API = import.meta.env.VITE_API_URL || '${API_BASE}';
+  const API = API_BASE;
 
   const [form, setForm] = useState({
     projectName: project?.projectName || '',

@@ -85,7 +85,7 @@ function getChatImage(chat) {
   return null;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || '${API_BASE}';
+import { API_BASE } from '../../services/api';
 
 function getImageUrl(img) {
   if (!img) return null;
