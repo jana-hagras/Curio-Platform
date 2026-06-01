@@ -12,8 +12,7 @@ import { CATEGORIES } from '../../utils/constants';
 import { FiArrowLeft, FiArrowRight, FiX, FiUpload, FiImage } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_BASE } from '../../services/api';
 
 function resolveImgSrc(url) {
   if (!url) return '';

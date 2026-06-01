@@ -1,6 +1,7 @@
 import { useState, useEffect, Fragment } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { requestService } from '../../services/requestService';
+import { API_BASE } from '../../services/api';
 import { applicationService } from '../../services/applicationService';
 import { milestoneService } from '../../services/milestoneService';
 import { useAuth } from '../../hooks/useAuth';
@@ -110,18 +111,15 @@ export default function RequestDetailPage() {
     if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
       return path;
     }
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
-    return `${apiBase}${path}`;
+    return `${API_BASE}${path}`;
   };
 
   const get3DModelUrl = (path) => {
     if (!path) return '';
     if (path.startsWith('http://') || path.startsWith('https://')) {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
-      return `${apiBase}/requests/proxy-3d?url=${encodeURIComponent(path)}`;
+      return `${API_BASE}/requests/proxy-3d?url=${encodeURIComponent(path)}`;
     }
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
-    return `${apiBase}${path}`;
+    return `${API_BASE}${path}`;
   };
 
   const handleSetPreferred = async (generationId) => {

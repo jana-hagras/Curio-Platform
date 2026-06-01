@@ -9,8 +9,8 @@ router.post("/", uploadMiddleware.single("image"), (req, res) => {
             return res.status(400).json({ ok: false, message: "No file uploaded" });
         }
         
-        // Return the path
-        const imagePath = `/uploads/${req.file.filename}`;
+        // Return the Cloudinary URL
+        const imagePath = req.file.path;
         
         res.status(200).json({
             ok: true,

@@ -4,6 +4,7 @@ import { FiClock, FiUsers, FiCalendar, FiDollarSign, FiArrowLeft, FiTag, FiCheck
 import { workshopService } from '../../services/workshopService';
 import { workshopRegistrationService } from '../../services/workshopRegistrationService';
 import { useAuth } from '../../hooks/useAuth';
+import { API_BASE } from '../../services/api';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { useTranslation } from 'react-i18next';
@@ -113,7 +114,7 @@ export default function WorkshopDetailPage() {
   }
 
   const avatarSrc = workshop.artisanProfileImage
-    ? workshop.artisanProfileImage.startsWith('/') ? `http://localhost:3000${workshop.artisanProfileImage}` : workshop.artisanProfileImage
+    ? workshop.artisanProfileImage.startsWith('/') ? `${API_BASE}${workshop.artisanProfileImage}` : workshop.artisanProfileImage
     : null;
 
   const spotsLeft = (workshop.maxParticipants || 20) - (workshop.registrationCount || 0);

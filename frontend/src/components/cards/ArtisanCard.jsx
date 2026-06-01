@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { API_BASE } from '../../services/api';
 import './ArtisanCard.css';
 
 export default function ArtisanCard({ artisan }) {
@@ -9,7 +10,7 @@ export default function ArtisanCard({ artisan }) {
       <div className="artisan-card-avatar-wrapper">
         <div className="artisan-card-avatar">
           {artisan.profileImage ? (
-            <img src={artisan.profileImage.startsWith('/') ? `http://localhost:3000${artisan.profileImage}` : artisan.profileImage} alt={artisan.firstName} />
+            <img src={artisan.profileImage.startsWith('/') ? `${API_BASE}${artisan.profileImage}` : artisan.profileImage} alt={artisan.firstName} />
           ) : (
             <span>{artisan.firstName?.charAt(0)}{artisan.lastName?.charAt(0)}</span>
           )}

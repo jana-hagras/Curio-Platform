@@ -17,8 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { FiCheckCircle, FiMapPin, FiMail, FiStar, FiImage, FiChevronLeft, FiChevronRight, FiEdit3, FiX, FiMessageSquare } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { useChat } from '../../hooks/useChat';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_BASE } from '../../services/api';
 
 /* ── Edit Review Modal ───────────────────────── */
 function EditReviewModal({ review, onClose, onSave }) {
@@ -164,7 +163,7 @@ export default function ArtisanProfilePage() {
   if (!artisan) return <div className="container" style={{ padding: 60, textAlign: 'center' }}><h2>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Artisan not found' : 'الحرفي غير موجود'}</h2></div>;
 
   const imgSrc = artisan.profileImage
-    ? (artisan.profileImage.startsWith('/') ? `http://localhost:3000${artisan.profileImage}` : artisan.profileImage)
+    ? (artisan.profileImage.startsWith('/') ? `${API_BASE}${artisan.profileImage}` : artisan.profileImage)
     : null;
 
   const tabs = ['products', 'portfolio', 'reviews'];

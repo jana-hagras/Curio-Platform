@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import pool from "./db/connection.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +56,38 @@ export const bootstrap = () => {
   app.use("/workshop-registrations", workshopRegRouter);
   app.use("/chats", chatRouter);
   app.use("/assistant", assistantRouter);
+
+  app.get("/health", async (req, res) => {
+    try {
+      // Test the database connection
+      const [rows] = await pool.query("SELECT 1");
+      res.json({
+        status: "healthy",
+        database: "connected",
+        timestamp: new Date().toISOString(),
+        env: {
+          has_db_host: !!process.env.DB_HOST,
+          db_host: process.env.DB_HOST ? (process.env.DB_HOST.includes('tidbcloud.com') ? 'TiDB Cloud' : process.env.DB_HOST) : 'undefined',
+          port_env: process.env.PORT || 'not set',
+          node_env: process.env.NODE_ENV || 'development'
+        }
+      });
+    } catch (err) {
+      res.status(500).json({
+        status: "unhealthy",
+        database: "disconnected",
+        error: err.message,
+        code: err.code,
+        timestamp: new Date().toISOString(),
+        env: {
+          has_db_host: !!process.env.DB_HOST,
+          db_host: process.env.DB_HOST ? (process.env.DB_HOST.includes('tidbcloud.com') ? 'TiDB Cloud' : process.env.DB_HOST) : 'undefined',
+          port_env: process.env.PORT || 'not set',
+          node_env: process.env.NODE_ENV || 'development'
+        }
+      });
+    }
+  });
 
   app.use((req, res) => {
     res.status(404).json({ ok: false, message: "Route not found" });

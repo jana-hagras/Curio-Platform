@@ -8,6 +8,8 @@ import Button from "../../components/ui/Button";
 import { FiCamera } from "react-icons/fi";
 import toast from "react-hot-toast";
 
+import { API_BASE } from "../../services/api";
+
 export default function ProfilePage() {
   const { user, refreshUser, setUser } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,7 @@ export default function ProfilePage() {
   const getImageSrc = () => {
     if (previewUrl) return previewUrl;
     if (form.profileImage) {
-      return form.profileImage.startsWith('/') ? `http://localhost:3000${form.profileImage}` : form.profileImage;
+      return form.profileImage.startsWith('/') ? `${API_BASE}${form.profileImage}` : form.profileImage;
     }
     return null;
   };

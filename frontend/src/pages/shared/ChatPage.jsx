@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fi';
 import { useChat } from '../../hooks/useChat';
 import { useAuth } from '../../hooks/useAuth';
+import { API_BASE } from '../../services/api';
 import './Chat.css';
 
 // ═══════════════════════════════════════════
@@ -84,8 +85,6 @@ function getChatImage(chat) {
   }
   return null;
 }
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function getImageUrl(img) {
   if (!img) return null;

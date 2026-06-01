@@ -4,7 +4,8 @@
   "description": "Root workspace for Curio Platform",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "postinstall": "npm install --prefix backend --legacy-peer-deps"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

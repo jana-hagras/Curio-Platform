@@ -4,6 +4,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { useTranslation } from 'react-i18next';
 import Badge from '../ui/Badge';
+import { API_BASE } from '../../services/api';
 import './WorkshopCard.css';
 
 export default function WorkshopCard({ workshop }) {
@@ -26,7 +27,7 @@ export default function WorkshopCard({ workshop }) {
 
   const avatarSrc = artisanProfileImage
     ? artisanProfileImage.startsWith('/')
-      ? `http://localhost:3000${artisanProfileImage}`
+      ? `${API_BASE}${artisanProfileImage}`
       : artisanProfileImage
     : null;
 

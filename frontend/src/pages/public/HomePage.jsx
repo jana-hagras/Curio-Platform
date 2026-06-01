@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { marketItemService } from "../../services/marketItemService";
 import { userService } from "../../services/userService";
 import ProductCard from "../../components/cards/ProductCard";
+import { API_BASE } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import toast from "react-hot-toast";
@@ -136,7 +137,7 @@ export default function HomePage() {
                     <div className="vendor-avatar-frame">
                       {artisan.profileImage ? (
                         <img 
-                          src={artisan.profileImage.startsWith('/') ? `http://localhost:3000${artisan.profileImage}` : artisan.profileImage} 
+                          src={artisan.profileImage.startsWith('/') ? `${API_BASE}${artisan.profileImage}` : artisan.profileImage} 
                           alt={artisan.firstName} 
                         />
                       ) : (

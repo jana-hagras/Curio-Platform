@@ -2,10 +2,11 @@ import { createContext, useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { chatService } from '../services/chatService';
 import { useAuth } from '../hooks/useAuth';
+import { API_BASE } from '../services/api';
 
 export const ChatContext = createContext(null);
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const SOCKET_URL = API_BASE;
 
 export function ChatProvider({ children }) {
   const { user, isAuthenticated } = useAuth();

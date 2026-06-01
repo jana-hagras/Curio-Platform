@@ -4,6 +4,7 @@ import { FiClock, FiUsers, FiCheckCircle, FiCalendar, FiDollarSign, FiSend, FiAr
 import { mentorshipService } from '../../services/mentorshipService';
 import { mentorshipApplicationService } from '../../services/mentorshipApplicationService';
 import { useAuth } from '../../hooks/useAuth';
+import { API_BASE } from '../../services/api';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { useTranslation } from 'react-i18next';
@@ -86,7 +87,7 @@ export default function MentorshipDetailPage() {
   }
 
   const avatarSrc = mentorship.artisanProfileImage
-    ? mentorship.artisanProfileImage.startsWith('/') ? `http://localhost:3000${mentorship.artisanProfileImage}` : mentorship.artisanProfileImage
+    ? mentorship.artisanProfileImage.startsWith('/') ? `${API_BASE}${mentorship.artisanProfileImage}` : mentorship.artisanProfileImage
     : null;
 
   return (

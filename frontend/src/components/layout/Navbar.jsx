@@ -25,6 +25,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../hooks/useCart";
 import { useChat } from "../../hooks/useChat";
 import { useTranslation } from "react-i18next";
+import { API_BASE } from "../../services/api";
 import "./Navbar.css";
 import logo from "../../assets/logo.png";
 
@@ -64,7 +65,7 @@ export default function Navbar() {
 
     if (isBuyer) {
       return [
-        { path: "/", label: t("nav.home"), icon: FiHome },
+        { path: "/dashboard", label: t("nav.dashboard"), icon: FiGrid },
         { path: "/marketplace", label: t("nav.marketplace"), icon: FiList },
         { path: "/mentorships", label: t("nav.mentorships"), icon: FiBriefcase },
         { path: "/workshops", label: t("nav.workshops"), icon: FiInbox },
@@ -72,7 +73,10 @@ export default function Navbar() {
     }
 
     if (isArtisan) {
-      return [];
+      return [
+        { path: "/dashboard", label: t("nav.dashboard"), icon: FiGrid },
+        { path: "/requests", label: t("nav.requests"), icon: FiFileText },
+      ];
     }
 
     if (isAdmin) {
@@ -184,7 +188,7 @@ export default function Navbar() {
                     <img
                       src={
                         profileImage.startsWith("/")
-                          ? `http://localhost:3000${profileImage}`
+                          ? `${API_BASE}${profileImage}`
                           : profileImage
                       }
                       alt=""

@@ -529,13 +529,15 @@ export const selectFinalDesign = async (req, res, next) => {
 
     // Find the generation record
     const [genRows] = await pool.query(
-      "SELECT Request_id, VersionNumber FROM RequestAIGeneration WHERE Generation_id = ?",
+      "SELECT Request_id, VersionNumber, GeneratedImageUrl, ModelGlbUrl FROM RequestAIGeneration WHERE Generation_id = ?",
       [generationId]
     );
     if (!genRows.length) return res.status(404).json({ ok: false, message: "Generation not found." });
 
     const requestId = genRows[0].Request_id;
     const versionNumber = genRows[0].VersionNumber;
+    const imageUrl = genRows[0].GeneratedImageUrl;
+    const existingGlb = genRows[0].ModelGlbUrl;
 
     // Verify request exists and does not already have a final design
     const [reqRows] = await pool.query(
@@ -564,9 +566,34 @@ export const selectFinalDesign = async (req, res, next) => {
       [requestId, versionNumber]
     );
 
+    // Trigger background generation of 3D model from this photo if it does not already exist
+    if (imageUrl && !existingGlb) {
+      console.log(`[AI Pipeline] Triggering async Image-to-3D model generation for generation #${generationId}...`);
+      
+      // We run this asynchronously so it does not block the HTTP response
+      (async () => {
+        try {
+          const { generate3DFromImageWithMeshy } = await import("./aiGeneration.service.js");
+          const meshy3DResult = await generate3DFromImageWithMeshy(imageUrl);
+          
+          if (meshy3DResult && meshy3DResult.glbUrl) {
+            await pool.query(
+              "UPDATE RequestAIGeneration SET ModelGlbUrl = ? WHERE Generation_id = ?",
+              [meshy3DResult.glbUrl, generationId]
+            );
+            console.log(`[AI Pipeline] Async 3D model generation succeeded for generation #${generationId}: ${meshy3DResult.glbUrl}`);
+          } else {
+            console.warn(`[AI Pipeline] Async 3D model generation returned no GLB for generation #${generationId}`);
+          }
+        } catch (err) {
+          console.error(`[AI Pipeline] Async 3D model generation failed for generation #${generationId}:`, err.message);
+        }
+      })();
+    }
+
     return res.status(200).json({
       ok: true,
-      message: `Version ${versionNumber} selected as the final design.`,
+      message: `Version ${versionNumber} selected as the final design. Background 3D model generation started.`,
       data: { requestId, generationId, versionNumber },
     });
   } catch (err) {

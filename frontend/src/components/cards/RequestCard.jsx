@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import Badge from '../ui/Badge';
+import { API_BASE } from '../../services/api';
 import Image from '../ui/Image';
 import { useTranslation } from 'react-i18next';
 import { FiCalendar, FiDollarSign, FiImage, FiCpu } from 'react-icons/fi';
@@ -18,8 +19,7 @@ export default function RequestCard({ request }) {
     if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
       return path;
     }
-    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:7000';
-    return `${apiBase}${path}`;
+    return `${API_BASE}${path}`;
   };
 
   const resolvedThumbnailUrl = thumbnailUrl ? getFullImageUrl(thumbnailUrl) : null;

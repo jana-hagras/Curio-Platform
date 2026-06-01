@@ -32,6 +32,7 @@
   justify-content: space-between;
   height: 68px;
   gap: var(--space-lg);
+  position: relative;
 }
 
 /* Logo */
@@ -62,6 +63,9 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .navbar-link {
