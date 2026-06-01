@@ -3,7 +3,7 @@
   "build": {
     "builder": "NIXPACKS",
     "watch": [
-      "backend/**"
+      "src/**"
     ],
     "nixpacksPlan": {
       "phases": {
@@ -14,7 +14,7 @@
         },
         "install": {
           "cmds": [
-            "cd backend && npm ci --legacy-peer-deps"
+            "npm ci --legacy-peer-deps"
           ]
         },
         "build": {
@@ -24,7 +24,7 @@
     }
   },
   "deploy": {
-    "startCommand": "cd backend && npm run start",
+    "startCommand": "npm run start",
     "restartPolicyType": "ON_FAILURE"
   }
 }
