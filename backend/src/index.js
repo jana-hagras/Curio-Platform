@@ -11,14 +11,6 @@ import { createServer } from 'http';
 import { initSocket } from './socket.js';
 
 const start = async () => {
-    try {
-        await initDatabase();
-        console.log("Database ready 🗄️");
-    } catch (err) {
-        console.error("Failed to initialise database:", err);
-        process.exit(1);
-    }
-
     const app = bootstrap();
     const PORT = process.env.PORT || 7000;
 
@@ -26,8 +18,22 @@ const start = async () => {
     const server = createServer(app);
     initSocket(server);
 
-    server.listen(PORT, '0.0.0.0', () => {
+    server.listen(PORT, '0.0.0.0', async () => {
         console.log(`Server running on port ${PORT} 🚀`);
+        
+        console.log("Initializing database connection...");
+        try {
+            await initDatabase();
+            console.log("Database ready 🗄️");
+        } catch (err) {
+            console.error("====================================================");
+            console.error("CRITICAL: Failed to initialise database on startup!");
+            console.error(err);
+            console.error("Please verify your environment variables (DB_HOST, DB_USER, DB_PASSWORD, etc.).");
+            console.error("====================================================");
+            // DO NOT exit process. This keeps the server running so it can bind to the port,
+            // allowing health checks to pass and enabling developers to see logs and query health status.
+        }
     });
 };
 
