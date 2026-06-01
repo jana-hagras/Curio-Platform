@@ -9,13 +9,15 @@ import { reviewService } from '../../services/reviewService';
 import { milestoneService } from '../../services/milestoneService';
 import {
   FiPackage, FiSend, FiDollarSign, FiCheckCircle,
-  FiTrendingUp, FiStar, FiArrowRight, FiPlus, FiBarChart2, FiClock,
+  FiTrendingUp, FiStar, FiArrowRight, FiArrowLeft, FiPlus, FiBarChart2, FiClock,
   FiMessageCircle, FiInfo
 } from 'react-icons/fi';
 import DashboardSkeleton from '../../components/ui/DashboardSkeleton';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { useTranslation } from 'react-i18next';
+import '../shared/Dashboard.css';
 
 export default function ArtisanDashboard() {
   const { user } = useAuth();
