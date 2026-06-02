@@ -12,7 +12,7 @@ import Spinner from '../../components/ui/Spinner';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { FiSend, FiArrowLeft, FiImage, FiZap, FiRefreshCw, FiX, FiChevronLeft, FiChevronRight, FiStar, FiLayers, FiEdit3 } from 'react-icons/fi';
+import { FiSend, FiArrowLeft, FiImage, FiZap, FiRefreshCw, FiX, FiChevronLeft, FiChevronRight, FiStar, FiLayers, FiEdit3, FiDownload } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import '@google/model-viewer';
 
@@ -31,7 +31,8 @@ export default function RequestDetailPage() {
   const [refinementText, setRefinementText] = useState('');
   const [refining, setRefining] = useState(false);
   const [settingPreferred, setSettingPreferred] = useState(false);
-  const { user, isArtisan, isBuyer } = useAuth();
+  const { user, isArtisan, isBuyer, isAdmin } = useAuth();
+  const [view3D, setView3D] = useState(false);
   const { t } = useTranslation(['request', 'common']);
 
   const fetchData = () => {
@@ -149,6 +150,24 @@ export default function RequestDetailPage() {
     finally { setSettingFinal(false); }
   };
 
+  const handleDownloadImage = async (imageUrl) => {
+    try {
+      const response = await fetch(imageUrl, { mode: 'cors' });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `curio-design-${id || 'preview'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download image directly:', err);
+      window.open(imageUrl, '_blank');
+    }
+  };
+
   if (loading) return <Spinner />;
   if (!request) return <div className="container" style={{ padding: 60, textAlign: 'center' }}><h2>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Request not found' : 'الطلب غير موجود'}</h2></div>;
 
@@ -173,19 +192,42 @@ export default function RequestDetailPage() {
           {/* Preferred / Primary Design */}
           {preferredImg && (
             <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {request.finalGenerationId ? '🏆' : <FiStar size={16} />}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {request.finalGenerationId ? '🏆' : <FiStar size={16} />}
+                  </div>
+                  <h3 style={{ fontSize: 18, margin: 0 }}>
+                    {request.imageSourceType === 'Upload' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Uploaded Reference Image' : 'صورة مرجعية مرفوعة') : request.finalGenerationId ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Final Selected Design' : 'التصميم النهائي المختار') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'Reference Design' : 'تصميم مرجعي')}
+                  </h3>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', border: request.finalGenerationId ? '1px solid var(--gold-primary)' : 'none' }}>
+                    {request.imageSourceType === 'Upload' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'REFERENCE' : 'مرجع') : request.finalGenerationId ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'FINAL SELECTED DESIGN' : 'التصميم النهائي المختار') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'PREFERRED' : 'مفضل')}
+                  </span>
                 </div>
-                <h3 style={{ fontSize: 18, margin: 0 }}>
-                  {request.imageSourceType === 'Upload' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Uploaded Reference Image' : 'صورة مرجعية مرفوعة') : request.finalGenerationId ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Final Selected Design' : 'التصميم النهائي المختار') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'Reference Design' : 'تصميم مرجعي')}
-                </h3>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', border: request.finalGenerationId ? '1px solid var(--gold-primary)' : 'none' }}>
-                  {request.imageSourceType === 'Upload' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'REFERENCE' : 'مرجع') : request.finalGenerationId ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'FINAL SELECTED DESIGN' : 'التصميم النهائي المختار') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'PREFERRED' : 'مفضل')}
-                </span>
+                {request.preferredModelGlbUrl && (
+                  <button
+                    onClick={() => setView3D(!view3D)}
+                    style={{
+                      background: view3D ? 'var(--gold-primary)' : 'rgba(212,168,67,0.12)',
+                      color: view3D ? '#000' : 'var(--gold-primary)',
+                      border: '1px solid var(--gold-primary)',
+                      borderRadius: 8,
+                      padding: '6px 12px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <span>{view3D ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'View Photo' : 'عرض الصورة') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'View in 3D' : 'عرض ثلاثي الأبعاد')}</span>
+                  </button>
+                )}
               </div>
               <div style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 500 }}>
-                {request.preferredModelGlbUrl ? (
+                {view3D && request.preferredModelGlbUrl ? (
                   <div style={{ width: '100%', height: 400, borderRadius: 12, overflow: 'hidden', background: '#121212', border: '1px solid var(--surface-border)', position: 'relative' }}>
                     <model-viewer
                       src={get3DModelUrl(request.preferredModelGlbUrl)}
@@ -198,7 +240,41 @@ export default function RequestDetailPage() {
                     />
                   </div>
                 ) : (
-                  <img src={getFullImageUrl(preferredImg)} alt={t('common:nav.adminPanel') === 'Admin Panel' ? 'Preferred design' : 'التصميم المفضل'} style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
+                  <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => {
+                    const fullUrl = getFullImageUrl(preferredImg);
+                    const globalIdx = lightboxImages.indexOf(fullUrl);
+                    setLightboxIdx(globalIdx >= 0 ? globalIdx : 0);
+                  }}>
+                    <img src={getFullImageUrl(preferredImg)} alt={t('common:nav.adminPanel') === 'Admin Panel' ? 'Preferred design' : 'التصميم المفضل'} style={{ width: '100%', borderRadius: 12, objectFit: 'cover', display: 'block' }} />
+                    <div style={{ position: 'absolute', bottom: 12, right: 12, display: 'flex', gap: 8 }}>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadImage(getFullImageUrl(preferredImg));
+                        }}
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.75)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '6px 12px',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          backdropFilter: 'blur(4px)',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseOver={e => e.currentTarget.style.background = 'var(--gold-primary)'}
+                        onMouseOut={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.75)'}
+                      >
+                        <FiDownload size={14} />
+                        <span>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Download' : 'تحميل'}</span>
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -254,19 +330,42 @@ export default function RequestDetailPage() {
         {/* Preferred / Primary Design */}
         {preferredImg && (
           <div style={{ background: 'var(--surface-primary)', borderRadius: 'var(--radius-lg)', padding: 24, border: '1px solid var(--surface-border)', marginBottom: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {request.finalGenerationId ? '🏆' : <FiStar size={16} />}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(212,168,67,0.12)', color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {request.finalGenerationId ? '🏆' : <FiStar size={16} />}
+                </div>
+                <h3 style={{ fontSize: 18, margin: 0 }}>
+                  {request.imageSourceType === 'Upload' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Uploaded Reference Image' : 'صورة مرجعية مرفوعة') : request.finalGenerationId ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Final Selected Design' : 'التصميم النهائي المختار') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'Reference Design' : 'تصميم مرجعي')}
+                </h3>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', border: request.finalGenerationId ? '1px solid var(--gold-primary)' : 'none' }}>
+                  {request.imageSourceType === 'Upload' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'REFERENCE' : 'مرجع') : request.finalGenerationId ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'FINAL SELECTED DESIGN' : 'التصميم النهائي المختار') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'PREFERRED' : 'مفضل')}
+                </span>
               </div>
-              <h3 style={{ fontSize: 18, margin: 0 }}>
-                {request.imageSourceType === 'Upload' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Uploaded Reference Image' : 'صورة مرجعية مرفوعة') : request.finalGenerationId ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'Final Selected Design' : 'التصميم النهائي المختار') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'Reference Design' : 'تصميم مرجعي')}
-              </h3>
-              <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'rgba(212,168,67,0.1)', color: 'var(--gold-primary)', border: request.finalGenerationId ? '1px solid var(--gold-primary)' : 'none' }}>
-                {request.imageSourceType === 'Upload' ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'REFERENCE' : 'مرجع') : request.finalGenerationId ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'FINAL SELECTED DESIGN' : 'التصميم النهائي المختار') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'PREFERRED' : 'مفضل')}
-              </span>
+              {request.preferredModelGlbUrl && (
+                <button
+                  onClick={() => setView3D(!view3D)}
+                  style={{
+                    background: (request.preferredModelGlbUrl && (isArtisan || isAdmin ? view3D : !view3D)) ? 'var(--gold-primary)' : 'rgba(212,168,67,0.12)',
+                    color: (request.preferredModelGlbUrl && (isArtisan || isAdmin ? view3D : !view3D)) ? '#000' : 'var(--gold-primary)',
+                    border: '1px solid var(--gold-primary)',
+                    borderRadius: 8,
+                    padding: '6px 12px',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <span>{(request.preferredModelGlbUrl && (isArtisan || isAdmin ? view3D : !view3D)) ? (t('common:nav.adminPanel') === 'Admin Panel' ? 'View Photo' : 'عرض الصورة') : (t('common:nav.adminPanel') === 'Admin Panel' ? 'View in 3D' : 'عرض ثلاثي الأبعاد')}</span>
+                </button>
+              )}
             </div>
              <div style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 500 }}>
-                {request.preferredModelGlbUrl ? (
+                {(request.preferredModelGlbUrl && (isArtisan || isAdmin ? view3D : !view3D)) ? (
                   <div style={{ width: '100%', height: 400, borderRadius: 12, overflow: 'hidden', background: '#121212', border: '1px solid var(--surface-border)', position: 'relative' }}>
                     <model-viewer
                       src={get3DModelUrl(request.preferredModelGlbUrl)}
@@ -279,7 +378,41 @@ export default function RequestDetailPage() {
                     />
                   </div>
                 ) : (
-                  <img src={getFullImageUrl(preferredImg)} alt={t('common:nav.adminPanel') === 'Admin Panel' ? 'Reference design' : 'تصميم مرجعي'} style={{ width: '100%', borderRadius: 12, objectFit: 'cover' }} />
+                  <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => {
+                    const fullUrl = getFullImageUrl(preferredImg);
+                    const globalIdx = lightboxImages.indexOf(fullUrl);
+                    setLightboxIdx(globalIdx >= 0 ? globalIdx : 0);
+                  }}>
+                    <img src={getFullImageUrl(preferredImg)} alt={t('common:nav.adminPanel') === 'Admin Panel' ? 'Reference design' : 'تصميم مرجعي'} style={{ width: '100%', borderRadius: 12, objectFit: 'cover', display: 'block' }} />
+                    <div style={{ position: 'absolute', bottom: 12, right: 12, display: 'flex', gap: 8 }}>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadImage(getFullImageUrl(preferredImg));
+                        }}
+                        style={{
+                          background: 'rgba(0, 0, 0, 0.75)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 8,
+                          padding: '6px 12px',
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          backdropFilter: 'blur(4px)',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseOver={e => e.currentTarget.style.background = 'var(--gold-primary)'}
+                        onMouseOut={e => e.currentTarget.style.background = 'rgba(0, 0, 0, 0.75)'}
+                      >
+                        <FiDownload size={14} />
+                        <span>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Download' : 'تحميل'}</span>
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
           </div>
@@ -362,7 +495,7 @@ export default function RequestDetailPage() {
                         const hasModel = v.modelGlbUrl;
                         return (
                           <div key={i} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', aspectRatio: '1', border: '1px solid var(--surface-border)', transition: 'all 0.2s', background: '#121212' }} onMouseOver={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }} onMouseOut={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = 'none'; }}>
-                            {hasModel ? (
+                            {hasModel && !isArtisan && !isAdmin ? (
                               <model-viewer
                                 src={get3DModelUrl(v.modelGlbUrl)}
                                 poster={url}
@@ -416,7 +549,35 @@ export default function RequestDetailPage() {
         {/* ── Lightbox ── */}
         {lightboxIdx >= 0 && lightboxImages.length > 0 && (
           <div onClick={() => setLightboxIdx(-1)} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeInUp 0.2s ease' }}>
-            <button onClick={e => { e.stopPropagation(); setLightboxIdx(-1); }} style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}><FiX /></button>
+            <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', gap: 12, zIndex: 10000 }}>
+              <button 
+                onClick={e => { 
+                  e.stopPropagation(); 
+                  handleDownloadImage(lightboxImages[lightboxIdx]); 
+                }} 
+                style={{ 
+                  background: 'rgba(255,255,255,0.1)', 
+                  border: 'none', 
+                  color: '#fff', 
+                  height: 40, 
+                  borderRadius: 20, 
+                  padding: '0 16px', 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 8, 
+                  fontSize: 14, 
+                  fontWeight: 600, 
+                  transition: 'background 0.2s' 
+                }}
+                onMouseOver={e => e.currentTarget.style.background = 'var(--gold-primary)'}
+                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+              >
+                <FiDownload size={16} />
+                <span>{t('common:nav.adminPanel') === 'Admin Panel' ? 'Download' : 'تحميل'}</span>
+              </button>
+              <button onClick={e => { e.stopPropagation(); setLightboxIdx(-1); }} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}><FiX /></button>
+            </div>
             {lightboxImages.length > 1 && (<>
               <button onClick={e => { e.stopPropagation(); setLightboxIdx((lightboxIdx - 1 + lightboxImages.length) % lightboxImages.length); }} style={{ position: 'absolute', left: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}><FiChevronLeft className="rtl-flip" /></button>
               <button onClick={e => { e.stopPropagation(); setLightboxIdx((lightboxIdx + 1) % lightboxImages.length); }} style={{ position: 'absolute', right: 20, background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}><FiChevronRight className="rtl-flip" /></button>

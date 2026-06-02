@@ -81,8 +81,8 @@ const attachAIImages = async (requests) => {
       preferredModelGlbUrl = finalGen ? finalGen.modelGlbUrl : null;
     } else {
       const preferredGen = completedGens.find((g) => g.isPreferred);
-      preferredImage = preferredGen?.imageUrl || null;
-      preferredModelGlbUrl = preferredGen?.modelGlbUrl || null;
+      preferredImage = preferredGen?.imageUrl || (completedGens[completedGens.length - 1]?.imageUrl || null);
+      preferredModelGlbUrl = preferredGen?.modelGlbUrl || (completedGens[completedGens.length - 1]?.modelGlbUrl || null);
     }
 
     // Count unique versions

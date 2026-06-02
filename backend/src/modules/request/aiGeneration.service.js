@@ -198,7 +198,7 @@ export async function generateImageWithMeshy(prompt) {
       },
       body: JSON.stringify({
         prompt: prompt,
-        ai_model": "gpt-image-2", // Use top-quality OpenAI model for realistic results
+        "ai_model": "nano-banana", // Use standard model (3 credits) for realistic single-photo results
         aspect_ratio: "1:1"
       }),
     });
@@ -241,7 +241,9 @@ export async function generateImageWithMeshy(prompt) {
       console.log(`[AI Pipeline] Meshy image poll ${attempt + 1}/${maxAttempts}: ${status}`);
 
       if (status === "SUCCEEDED" || status === "completed") {
-        const imageUrl = statusData.image_url || statusData.result || null;
+        const imageUrl = (statusData.image_urls && statusData.image_urls.length > 0)
+          ? statusData.image_urls[0]
+          : (statusData.image_url || statusData.result || null);
         if (!imageUrl) {
           console.warn("[AI Pipeline] Meshy image succeeded but no image URL found.");
           return getFallbackImageResult("No image URL found in completed task");
