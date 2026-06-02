@@ -362,13 +362,13 @@
 /* Oryzo Spec HUD Layout */
 .hero-tech-hud {
   position: absolute;
-  bottom: 70px;
+  bottom: 40px;
   left: 12%;
   z-index: 3;
   width: 320px;
   background: rgba(18, 18, 18, 0.7);
   border: 1px solid var(--border-color);
-  padding: 20px;
+  padding: 30px 20px 20px;
   border-radius: 4px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -696,9 +696,31 @@
 @media (max-width: 1024px) {
   .hero-neon-frame-glow,
   .hero-ruler,
-  .hero-vertical-capsule,
-  .hero-tech-hud {
+  .hero-vertical-capsule {
     display: none;
+  }
+
+  .luxury-hero {
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 120px;
+    padding-bottom: 80px;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .hero-tech-hud {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    margin-top: 40px;
+    margin-left: clamp(16px, 7vw, 100px);
+    margin-right: clamp(16px, 4vw, 40px);
+    width: auto;
+    max-width: 500px;
+    box-sizing: border-box;
   }
 }
 
@@ -748,6 +770,14 @@
   .hero-main-container {
     padding-left: 20px;
     padding-right: 20px;
+  }
+
+  .hero-tech-hud {
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 30px;
+    width: calc(100% - 40px);
+    max-width: 450px;
   }
 
   .hero-luxury-actions {

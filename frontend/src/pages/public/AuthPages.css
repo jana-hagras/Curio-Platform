@@ -94,6 +94,10 @@
   gap: 18px;
 }
 
+.auth-form button[type="submit"] {
+  margin-top: 12px;
+}
+
 .auth-type-selector {
   display: flex;
   gap: 16px;
